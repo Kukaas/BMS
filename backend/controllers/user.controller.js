@@ -289,3 +289,56 @@ export const activateUser = async (req, res, next) => {
         next(error);
     }
 };
+
+// Update this method to get all users from secretary's barangay
+export const getResidentsByBarangay = async (req, res, next) => {
+    try {
+        const { barangay, role } = req.user;
+
+        // Check if user is authorized
+        if (role !== 'secretary' && role !== 'chairman') {
+            return res.status(403).json({
+                success: false,
+                message: "Not authorized to access resident information"
+            });
+        }
+
+        // Find all users from the same barangay except secretary and chairman
+        const residents = await User.find({
+            barangay,
+            role: "user", // Only get regular users
+        })
+            .select("-password") // Exclude password
+            .sort({ createdAt: -1 });
+
+        // Add verification status badges
+        const formattedResidents = residents.map(resident => ({
+            ...resident.toObject(),
+            status: getResidentStatus(resident),
+            statusVariant: getStatusVariant(resident)
+        }));
+
+        res.status(200).json({
+            success: true,
+            count: residents.length,
+            data: formattedResidents
+        });
+    } catch (error) {
+        console.error("Error fetching residents:", error);
+        next(error);
+    }
+};
+
+// Helper function to determine resident status
+const getResidentStatus = (resident) => {
+    if (!resident.isVerified) return "Unverified";
+    if (!resident.isActive) return "Inactive";
+    return "Active";
+};
+
+// Helper function to determine badge variant
+const getStatusVariant = (resident) => {
+    if (!resident.isVerified) return "warning";
+    if (!resident.isActive) return "destructive";
+    return "success";
+};
