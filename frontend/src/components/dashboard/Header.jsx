@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import axios from "axios";
+import { NotificationsPopover } from "./NotificationsPopover";
 
 export function Header() {
     const { currentUser } = useSelector((state) => state.user);
@@ -53,10 +54,7 @@ export function Header() {
                     </div>
                 </div>
                 <div className="flex items-center space-x-4 ml-4">
-                    <Button variant="ghost" size="icon" className="relative">
-                        <Bell className="h-5 w-5" />
-                        <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full" />
-                    </Button>
+                    <NotificationsPopover />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
