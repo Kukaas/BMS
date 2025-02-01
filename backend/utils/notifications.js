@@ -23,50 +23,15 @@ export const sendNotificationToUser = async (userId, notification) => {
 // Send notification to all secretaries in a barangay
 export const sendNotificationToBarangaySecretaries = async (barangay, notification) => {
     try {
-        // Normalize barangay name to match database format
-        const normalizedBarangay = barangay.charAt(0).toUpperCase() + barangay.slice(1).toLowerCase();
-        console.log("Sending notification to secretaries in barangay:", {
-            originalBarangay: barangay,
-            normalizedBarangay: normalizedBarangay
-        });
+        const normalizedBarangay = barangay.trim().toLowerCase();
 
-        // First find all secretaries and chairmen regardless of isActive status
-        const allSecretaries = await User.find({
-            barangay: normalizedBarangay,
-            role: { $in: ['secretary', 'chairman'] }
-        });
-
-        console.log("All secretaries found (including inactive):", allSecretaries.map(s => ({
-            name: s.name,
-            role: s.role,
-            barangay: s.barangay,
-            isActive: s.isActive,
-            hasIsActive: 'isActive' in s // Debug if field exists
-        })));
-
-        // Then find active ones
         const activeSecretaries = await User.find({
-            barangay: normalizedBarangay,
-            role: { $in: ['secretary', 'chairman'] },
-            $or: [
-                { isActive: true },
-                { isActive: { $exists: false } } // Include documents where isActive isn't set
-            ]
-        });
-
-        console.log("Active secretaries found:", {
-            count: activeSecretaries.length,
-            details: activeSecretaries.map(s => ({
-                id: s._id,
-                name: s.name,
-                role: s.role,
-                barangay: s.barangay,
-                isActive: s.isActive
-            }))
+            role: "secretary",
+            barangay: { $regex: new RegExp(`^${normalizedBarangay}$`, "i") },
+            isActive: true,
         });
 
         if (activeSecretaries.length === 0) {
-            console.log(`No active secretaries found for barangay: ${normalizedBarangay}`);
             return false;
         }
 
@@ -83,9 +48,8 @@ export const sendNotificationToBarangaySecretaries = async (barangay, notificati
                 secretary.notifications.push(notification);
                 secretary.unreadNotifications += 1;
                 await secretary.save();
-                console.log(`Notification sent successfully to ${secretary.role} ${secretary.name}`);
             } catch (error) {
-                console.error(`Failed to send notification to ${secretary.role} ${secretary.name}:`, error);
+                console.error(`Failed to send notification to secretary:`, error);
             }
         }
 
@@ -93,14 +57,13 @@ export const sendNotificationToBarangaySecretaries = async (barangay, notificati
 
     } catch (error) {
         console.error("Error sending notifications to secretaries:", error);
-        console.error("Error details:", error.stack);
         return false;
     }
 };
 
 // Create notification object
 export const createNotification = (title, message, type, docId = null, docModel = null) => {
-    const notification = {
+    return {
         title,
         message,
         type,
@@ -109,8 +72,6 @@ export const createNotification = (title, message, type, docId = null, docModel 
         docModel: docModel,
         createdAt: new Date()
     };
-    console.log("Created notification:", notification);
-    return notification;
 };
 
 // Generic function to handle document request notifications
@@ -144,23 +105,32 @@ export const sendDocumentStatusNotification = async (document, status, requestTy
     try {
         const user = await User.findOne({ email: document.email });
         if (!user) {
-            console.log("User not found for status notification:", document.email);
+            console.warn("User not found for status notification:", document.email);
             return false;
         }
 
+        // Create notification for the user
         const notification = createNotification(
             `${requestType} Status Update`,
             `Your ${requestType.toLowerCase()} request has been ${status}`,
             "status_update",
             document._id,
-            requestType
+            requestType.replace(/\s+/g, '')  // Remove spaces for model name
         );
 
+        // Add notification to user's notifications array
+        if (!user.notifications) {
+            user.notifications = [];
+        }
         user.notifications.push(notification);
-        user.unreadNotifications += 1;
-        await user.save();
 
-        console.log(`${requestType} status notification sent to user:`, user.name);
+        // Increment unread notifications counter
+        if (typeof user.unreadNotifications !== 'number') {
+            user.unreadNotifications = 0;
+        }
+        user.unreadNotifications += 1;
+
+        await user.save();
         return true;
     } catch (error) {
         console.error(`Error sending ${requestType} status notification:`, error);

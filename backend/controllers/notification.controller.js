@@ -3,7 +3,6 @@ import User from "../models/user.model.js";
 // Get user notifications
 export const getUserNotifications = async (req, res, next) => {
     try {
-        console.log("Getting notifications for user:", req.user.id);
         const user = await User.findById(req.user.id);
         if (!user) {
             return res.status(404).json({
@@ -20,7 +19,6 @@ export const getUserNotifications = async (req, res, next) => {
             }
         });
     } catch (error) {
-        console.error("Error in getUserNotifications:", error);
         next(error);
     }
 };

@@ -10,22 +10,25 @@ import {
 
 // Generic function to update document status
 export const updateDocumentStatus = async (Model, requestType, id, status) => {
-    // Normalize status to lowercase to match schema enum
-    const normalizedStatus = status.toLowerCase();
+    // Capitalize first letter of status
+    const normalizedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 
     const document = await Model.findById(id);
     if (!document) {
         throw new Error(`${requestType} not found`);
     }
 
-    document.isVerified = normalizedStatus === "approved";
+    document.isVerified = normalizedStatus === "Approved";
     document.status = normalizedStatus;
     document.dateOfIssuance = new Date();
 
     await document.save();
 
     // Send status notification to requestor
-    await sendDocumentStatusNotification(document, normalizedStatus, requestType);
+    const notificationSent = await sendDocumentStatusNotification(document, normalizedStatus, requestType);
+    if (!notificationSent) {
+        console.warn(`Failed to send status notification for ${requestType} ${id}`);
+    }
 
     return document;
 };
@@ -33,10 +36,6 @@ export const updateDocumentStatus = async (Model, requestType, id, status) => {
 // Get all document requests for a barangay
 export const getAllDocumentRequests = async (req, res, next) => {
     try {
-        // Add authentication verification logging
-        console.log("Request headers:", req.headers);
-        console.log("Authenticated user:", req.user);
-
         if (!req.user) {
             return res.status(401).json({
                 success: false,
@@ -53,8 +52,6 @@ export const getAllDocumentRequests = async (req, res, next) => {
             });
         }
 
-        console.log("Fetching requests for barangay:", barangay);
-
         // Fetch requests from all document types
         const [clearances, indigency, business, cedulas] = await Promise.all([
             BarangayClearance.find({ barangay }).sort({ createdAt: -1 }),
@@ -62,13 +59,6 @@ export const getAllDocumentRequests = async (req, res, next) => {
             BusinessClearance.find({ barangay }).sort({ createdAt: -1 }),
             Cedula.find({ barangay }).sort({ createdAt: -1 }),
         ]);
-
-        console.log("Found documents:", {
-            clearances: clearances.length,
-            indigency: indigency.length,
-            business: business.length,
-            cedulas: cedulas.length,
-        });
 
         // Transform and combine all requests
         const allRequests = [
@@ -120,19 +110,15 @@ export const getAllDocumentRequests = async (req, res, next) => {
             })),
         ];
 
-        // Sort all requests by date
         const sortedRequests = allRequests.sort(
             (a, b) => new Date(b.requestDate) - new Date(a.requestDate)
         );
-
-        console.log("Sending response with", sortedRequests.length, "total requests");
 
         res.status(200).json({
             success: true,
             data: sortedRequests,
         });
     } catch (error) {
-        console.error("Error in getAllDocumentRequests:", error);
         next(error);
     }
 };
@@ -141,7 +127,8 @@ export const getAllDocumentRequests = async (req, res, next) => {
 const createDocumentRequest = async (Model, requestType, reqBody, userBarangay) => {
     const document = new Model({
         ...reqBody,
-        barangay: userBarangay
+        barangay: userBarangay,
+        status: "Pending" // Ensure status is capitalized on creation
     });
 
     await document.save();
