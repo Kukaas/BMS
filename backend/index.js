@@ -16,17 +16,25 @@ import businessClearanceRoutes from "./routes/business.clearance.routes.js";
 import blotterReportRoutes from "./routes/blotter.report.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import documentRequestRoutes from "./routes/document.request.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 
 const app = express();
 dotenv.config();
 
 // Configure CORS before other middleware
 app.use(cors({
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"], // Allow both localhost variations
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "withcredentials",
+        "Accept",
+        "Origin",
+        "X-Requested-With"
+    ],
     exposedHeaders: ["Content-Range", "X-Content-Range"],
-    credentials: true, // Enable credentials
+    credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204
 }));
@@ -110,5 +118,6 @@ app.use("/api/business-clearance", businessClearanceRoutes);
 app.use("/api/blotter", blotterReportRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/document-requests", documentRequestRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 export default app;
