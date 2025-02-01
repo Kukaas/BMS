@@ -8,15 +8,8 @@ import User from "../models/user.model.js";
 export const createBarangayClearance = async (req, res, next) => {
     try {
         const { name, email, purpose, contactNumber } = req.body;
-        const userBarangay = req.user.barangay; // Get barangay from authenticated user
+        const userBarangay = req.user.barangay;
 
-        console.log("User details:", {
-            name: req.user.name,
-            barangay: userBarangay,
-            role: req.user.role
-        });
-
-        // Validate required fields
         if (!name || !email || !purpose || !contactNumber) {
             return res.status(400).json({
                 success: false,
@@ -33,7 +26,6 @@ export const createBarangayClearance = async (req, res, next) => {
         });
 
         await barangayClearance.save();
-        console.log("Saved barangay clearance:", barangayClearance._id);
 
         // Create and send notification to secretaries
         const secretaryNotification = createNotification(
@@ -45,11 +37,7 @@ export const createBarangayClearance = async (req, res, next) => {
         );
 
         // Send notification to secretaries of the user's barangay
-        const notificationSent = await sendNotificationToBarangaySecretaries(userBarangay, secretaryNotification);
-
-        if (!notificationSent) {
-            console.log("Warning: Failed to send notifications to secretaries in barangay:", userBarangay);
-        }
+        await sendNotificationToBarangaySecretaries(userBarangay, secretaryNotification);
 
         res.status(201).json({
             success: true,
@@ -57,7 +45,6 @@ export const createBarangayClearance = async (req, res, next) => {
             data: barangayClearance,
         });
     } catch (error) {
-        console.error("Error creating barangay clearance:", error);
         next(error);
     }
 };

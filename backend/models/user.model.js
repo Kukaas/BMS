@@ -1,34 +1,21 @@
 import mongoose from "mongoose";
 
 const notificationSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        required: true,
-    },
-    message: {
-        type: String,
-        required: true,
-    },
-    type: {
-        type: String,
-        enum: ['request', 'status_update', 'verification', 'document', 'system'],
-        required: true,
-    },
+    title: String,
+    message: String,
+    type: String,
     read: {
         type: Boolean,
-        default: false,
+        default: false
     },
-    relatedDocId: {
-        type: mongoose.Schema.Types.ObjectId,
-        refPath: 'docModel',
-    },
+    relatedDocId: mongoose.Schema.Types.ObjectId,
     docModel: {
         type: String,
-        enum: ['BarangayClearance', 'BarangayIndigency', 'BusinessClearance', 'Cedula', 'BlotterReport', 'IncidentReport'],
+        enum: ['BarangayClearance', 'BarangayIndigency', 'BusinessClearance', 'Cedula']
     },
     createdAt: {
         type: Date,
-        default: Date.now,
+        default: Date.now
     }
 });
 
