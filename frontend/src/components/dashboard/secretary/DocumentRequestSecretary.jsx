@@ -28,7 +28,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useSelector } from "react-redux";
-import axios from "axios";
+import api from "@/lib/axios";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -38,7 +38,6 @@ export function DocumentRequestSecretary() {
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const { currentUser } = useSelector((state) => state.user);
-    const API_URL = import.meta.env.VITE_API_URL;
 
     // Add pagination and search states
     const [currentPage, setCurrentPage] = useState(1);
@@ -47,11 +46,7 @@ export function DocumentRequestSecretary() {
 
     const fetchRequests = async () => {
         try {
-            const res = await axios.get(`${API_URL}/document-requests`, {
-                headers: {
-                    Authorization: `Bearer ${currentUser.token}`,
-                },
-            });
+            const res = await api.get("/document-requests");
 
             if (res.data.success) {
                 setRequests(res.data.data);
@@ -68,7 +63,7 @@ export function DocumentRequestSecretary() {
     };
 
     useEffect(() => {
-        if (currentUser?.token) {
+        if (currentUser) {
             fetchRequests();
         }
     }, [currentUser]);
@@ -78,21 +73,9 @@ export function DocumentRequestSecretary() {
             setUpdating(true);
             const typeSlug = requestType.toLowerCase().replace(/ /g, "-");
 
-            console.log("Updating document:", {
-                requestId,
-                requestType,
-                typeSlug,
-                newStatus,
-            });
-
-            const res = await axios.patch(
-                `${API_URL}/document-requests/${typeSlug}/${requestId}/status`,
-                { status: newStatus },
-                {
-                    headers: {
-                        Authorization: `Bearer ${currentUser.token}`,
-                    },
-                }
+            const res = await api.patch(
+                `/document-requests/${typeSlug}/${requestId}/status`,
+                { status: newStatus }
             );
 
             if (res.data.success) {

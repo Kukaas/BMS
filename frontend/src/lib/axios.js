@@ -1,9 +1,12 @@
 import axios from "axios";
-import { store } from "@/redux/store";
 
 const api = axios.create({
     baseURL: "http://localhost:5000/api",
     withCredentials: true,
+    headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
 });
 
 // Add request interceptor
@@ -16,6 +19,19 @@ api.interceptors.request.use(
         return config;
     },
     (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            // Handle unauthorized access
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+        }
         return Promise.reject(error);
     }
 );

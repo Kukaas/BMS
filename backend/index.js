@@ -21,7 +21,18 @@ const app = express();
 dotenv.config();
 
 // Configure CORS before other middleware
-app.use(cors());
+app.use(cors({
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173"], // Allow both localhost variations
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    exposedHeaders: ["Content-Range", "X-Content-Range"],
+    credentials: true, // Enable credentials
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+}));
+
+// Add OPTIONS handling for preflight requests
+app.options('*', cors());
 
 // Increase payload limits
 app.use(express.json({ limit: "50mb" }));
