@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import {
     Table,
     TableBody,
@@ -6,8 +7,9 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
     Dialog,
     DialogContent,
@@ -22,19 +24,19 @@ export function ResidentsListView({ residents, setSelectedResident }) {
             <TableHeader>
                 <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Age</TableHead>
-                    <TableHead>Address</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Action</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Joined Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Verification</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {residents.map((resident) => (
-                    <TableRow key={resident.id}>
-                        <TableCell className="font-medium">
-                            <div className="flex items-center space-x-3">
+                    <TableRow key={resident._id}>
+                        <TableCell>
+                            <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8">
-                                    <AvatarImage src={resident.profileImage} alt={resident.name} />
                                     <AvatarFallback>
                                         {resident.name
                                             .split(" ")
@@ -42,13 +44,24 @@ export function ResidentsListView({ residents, setSelectedResident }) {
                                             .join("")}
                                     </AvatarFallback>
                                 </Avatar>
-                                <span>{resident.name}</span>
+                                <span className="font-medium">{resident.name}</span>
                             </div>
                         </TableCell>
-                        <TableCell>{resident.age}</TableCell>
-                        <TableCell>{resident.address}</TableCell>
-                        <TableCell>{resident.contactNumber}</TableCell>
+                        <TableCell>{resident.email}</TableCell>
                         <TableCell>
+                            {new Date(resident.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                            <Badge variant={resident.statusVariant}>
+                                {resident.status}
+                            </Badge>
+                        </TableCell>
+                        <TableCell>
+                            <Badge variant={resident.isVerified ? "success" : "warning"}>
+                                {resident.isVerified ? "Verified" : "Pending"}
+                            </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
                             <Dialog>
                                 <DialogTrigger asChild>
                                     <Button
@@ -64,12 +77,9 @@ export function ResidentsListView({ residents, setSelectedResident }) {
                                         <DialogTitle>Resident Details</DialogTitle>
                                     </DialogHeader>
                                     <div className="grid gap-4 py-4">
+                                        {/* Profile Section */}
                                         <div className="flex items-center space-x-4">
                                             <Avatar className="h-20 w-20">
-                                                <AvatarImage
-                                                    src={resident.profileImage}
-                                                    alt={resident.name}
-                                                />
                                                 <AvatarFallback>
                                                     {resident.name
                                                         .split(" ")
@@ -77,38 +87,45 @@ export function ResidentsListView({ residents, setSelectedResident }) {
                                                         .join("")}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <div>
-                                                <h3 className="text-xl font-semibold">
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-xl font-semibold truncate">
                                                     {resident.name}
                                                 </h3>
-                                                <p className="text-sm text-gray-500">
-                                                    {resident.occupation}
+                                                <p className="text-sm text-muted-foreground truncate">
+                                                    {resident.email}
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-3 gap-4">
-                                            <div>
-                                                <p className="text-sm font-medium">Age</p>
-                                                <p className="text-sm">{resident.age}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium">
-                                                    Family Members
-                                                </p>
-                                                <p className="text-sm">{resident.familyMembers}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium">Registered</p>
-                                                <p className="text-sm">{resident.dateRegistered}</p>
-                                            </div>
+
+                                        {/* Status Section */}
+                                        <div className="grid gap-2">
+                                            <p className="text-sm font-medium">Account Status</p>
+                                            <Badge variant={resident.statusVariant}>
+                                                {resident.status}
+                                            </Badge>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-medium">Address</p>
-                                            <p className="text-sm">{resident.address}</p>
+
+                                        {/* Dates Section */}
+                                        <div className="grid gap-2">
+                                            <p className="text-sm font-medium">Joined Date</p>
+                                            <p className="text-sm">
+                                                {new Date(resident.createdAt).toLocaleDateString()}
+                                            </p>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-medium">Contact Number</p>
-                                            <p className="text-sm">{resident.contactNumber}</p>
+
+                                        <div className="grid gap-2">
+                                            <p className="text-sm font-medium">Last Updated</p>
+                                            <p className="text-sm">
+                                                {new Date(resident.updatedAt).toLocaleDateString()}
+                                            </p>
+                                        </div>
+
+                                        {/* Verification Section */}
+                                        <div className="grid gap-2">
+                                            <p className="text-sm font-medium">Verification Status</p>
+                                            <Badge variant={resident.isVerified ? "success" : "warning"}>
+                                                {resident.isVerified ? "Verified" : "Pending Verification"}
+                                            </Badge>
                                         </div>
                                     </div>
                                 </DialogContent>
@@ -120,3 +137,19 @@ export function ResidentsListView({ residents, setSelectedResident }) {
         </Table>
     );
 }
+
+ResidentsListView.propTypes = {
+    residents: PropTypes.arrayOf(
+        PropTypes.shape({
+            _id: PropTypes.string.isRequired,
+            name: PropTypes.string.isRequired,
+            email: PropTypes.string.isRequired,
+            createdAt: PropTypes.string.isRequired,
+            updatedAt: PropTypes.string.isRequired,
+            status: PropTypes.string.isRequired,
+            statusVariant: PropTypes.string.isRequired,
+            isVerified: PropTypes.bool.isRequired,
+        })
+    ).isRequired,
+    setSelectedResident: PropTypes.func.isRequired,
+};
