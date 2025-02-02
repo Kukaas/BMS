@@ -12,8 +12,11 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
+import { Badge } from "@/components/ui/badge";
 
 export function NotificationsPopover() {
+    const user = useSelector((state) => state.user.currentUser);
     const [open, setOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -26,8 +29,11 @@ export function NotificationsPopover() {
         try {
             setIsLoading(true);
             const response = await notificationService.getNotifications();
-            setNotifications(response.data.notifications || []);
-            setUnreadCount(response.data.unreadCount || 0);
+            const notifs = response.data.notifications || [];
+            setNotifications(notifs);
+            // Count unread notifications directly from the array
+            const unreadNotifs = notifs.filter((notif) => !notif.read).length;
+            setUnreadCount(unreadNotifs);
         } catch (error) {
             toast.error("Failed to fetch notifications");
             console.error("Error fetching notifications:", error);
@@ -46,21 +52,39 @@ export function NotificationsPopover() {
 
     // Handle notification click
     const handleNotificationClick = async (notification) => {
-        if (!notification.read) {
-            try {
+        try {
+            if (!notification.read) {
                 setIsMarkingRead(true);
                 await notificationService.markAsRead([notification._id]);
-                await fetchNotifications();
+                // Update the local unread count immediately
+                setUnreadCount((prev) => Math.max(0, prev - 1));
+                // Update the notifications list
+                setNotifications((prevNotifications) =>
+                    prevNotifications.map((n) =>
+                        n._id === notification._id ? { ...n, read: true } : n
+                    )
+                );
                 toast.success("Marked as read");
-            } catch (error) {
-                toast.error("Failed to mark as read");
-                console.error("Error marking as read:", error);
-            } finally {
-                setIsMarkingRead(false);
             }
+        } catch (error) {
+            toast.error("Failed to mark as read");
+            console.error("Error marking as read:", error);
+            // Refresh notifications to ensure sync with server
+            await fetchNotifications();
+        } finally {
+            setIsMarkingRead(false);
         }
 
-        if (notification.relatedDocId && notification.docModel) {
+        // Handle navigation based on notification type and user role
+        if (notification.type === "request") {
+            // For request notifications, navigate based on user role
+            const dashboardPath =
+                user?.role === "secretary"
+                    ? "/dashboard?tab=requestdocs"
+                    : "/dashboard?tab=requests";
+            navigate(dashboardPath);
+        } else if (notification.type === "status_update") {
+            // For status updates, navigate to the specific document type
             let path = "";
             switch (notification.docModel) {
                 case "BarangayClearance":
@@ -76,13 +100,12 @@ export function NotificationsPopover() {
                     path = "/cedula";
                     break;
                 default:
-                    break;
+                    path = "/dashboard";
             }
-            if (path) {
-                navigate(path);
-                setOpen(false);
-            }
+            navigate(path);
         }
+
+        setOpen(false);
     };
 
     // Handle mark all as read
@@ -132,12 +155,19 @@ export function NotificationsPopover() {
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative hover:bg-white/10 transition-colors"
+                >
                     <Bell className="h-5 w-5 text-white" />
                     {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                        <Badge
+                            variant="destructive"
+                            className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0"
+                        >
                             {unreadCount}
-                        </span>
+                        </Badge>
                     )}
                 </Button>
             </PopoverTrigger>
@@ -170,42 +200,47 @@ export function NotificationsPopover() {
                         </div>
                     ) : (
                         <div className="divide-y">
-                            {notifications.map((notification) => (
-                                <div
-                                    key={notification._id}
-                                    className={cn(
-                                        "flex items-start gap-3 p-4 hover:bg-muted transition-colors cursor-pointer relative group",
-                                        !notification.read && "bg-muted/50"
-                                    )}
-                                    onClick={() => handleNotificationClick(notification)}
-                                >
-                                    <div className="text-xl">
-                                        {getNotificationIcon(notification.type)}
-                                    </div>
-                                    <div className="flex-1 space-y-1">
-                                        <p className="text-sm font-medium leading-none">
-                                            {notification.title}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {notification.message}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {format(new Date(notification.createdAt), "PPp")}
-                                        </p>
-                                    </div>
-                                    {!notification.read && (
-                                        <div className="h-2 w-2 bg-blue-500 rounded-full mt-2" />
-                                    )}
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        onClick={(e) => handleDeleteNotification(e, notification._id)}
+                            {notifications
+                                .slice()
+                                .reverse()
+                                .map((notification) => (
+                                    <div
+                                        key={notification._id}
+                                        className={cn(
+                                            "flex items-start gap-3 p-4 hover:bg-muted transition-colors cursor-pointer relative group",
+                                            !notification.read && "bg-muted/50"
+                                        )}
+                                        onClick={() => handleNotificationClick(notification)}
                                     >
-                                        <Trash2 className="h-4 w-4 text-muted-foreground" />
-                                    </Button>
-                                </div>
-                            ))}
+                                        <div className="text-xl">
+                                            {getNotificationIcon(notification.type)}
+                                        </div>
+                                        <div className="flex-1 space-y-1">
+                                            <p className="text-sm font-medium leading-none">
+                                                {notification.title}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {notification.message}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {format(new Date(notification.createdAt), "PPp")}
+                                            </p>
+                                        </div>
+                                        {!notification.read && (
+                                            <div className="h-2 w-2 bg-blue-500 rounded-full mt-2" />
+                                        )}
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            onClick={(e) =>
+                                                handleDeleteNotification(e, notification._id)
+                                            }
+                                        >
+                                            <Trash2 className="h-4 w-4 text-muted-foreground" />
+                                        </Button>
+                                    </div>
+                                ))}
                         </div>
                     )}
                 </ScrollArea>
