@@ -1,4 +1,6 @@
 import BlotterReport from "../models/blotter.report.model.js";
+import { createNotification } from "../utils/notifications.js";
+import User from "../models/user.model.js";
 
 // Create a new blotter report
 export const createBlotterReport = async (req, res, next) => {
@@ -19,6 +21,7 @@ export const createBlotterReport = async (req, res, next) => {
         const blotterReport = new BlotterReport({
             ...otherData,
             evidenceFiles,
+            userId: req.user.id,
             // Ensure date is properly formatted
             incidentDate: new Date(otherData.incidentDate),
         });
@@ -33,6 +36,41 @@ export const createBlotterReport = async (req, res, next) => {
         // Save with timeout
         const savedReport = await Promise.race([blotterReport.save(), saveTimeout]);
 
+        // Create notifications
+        const userNotification = createNotification(
+            "Blotter Report Created",
+            "Your blotter report has been submitted successfully.",
+            "report",
+            savedReport._id,
+            "BlotterReport"
+        );
+
+        const staffNotification = createNotification(
+            "New Blotter Report",
+            `A new blotter report has been submitted by ${req.user.name}.`,
+            "report",
+            savedReport._id,
+            "BlotterReport"
+        );
+
+        // Update user's notifications
+        await User.findByIdAndUpdate(req.user.id, {
+            $push: { notifications: userNotification },
+            $inc: { unreadNotifications: 1 }
+        });
+
+        // Notify barangay staff
+        const barangayStaff = await User.find({
+            barangay: req.user.barangay,
+            role: { $in: ["secretary", "chairman"] }
+        });
+
+        for (const staff of barangayStaff) {
+            staff.notifications.push(staffNotification);
+            staff.unreadNotifications += 1;
+            await staff.save();
+        }
+
         res.status(201).json({
             message: "Blotter report created successfully",
             report: savedReport,
@@ -45,9 +83,9 @@ export const createBlotterReport = async (req, res, next) => {
             error: error.message,
             details: error.errors
                 ? Object.keys(error.errors).map((key) => ({
-                      field: key,
-                      message: error.errors[key].message,
-                  }))
+                    field: key,
+                    message: error.errors[key].message,
+                }))
                 : null,
         });
     }
@@ -102,6 +140,7 @@ export const getEvidenceFile = async (req, res, next) => {
 export const updateBlotterReport = async (req, res, next) => {
     try {
         const report = await BlotterReport.findById(req.params.id);
+        const { name: secretaryName } = req.user;
 
         if (!report) {
             return res.status(404).json({ message: "Report not found" });
@@ -117,6 +156,23 @@ export const updateBlotterReport = async (req, res, next) => {
             { $set: req.body },
             { new: true }
         );
+
+        // Create status update notification if status was changed
+        if (req.body.status && req.body.status !== report.status) {
+            const statusNotification = createNotification(
+                "Blotter Report Status Update",
+                `Your blotter report status has been updated to ${req.body.status} by ${secretaryName}.`,
+                "status_update",
+                report._id,
+                "BlotterReport"
+            );
+
+            // Update reporter's notifications
+            await User.findByIdAndUpdate(report.userId, {
+                $push: { notifications: statusNotification },
+                $inc: { unreadNotifications: 1 }
+            });
+        }
 
         res.status(200).json(updatedReport);
     } catch (error) {

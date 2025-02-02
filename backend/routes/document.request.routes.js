@@ -14,6 +14,7 @@ import {
     updateCedulaStatus
     // Import other handlers as needed
 } from "../controllers/document.request.controller.js";
+import { verifyBarangayIndigency } from "../controllers/barangay.indigency.controller.js";
 
 const router = express.Router();
 
@@ -37,6 +38,14 @@ router.patch("/barangay-clearance/:id/status", verifyToken, updateBarangayCleara
 router.patch("/barangay-indigency/:id/status", verifyToken, updateBarangayIndigencyStatus);
 router.patch("/business-clearance/:id/status", verifyToken, updateBusinessClearanceStatus);
 router.patch("/cedula/:id/status", verifyToken, updateCedulaStatus);
+
+// Update indigency status
+router.patch(
+    "/certificate-of-indigency/:id/status",
+    verifyToken,
+    verifyBarangayIndigency
+);
+
 // Add other routes as needed
 
 // Add health check route

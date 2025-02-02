@@ -5,33 +5,59 @@ import Cedula from "../models/cedula.model.js";
 import User from "../models/user.model.js";
 import {
     sendDocumentRequestNotification,
-    sendDocumentStatusNotification
+    sendDocumentStatusNotification,
+    createNotification
 } from "../utils/notifications.js";
 
 // Generic function to update document status
 export const updateDocumentStatus = async (Model, requestType, id, status) => {
-    const normalizedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-
     const document = await Model.findById(id);
     if (!document) {
         throw new Error(`${requestType} not found`);
     }
 
-    document.isVerified = normalizedStatus === "Approved";
-    document.status = normalizedStatus;
+    document.isVerified = status === "Approved";
+    document.status = status;
     document.dateOfIssuance = new Date();
 
     await document.save();
 
-    // Send status notification to requestor
-    const notificationSent = await sendDocumentStatusNotification(
-        document,
-        normalizedStatus,
-        requestType
+    // Map display names to enum values
+    const docModelMap = {
+        "Business Clearance": "BusinessClearance",
+        "Barangay Clearance": "BarangayClearance",
+        "Barangay Indigency": "BarangayIndigency",
+        "Cedula": "Cedula"
+    };
+
+    // Get the correct enum value
+    const docModel = docModelMap[requestType];
+    if (!docModel) {
+        throw new Error(`Invalid document type: ${requestType}`);
+    }
+
+    // Create status update notification with secretary info
+    const statusNotification = createNotification(
+        `${requestType} Status Update`,
+        `Your ${requestType.toLowerCase()} request has been ${status.toLowerCase()} by the barangay secretary.`,
+        "status_update",
+        document._id,
+        docModel  // Use the mapped enum value
     );
 
-    if (!notificationSent) {
-        console.warn(`Failed to send status notification for ${requestType} ${id}`);
+    // Find user and update their notifications
+    if (document.userId) {
+        await User.findByIdAndUpdate(document.userId, {
+            $push: { notifications: statusNotification },
+            $inc: { unreadNotifications: 1 }
+        });
+    } else if (document.email) {
+        const user = await User.findOne({ email: document.email });
+        if (user) {
+            user.notifications.push(statusNotification);
+            user.unreadNotifications += 1;
+            await user.save();
+        }
     }
 
     return document;
@@ -47,82 +73,104 @@ export const getAllDocumentRequests = async (req, res, next) => {
             });
         }
 
-        const { barangay } = req.user;
+        const { barangay, id: userId } = req.user;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 6;
+        const skip = (page - 1) * limit;
 
-        if (!barangay) {
-            return res.status(400).json({
-                success: false,
-                message: "User barangay not found"
-            });
-        }
-
-        // Fetch requests from all document types
+        // Fetch requests from all document types with proper filtering
         const [clearances, indigency, business, cedulas] = await Promise.all([
-            BarangayClearance.find({ barangay }).sort({ createdAt: -1 }),
-            BarangayIndigency.find({ barangay }).sort({ createdAt: -1 }),
-            BusinessClearance.find({ barangay }).sort({ createdAt: -1 }),
-            Cedula.find({ barangay }).sort({ createdAt: -1 }),
+            BarangayClearance.find({
+                barangay,
+                $or: [{ userId }, { email: req.user.email }]
+            }).sort({ createdAt: -1 }),
+            BarangayIndigency.find({
+                barangay,
+                userId
+            }).sort({ createdAt: -1 }),
+            BusinessClearance.find({
+                barangay,
+                userId
+            }).sort({ createdAt: -1 }),
+            Cedula.find({
+                barangay,
+                userId
+            }).sort({ createdAt: -1 })
         ]);
+
+        console.log('Found documents:', {
+            clearances: clearances.length,
+            indigency: indigency.length,
+            business: business.length,
+            cedulas: cedulas.length
+        });
 
         // Transform and combine all requests
         const allRequests = [
             ...clearances.map((doc) => ({
                 id: doc._id,
-                type: "Barangay Clearance",
-                requestDate: doc.createdAt || new Date(),
-                residentName: doc.name,
+                documentType: "Barangay Clearance",
+                createdAt: doc.createdAt,
                 status: doc.status || "Pending",
                 purpose: doc.purpose,
+                name: doc.name,
                 email: doc.email,
-                contactNumber: doc.contactNumber,
+                contactNumber: doc.contactNumber
             })),
             ...indigency.map((doc) => ({
                 id: doc._id,
-                type: "Certificate of Indigency",
-                requestDate: doc.createdAt || new Date(),
-                residentName: doc.name,
+                documentType: "Certificate of Indigency",
+                createdAt: doc.createdAt,
                 status: doc.status || "Pending",
                 purpose: doc.purpose,
-                contactNumber: doc.contactNumber,
+                name: doc.name,
+                contactNumber: doc.contactNumber
             })),
             ...business.map((doc) => ({
                 id: doc._id,
-                type: "Business Clearance",
-                requestDate: doc.createdAt || new Date(),
-                residentName: doc.ownerName,
+                documentType: "Business Clearance",
+                createdAt: doc.createdAt,
                 status: doc.status || "Pending",
                 purpose: "Business Permit",
+                name: doc.ownerName,
                 businessName: doc.businessName,
                 businessType: doc.businessType,
-                businessNature: doc.businessNature,
-                ownerAddress: doc.ownerAddress,
-                contactNumber: doc.contactNumber,
                 email: doc.email,
+                contactNumber: doc.contactNumber
             })),
             ...cedulas.map((doc) => ({
                 id: doc._id,
-                type: "Cedula",
-                requestDate: doc.createdAt || new Date(),
-                residentName: doc.name,
+                documentType: "Cedula",
+                createdAt: doc.createdAt,
                 status: doc.status || "Pending",
                 purpose: "Community Tax Certificate",
+                name: doc.name,
                 dateOfBirth: doc.dateOfBirth,
-                placeOfBirth: doc.placeOfBirth,
                 civilStatus: doc.civilStatus,
-                occupation: doc.occupation,
-                tax: doc.tax,
-            })),
+                occupation: doc.occupation
+            }))
         ];
 
+        // Sort by date and apply pagination
         const sortedRequests = allRequests.sort(
-            (a, b) => new Date(b.requestDate) - new Date(a.requestDate)
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
+
+        const total = sortedRequests.length;
+        const paginatedRequests = sortedRequests.slice(skip, skip + limit);
 
         res.status(200).json({
             success: true,
-            data: sortedRequests,
+            data: paginatedRequests,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
         });
     } catch (error) {
+        console.error("Error fetching document requests:", error);
         next(error);
     }
 };
@@ -136,12 +184,46 @@ const createDocumentRequest = async (Model, requestType, reqBody, userBarangay) 
     });
 
     await document.save();
-    console.log(`Saved ${requestType}:`, document._id);
+
+    // Map display names to enum values
+    const docModelMap = {
+        "Barangay Clearance": "BarangayClearance",
+        "Barangay Indigency": "BarangayIndigency",
+        "Business Clearance": "BusinessClearance",
+        "Cedula": "Cedula"
+    };
+
+    const docModel = docModelMap[requestType];
+    if (!docModel) {
+        throw new Error(`Invalid document type: ${requestType}`);
+    }
+
+    // Create notifications with the correct enum value
+    const userNotification = createNotification(
+        `${requestType} Request Created`,
+        `Your ${requestType.toLowerCase()} request has been submitted successfully.`,
+        "request",
+        document._id,
+        docModel
+    );
+
+    const secretaryNotification = createNotification(
+        `New ${requestType} Request`,
+        `A new ${requestType.toLowerCase()} request has been submitted by ${reqBody.name || reqBody.ownerName}.`,
+        "request",
+        document._id,
+        docModel
+    );
 
     // Send notification to secretaries
-    const notificationSent = await sendDocumentRequestNotification(document, requestType);
-    if (!notificationSent) {
-        console.warn(`Failed to send notification for ${requestType} request`);
+    await sendDocumentRequestNotification(document, requestType, secretaryNotification);
+
+    // Update user's notifications if user ID exists
+    if (reqBody.userId) {
+        await User.findByIdAndUpdate(reqBody.userId, {
+            $push: { notifications: userNotification },
+            $inc: { unreadNotifications: 1 }
+        });
     }
 
     return document;
@@ -191,15 +273,50 @@ export const createBarangayIndigency = async (req, res, next) => {
 // Update status handlers
 export const updateBarangayClearanceStatus = async (req, res, next) => {
     try {
-        const document = await updateDocumentStatus(
-            BarangayClearance,
-            "Barangay Clearance",
-            req.params.id,
-            req.body.status
+        const { id } = req.params;
+        const { status } = req.body;
+        const { name: secretaryName } = req.user;
+
+        const document = await BarangayClearance.findById(id);
+        if (!document) {
+            return res.status(404).json({
+                success: false,
+                message: "Document not found"
+            });
+        }
+
+        document.isVerified = status === "Approved";
+        document.status = status;
+        document.dateOfIssuance = new Date();
+        await document.save();
+
+        // Create status update notification
+        const statusNotification = createNotification(
+            "Barangay Clearance Status Update",
+            `Your barangay clearance request has been ${status.toLowerCase()} by ${secretaryName}`,
+            "status_update",
+            document._id,
+            "BarangayClearance"  // Use exact enum value
         );
+
+        // Find user and update their notifications
+        if (document.userId) {
+            await User.findByIdAndUpdate(document.userId, {
+                $push: { notifications: statusNotification },
+                $inc: { unreadNotifications: 1 }
+            });
+        } else if (document.email) {
+            const user = await User.findOne({ email: document.email });
+            if (user) {
+                user.notifications.push(statusNotification);
+                user.unreadNotifications += 1;
+                await user.save();
+            }
+        }
 
         res.status(200).json({
             success: true,
+            message: `Document ${status.toLowerCase()} successfully`,
             data: document
         });
     } catch (error) {

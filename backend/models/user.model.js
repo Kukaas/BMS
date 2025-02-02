@@ -11,7 +11,15 @@ const notificationSchema = new mongoose.Schema({
     relatedDocId: mongoose.Schema.Types.ObjectId,
     docModel: {
         type: String,
-        enum: ['BarangayClearance', 'BarangayIndigency', 'BusinessClearance', 'Cedula']
+        enum: [
+            'BarangayClearance',
+            'BarangayIndigency',
+            'BusinessClearance',
+            'Cedula',
+            'IncidentReport',
+            'BlotterReport'
+        ],
+        required: true
     },
     createdAt: {
         type: Date,

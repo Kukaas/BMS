@@ -28,7 +28,7 @@ export const createBarangayClearance = async (req, res, next) => {
         await barangayClearance.save();
 
         // Create and send notification to secretaries
-        const secretaryNotification = createNotification(
+        const staffNotification = createNotification(
             "New Barangay Clearance Request",
             `${name} has requested a barangay clearance for ${purpose}`,
             "request",
@@ -37,7 +37,7 @@ export const createBarangayClearance = async (req, res, next) => {
         );
 
         // Send notification to secretaries of the user's barangay
-        await sendNotificationToBarangaySecretaries(userBarangay, secretaryNotification);
+        await sendNotificationToBarangaySecretaries(userBarangay, staffNotification);
 
         res.status(201).json({
             success: true,
@@ -53,6 +53,7 @@ export const approveBarangayClearance = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
+        const { name: secretaryName } = req.user;
 
         const barangayClearance = await BarangayClearance.findById(id);
 
@@ -70,12 +71,12 @@ export const approveBarangayClearance = async (req, res, next) => {
 
         await barangayClearance.save();
 
-        // Create and send notification to the requestor
+        // Create and send notification to the requestor with secretary info
         const user = await User.findOne({ email: barangayClearance.email });
         if (user) {
             const notification = createNotification(
                 "Barangay Clearance Status Update",
-                `Your barangay clearance request has been ${status}`,
+                `Your barangay clearance request has been ${status} by ${secretaryName}`,
                 "status_update",
                 barangayClearance._id,
                 "BarangayClearance"
