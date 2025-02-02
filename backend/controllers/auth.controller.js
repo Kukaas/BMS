@@ -7,6 +7,7 @@ import User from "../models/user.model.js";
 import UserVerification from "../models/user.verification.model.js";
 import { sendOTPVerificationEmail, sendVerificationEmail } from "../utils/emails.js";
 import { setToken } from "../utils/setToken.js";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 
@@ -115,7 +116,16 @@ export const login = async (req, res, next) => {
             updatedAt: user.updatedAt,
         };
 
-        const token = setToken(res, userData);
+        const token = jwt.sign(
+            {
+                id: user._id,
+                email: user.email,
+                barangay: user.barangay,
+                role: user.role
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
 
         res.status(200).json({
             success: true,

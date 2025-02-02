@@ -60,6 +60,9 @@ export function Requests() {
                 params: {
                     page: currentPage,
                     limit: pageSize
+                },
+                headers: {
+                    Authorization: `Bearer ${currentUser.token}`
                 }
             });
 

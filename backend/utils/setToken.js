@@ -13,7 +13,7 @@ export const setToken = (res, userData) => {
             updatedAt: userData.updatedAt,
         },
         process.env.JWT_SECRET,
-        { expiresIn: "2s" }
+        { expiresIn: "1d" }
     );
 
     res.cookie("token", token, {
