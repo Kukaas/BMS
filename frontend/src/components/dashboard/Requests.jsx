@@ -1,10 +1,31 @@
 import { useState, useEffect } from "react";
-import DocumentRequestForm from "@/components/forms/DocumentRequestForm.jsx";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Grid, List } from "lucide-react";
+import DocumentRequestForm from "@/components/forms/DocumentRequestForm";
 import { mockRequests } from "./secretary/mockData";
+import { DocumentRequestGrid } from "./components/DocumentRequestGrid";
 
 export function Requests() {
     const [showRequestForm, setShowRequestForm] = useState(false);
-    const [requests, setRequests] = useState(mockRequests); // Initialize with mock data
+    const [requests, setRequests] = useState(mockRequests);
+    const [viewMode, setViewMode] = useState("grid");
 
     const fetchRequests = async () => {
         try {
@@ -22,84 +43,100 @@ export function Requests() {
 
     useEffect(() => {
         fetchRequests();
-    }, []);
+    }, []); //Fixed: Added empty dependency array to useEffect
 
     const handleRequestComplete = async () => {
         setShowRequestForm(false);
         await fetchRequests();
     };
 
+    const getStatusColor = (status) => {
+        switch (status.toLowerCase()) {
+            case "pending":
+                return "bg-yellow-100 text-yellow-800";
+            case "approved":
+                return "bg-green-100 text-green-800";
+            case "rejected":
+                return "bg-red-100 text-red-800";
+            default:
+                return "bg-gray-100 text-gray-800";
+        }
+    };
+
     return (
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                <h1 className="text-2xl sm:text-3xl font-bold">My Document Requests</h1>
-                <button
-                    onClick={() => setShowRequestForm(true)}
-                    className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-                >
-                    Request New Document
-                </button>
-            </div>
-
-            {/* Show existing requests */}
-            <div className="mb-8">
-                {requests.length === 0 ? (
-                    <p className="text-gray-500 text-center">No document requests yet.</p>
-                ) : (
-                    <div className="grid gap-4">
-                        {requests.map((request) => (
-                            <div key={request.id} className="border rounded-lg p-4 shadow-sm">
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                                    <div>
-                                        <h3 className="font-semibold">{request.documentType}</h3>
-                                        <p className="text-sm text-gray-600">
-                                            Status: {request.status}
-                                        </p>
-                                        <p className="text-sm text-gray-600">
-                                            Purpose: {request.purpose}
-                                        </p>
-                                        <p className="text-sm text-gray-600">
-                                            Requested on:{" "}
-                                            {new Date(request.createdAt).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                    <span
-                                        className={`px-2 py-1 rounded-full text-sm ${
-                                            request.status === "pending"
-                                                ? "bg-yellow-100 text-yellow-800"
-                                                : request.status === "approved"
-                                                  ? "bg-green-100 text-green-800"
-                                                  : "bg-red-100 text-red-800"
-                                        }`}
-                                    >
-                                        {request.status}
-                                    </span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-
-            {/* Show form in modal or conditional render */}
-            {showRequestForm && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-white rounded-lg w-full max-w-2xl my-8">
-                        <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
-                            <h2 className="text-xl sm:text-2xl font-bold">Request New Document</h2>
-                            <button
-                                onClick={() => setShowRequestForm(false)}
-                                className="text-gray-500 hover:text-gray-700 p-2"
+        <div className="container mx-auto px-4 py-8">
+            <Card>
+                <CardHeader>
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <CardTitle className="text-2xl sm:text-3xl">My Document Requests</CardTitle>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
                             >
-                                ✕
-                            </button>
-                        </div>
-                        <div className="p-4 max-h-[calc(100vh-12rem)] overflow-y-auto">
-                            <DocumentRequestForm onComplete={handleRequestComplete} />
+                                {viewMode === "grid" ? (
+                                    <List className="h-4 w-4" />
+                                ) : (
+                                    <Grid className="h-4 w-4" />
+                                )}
+                            </Button>
+                            <Dialog open={showRequestForm} onOpenChange={setShowRequestForm}>
+                                <DialogTrigger asChild>
+                                    <Button>Request New Document</Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[600px] w-[90vw]">
+                                    <DialogHeader>
+                                        <DialogTitle>Request New Document</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="p-4 max-h-[80vh] overflow-y-auto">
+                                        <DocumentRequestForm
+                                            onComplete={handleRequestComplete}
+                                            className="w-full"
+                                        />
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </div>
-                </div>
-            )}
+                </CardHeader>
+                <CardContent>
+                    {requests.length === 0 ? (
+                        <p className="text-gray-500 text-center">No document requests yet.</p>
+                    ) : viewMode === "grid" ? (
+                        <DocumentRequestGrid requests={requests} />
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Document Type</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Purpose</TableHead>
+                                    <TableHead>Requested On</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {requests.map((request) => (
+                                    <TableRow key={request.id}>
+                                        <TableCell className="font-medium">
+                                            {request.documentType}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge className={getStatusColor(request.status)}>
+                                                {request.status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>{request.purpose}</TableCell>
+                                        <TableCell>
+                                            {new Date(request.createdAt).toLocaleDateString()}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 }
