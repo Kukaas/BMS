@@ -18,11 +18,19 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Grid, List } from "lucide-react";
+import { Grid, List, Loader2 } from "lucide-react";
 import DocumentRequestForm from "@/components/forms/DocumentRequestForm";
 import { DocumentRequestGrid } from "./components/DocumentRequestGrid";
 import axiosInstance from '@/lib/axios';
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 export function Requests() {
     const [showRequestForm, setShowRequestForm] = useState(false);
@@ -31,13 +39,12 @@ export function Requests() {
     const [loading, setLoading] = useState(true);
     const { currentUser } = useSelector((state) => state.user);
 
-    // Pagination state
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
-    const limit = 10;
+    // Pagination and search state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(6);
+    const [searchTerm, setSearchTerm] = useState("");
 
-    const fetchRequests = useCallback(async (pageNum = 1) => {
+    const fetchRequests = useCallback(async () => {
         if (!currentUser) {
             toast.error("Please log in to view your requests");
             return;
@@ -45,21 +52,10 @@ export function Requests() {
 
         try {
             setLoading(true);
-            const response = await axiosInstance.get('/document-requests/my-requests', {
-                params: {
-                    page: pageNum,
-                    limit
-                }
-            });
+            const response = await axiosInstance.get('/document-requests/my-requests');
 
             if (response.data.success) {
-                if (pageNum === 1) {
-                    setRequests(response.data.data);
-                } else {
-                    setRequests(prev => [...prev, ...response.data.data]);
-                }
-                setTotalPages(response.data.pagination.totalPages);
-                setHasMore(pageNum < response.data.pagination.totalPages);
+                setRequests(response.data.data);
             }
         } catch (error) {
             console.error("Failed to fetch requests:", error);
@@ -69,31 +65,15 @@ export function Requests() {
         }
     }, [currentUser]);
 
-    // Initial fetch and periodic refresh
     useEffect(() => {
         if (currentUser) {
-            fetchRequests(1);
-            // Set up periodic refresh every 30 seconds
-            const refreshInterval = setInterval(() => {
-                fetchRequests(1);
-            }, 30000);
-
-            return () => clearInterval(refreshInterval);
+            fetchRequests();
         }
     }, [currentUser, fetchRequests]);
 
-    const loadMore = () => {
-        if (!loading && hasMore) {
-            fetchRequests(page + 1);
-            setPage(prev => prev + 1);
-        }
-    };
-
     const handleRequestComplete = async () => {
         setShowRequestForm(false);
-        // Reset to first page and fetch latest data
-        setPage(1);
-        await fetchRequests(1);
+        await fetchRequests();
         toast.success("Request submitted successfully");
     };
 
@@ -108,6 +88,31 @@ export function Requests() {
             default:
                 return "bg-gray-200 text-gray-900 hover:bg-gray-300";
         }
+    };
+
+    // Filter and pagination logic
+    const filteredRequests = [...requests].filter((request) => {
+        if (!searchTerm) return true;
+        const searchLower = searchTerm.toLowerCase();
+        return (
+            request.documentType.toLowerCase().includes(searchLower) ||
+            request.status?.toLowerCase().includes(searchLower) ||
+            request.purpose?.toLowerCase().includes(searchLower)
+        );
+    });
+
+    const lastItemIndex = currentPage * pageSize;
+    const firstItemIndex = lastItemIndex - pageSize;
+    const currentItems = filteredRequests.slice(firstItemIndex, lastItemIndex);
+    const totalPages = Math.ceil(filteredRequests.length / pageSize);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    const handlePageSizeChange = (value) => {
+        setPageSize(Number(value));
+        setCurrentPage(1);
     };
 
     if (!currentUser) {
@@ -127,7 +132,10 @@ export function Requests() {
             <div className="container mx-auto px-4 py-8">
                 <Card>
                     <CardContent className="flex items-center justify-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                        <div className="flex flex-col items-center gap-2">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <p className="text-sm text-muted-foreground">Loading requests...</p>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -173,69 +181,107 @@ export function Requests() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    {requests.length === 0 ? (
-                        <p className="text-gray-500 text-center">No document requests yet.</p>
-                    ) : viewMode === "grid" ? (
-                        <>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    placeholder="Search requests..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-[300px]"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Select
+                                    value={pageSize.toString()}
+                                    onValueChange={handlePageSizeChange}
+                                >
+                                    <SelectTrigger className="w-[80px]">
+                                        <SelectValue placeholder={pageSize} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {[6, 12, 18, 24, 30].map((size) => (
+                                            <SelectItem key={size} value={size.toString()}>
+                                                {size}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <span className="text-sm text-muted-foreground">per page</span>
+                            </div>
+                        </div>
+
+                        {currentItems.length === 0 ? (
+                            <p className="text-gray-500 text-center">No document requests found.</p>
+                        ) : viewMode === "grid" ? (
                             <DocumentRequestGrid
-                                requests={requests}
+                                requests={currentItems}
                                 getStatusColor={getStatusColor}
                             />
-                            {hasMore && (
-                                <div className="mt-4 text-center">
-                                    <Button
-                                        onClick={loadMore}
-                                        disabled={loading}
-                                        variant="outline"
-                                    >
-                                        {loading ? "Loading..." : "Load More"}
-                                    </Button>
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Document Type</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Purpose</TableHead>
-                                        <TableHead>Requested On</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {requests.map((request) => (
-                                        <TableRow key={request.id}>
-                                            <TableCell className="font-medium">
-                                                {request.documentType}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge className={getStatusColor(request.status)}>
-                                                    {request.status || 'Pending'}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>{request.purpose || 'N/A'}</TableCell>
-                                            <TableCell>
-                                                {new Date(request.createdAt).toLocaleDateString()}
-                                            </TableCell>
+                        ) : (
+                            <div className="rounded-md border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Document Type</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Purpose</TableHead>
+                                            <TableHead>Requested On</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                            {hasMore && (
-                                <div className="mt-4 text-center">
+                                    </TableHeader>
+                                    <TableBody>
+                                        {currentItems.map((request) => (
+                                            <TableRow key={request.id}>
+                                                <TableCell className="font-medium">
+                                                    {request.documentType}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge className={getStatusColor(request.status)}>
+                                                        {request.status || 'Pending'}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>{request.purpose || 'N/A'}</TableCell>
+                                                <TableCell>
+                                                    {new Date(request.createdAt).toLocaleDateString()}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        )}
+
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm text-muted-foreground">
+                                {searchTerm
+                                    ? `${filteredRequests.length} results found`
+                                    : `Total Requests: ${filteredRequests.length}`}
+                            </p>
+                            <div className="flex items-center space-x-6 lg:space-x-8">
+                                <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                                    Page {currentPage} of {totalPages}
+                                </div>
+                                <div className="flex items-center space-x-2">
                                     <Button
-                                        onClick={loadMore}
-                                        disabled={loading}
                                         variant="outline"
+                                        size="sm"
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={currentPage === 1}
                                     >
-                                        {loading ? "Loading..." : "Load More"}
+                                        Previous
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        Next
                                     </Button>
                                 </div>
-                            )}
-                        </>
-                    )}
+                            </div>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
         </div>
