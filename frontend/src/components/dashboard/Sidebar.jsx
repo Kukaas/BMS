@@ -90,6 +90,7 @@ export function Sidebar() {
             const res = await api.post("/auth/logout");
 
             if (res.status === 200) {
+                localStorage.removeItem("token");
                 dispatch(logout());
                 navigate("/sign-in");
                 toast.success("Logged out successfully");
