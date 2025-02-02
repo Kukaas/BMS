@@ -28,7 +28,6 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, MapPin, Phone, User } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
-import { formatDate } from "@/lib/utils";
 import { useSelector } from "react-redux";
 
 export function IncidentReportsSecretary() {
