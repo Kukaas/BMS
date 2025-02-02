@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+    import { cn } from "@/lib/utils";
 import { logout } from "@/redux/user/userSlice";
 import axios from "axios";
 import { useState } from "react";
@@ -34,6 +34,7 @@ import IncidentReportsPage from "@/pages/IncidentReportsPage";
 import { DocumentRequestSecretary } from "./secretary/DocumentRequestSecretary";
 import IncidentReportSecretaryPage from "@/pages/incident-report.jsx";
 import SecretaryResidentsDashboardPage from "@/pages/secretary-residents-dashboard";
+import { isAdminRole } from "@/lib/auth";
 
 const componentMap = {
     overview: Overview,
@@ -75,62 +76,61 @@ function Dashboard({ tab }) {
         }
     };
 
-    const sidebarItems =
-        currentUser?.role === "user"
-            ? [
-                  {
-                      icon: LayoutDashboard,
-                      label: "Overview",
-                      href: "/dashboard?tab=overview",
-                  },
-                  {
-                      icon: Mail,
-                      label: "Requests",
-                      href: "/dashboard?tab=requests",
-                  },
-                  {
-                      icon: FileText,
-                      label: "Incident reports",
-                      href: "/dashboard?tab=reports",
-                  },
-                  {
-                      icon: FileText,
-                      label: "Blotter Report",
-                      href: "/dashboard?tab=blotter",
-                  },
-                  {
-                      icon: Settings,
-                      label: "Settings",
-                      href: "/dashboard?tab=settings",
-                  },
-              ]
-            : [
-                  {
-                      icon: LayoutDashboard,
-                      label: "Overview",
-                      href: "/dashboard?tab=overview",
-                  },
-                  {
-                      icon: Users,
-                      label: "Users",
-                      href: "/dashboard?tab=users",
-                  },
-                  {
-                      icon: Mail,
-                      label: "Request",
-                      href: "/dashboard?tab=requestdocs",
-                  },
-                  {
-                      icon: FileText,
-                      label: "Incident Report",
-                      href: "/dashboard?tab=incidents",
-                  },
-                  {
-                      icon: Users,
-                      label: "Residents",
-                      href: "/dashboard?tab=residents",
-                  },
-              ];
+    const sidebarItems = isAdminRole(currentUser?.role)
+        ? [
+              {
+                  icon: LayoutDashboard,
+                  label: "Overview",
+                  href: "/dashboard?tab=overview",
+              },
+              {
+                  icon: Users,
+                  label: "Users",
+                  href: "/dashboard?tab=users",
+              },
+              {
+                  icon: Mail,
+                  label: "Request",
+                  href: "/dashboard?tab=requestdocs",
+              },
+              {
+                  icon: FileText,
+                  label: "Incident Report",
+                  href: "/dashboard?tab=incidents",
+              },
+              {
+                  icon: Users,
+                  label: "Residents",
+                  href: "/dashboard?tab=residents",
+              },
+          ]
+        : [
+              {
+                  icon: LayoutDashboard,
+                  label: "Overview",
+                  href: "/dashboard?tab=overview",
+              },
+              {
+                  icon: Mail,
+                  label: "Requests",
+                  href: "/dashboard?tab=requests",
+              },
+              {
+                  icon: FileText,
+                  label: "Incident reports",
+                  href: "/dashboard?tab=reports",
+              },
+              {
+                  icon: FileText,
+                  label: "Blotter Report",
+                  href: "/dashboard?tab=blotter",
+              },
+              {
+                  icon: Settings,
+                  label: "Settings",
+                  href: "/dashboard?tab=settings",
+              },
+          ];
 
     return (
         <SidebarProvider>
