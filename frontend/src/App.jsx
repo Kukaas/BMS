@@ -13,30 +13,48 @@ import SignIn from "./pages/login";
 import ResetPassword from "./pages/reset-password";
 import SignUp from "./pages/signup";
 import VerifyOTP from "./pages/verify-otp";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "@/redux/user/userSlice";
+import { isTokenExpired, isAdminRole } from "@/lib/auth";
 
 const DashboardWrapper = () => {
     const location = useLocation();
     const tab = new URLSearchParams(location.search).get("tab") || "overview";
+    const { currentUser } = useSelector((state) => state.user);
 
-    const validTabs = [
+    const adminTabs = [
         "overview",
-        "barangay",
         "users",
-        "reports",
-        "settings",
-        "requests",
-        "blotter",
         "requestdocs",
         "incidents",
-        "incident-report-admin",
         "residents",
-        "home",
     ];
+
+    const userTabs = [
+        "overview",
+        "requests",
+        "reports",
+        "blotter",
+        "settings",
+    ];
+
+    const validTabs = isAdminRole(currentUser?.role) ? adminTabs : userTabs;
 
     return validTabs.includes(tab) ? <Dashboard tab={tab} /> : <PageNotFound />;
 };
 
 function App() {
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token && isTokenExpired(token)) {
+            dispatch(logout());
+            localStorage.removeItem("token");
+        }
+    }, [dispatch]);
+
     return (
         <>
             <BrowserRouter>

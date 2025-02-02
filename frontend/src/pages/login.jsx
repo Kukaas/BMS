@@ -1,8 +1,19 @@
 import { LoginForm } from "@/components/forms/login-form";
 import { ArrowLeft, GalleryVerticalEnd } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { getRedirectPath } from "@/lib/auth";
+import { useEffect } from "react";
 
 export default function SignIn() {
+    const { currentUser } = useSelector ((state) => state.user);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const redirectPath = getRedirectPath(currentUser?.role);
+        navigate(redirectPath);
+    }, [currentUser, navigate]);
+
     return (
         <div className="h-screen flex overflow-hidden">
             {/* Left Panel - Form */}
