@@ -10,7 +10,6 @@ import {
 
 // Generic function to update document status
 export const updateDocumentStatus = async (Model, requestType, id, status) => {
-    // Capitalize first letter of status
     const normalizedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 
     const document = await Model.findById(id);
@@ -25,7 +24,12 @@ export const updateDocumentStatus = async (Model, requestType, id, status) => {
     await document.save();
 
     // Send status notification to requestor
-    const notificationSent = await sendDocumentStatusNotification(document, normalizedStatus, requestType);
+    const notificationSent = await sendDocumentStatusNotification(
+        document,
+        normalizedStatus,
+        requestType
+    );
+
     if (!notificationSent) {
         console.warn(`Failed to send status notification for ${requestType} ${id}`);
     }
@@ -128,14 +132,17 @@ const createDocumentRequest = async (Model, requestType, reqBody, userBarangay) 
     const document = new Model({
         ...reqBody,
         barangay: userBarangay,
-        status: "Pending" // Ensure status is capitalized on creation
+        status: "Pending"
     });
 
     await document.save();
     console.log(`Saved ${requestType}:`, document._id);
 
     // Send notification to secretaries
-    await sendDocumentRequestNotification(document, requestType);
+    const notificationSent = await sendDocumentRequestNotification(document, requestType);
+    if (!notificationSent) {
+        console.warn(`Failed to send notification for ${requestType} request`);
+    }
 
     return document;
 };
@@ -299,22 +306,45 @@ export const updateCedulaStatus = async (req, res, next) => {
     }
 };
 
-// Add this new function to get user's document requests
+// Update getUserDocumentRequests function
 export const getUserDocumentRequests = async (req, res, next) => {
     try {
         const userId = req.user._id;
+        const userEmail = req.user.email; // Get user email from authenticated user
         const { barangay } = req.user;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
-        // Fetch requests from all document types for this user
+        console.log('Fetching requests for:', { userId, userEmail, barangay }); // Debug log
+
+        // Fetch requests from all document types for this specific user
         const [clearances, indigency, business, cedulas] = await Promise.all([
-            BarangayClearance.find({ userId, barangay }).sort({ createdAt: -1 }),
-            BarangayIndigency.find({ userId, barangay }).sort({ createdAt: -1 }),
-            BusinessClearance.find({ userId, barangay }).sort({ createdAt: -1 }),
-            Cedula.find({ userId, barangay }).sort({ createdAt: -1 }),
+            BarangayClearance.find({
+                email: userEmail, // Use email for clearance
+                barangay
+            }).sort({ createdAt: -1 }),
+            BarangayIndigency.find({
+                email: userEmail, // Use email for indigency
+                barangay
+            }).sort({ createdAt: -1 }),
+            BusinessClearance.find({
+                userId, // Use userId for business clearance
+                barangay
+            }).sort({ createdAt: -1 }),
+            Cedula.find({
+                userId, // Use userId for cedula
+                barangay
+            }).sort({ createdAt: -1 }),
         ]);
+
+        // Add debug logs
+        console.log('Found requests:', {
+            clearances: clearances.length,
+            indigency: indigency.length,
+            business: business.length,
+            cedulas: cedulas.length
+        });
 
         // Transform and combine all requests
         const allRequests = [
@@ -365,9 +395,9 @@ export const getUserDocumentRequests = async (req, res, next) => {
         );
 
         // Apply pagination
-        const paginatedRequests = sortedRequests.slice(skip, skip + limit);
         const total = sortedRequests.length;
         const totalPages = Math.ceil(total / limit);
+        const paginatedRequests = sortedRequests.slice(skip, skip + limit);
 
         res.status(200).json({
             success: true,

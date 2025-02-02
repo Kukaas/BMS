@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +44,10 @@ export function Requests() {
     const [pageSize, setPageSize] = useState(6);
     const [searchTerm, setSearchTerm] = useState("");
 
+    // Add state for pagination info
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+
     const fetchRequests = useCallback(async () => {
         if (!currentUser) {
             toast.error("Please log in to view your requests");
@@ -52,10 +56,17 @@ export function Requests() {
 
         try {
             setLoading(true);
-            const response = await axiosInstance.get('/document-requests/my-requests');
+            const response = await axiosInstance.get('/document-requests/my-requests', {
+                params: {
+                    page: currentPage,
+                    limit: pageSize
+                }
+            });
 
             if (response.data.success) {
                 setRequests(response.data.data);
+                setTotalPages(response.data.pagination.totalPages);
+                setTotalItems(response.data.pagination.total);
             }
         } catch (error) {
             console.error("Failed to fetch requests:", error);
@@ -63,13 +74,13 @@ export function Requests() {
         } finally {
             setLoading(false);
         }
-    }, [currentUser]);
+    }, [currentUser, currentPage, pageSize]);
 
     useEffect(() => {
         if (currentUser) {
             fetchRequests();
         }
-    }, [currentUser, fetchRequests]);
+    }, [currentUser, fetchRequests, currentPage, pageSize]);
 
     const handleRequestComplete = async () => {
         setShowRequestForm(false);
@@ -90,22 +101,21 @@ export function Requests() {
         }
     };
 
-    // Filter and pagination logic
-    const filteredRequests = [...requests].filter((request) => {
-        if (!searchTerm) return true;
-        const searchLower = searchTerm.toLowerCase();
-        return (
-            request.documentType.toLowerCase().includes(searchLower) ||
-            request.status?.toLowerCase().includes(searchLower) ||
-            request.purpose?.toLowerCase().includes(searchLower)
-        );
-    });
+    // Update the filter logic to handle server-side pagination
+    const filteredRequests = useMemo(() => {
+        if (!searchTerm) return requests;
 
-    const lastItemIndex = currentPage * pageSize;
-    const firstItemIndex = lastItemIndex - pageSize;
-    const currentItems = filteredRequests.slice(firstItemIndex, lastItemIndex);
-    const totalPages = Math.ceil(filteredRequests.length / pageSize);
+        return requests.filter((request) => {
+            const searchLower = searchTerm.toLowerCase();
+            return (
+                request.documentType.toLowerCase().includes(searchLower) ||
+                request.status?.toLowerCase().includes(searchLower) ||
+                request.purpose?.toLowerCase().includes(searchLower)
+            );
+        });
+    }, [requests, searchTerm]);
 
+    // Update pagination handlers
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
     };
@@ -211,11 +221,11 @@ export function Requests() {
                             </div>
                         </div>
 
-                        {currentItems.length === 0 ? (
+                        {filteredRequests.length === 0 ? (
                             <p className="text-gray-500 text-center">No document requests found.</p>
                         ) : viewMode === "grid" ? (
                             <DocumentRequestGrid
-                                requests={currentItems}
+                                requests={filteredRequests}
                                 getStatusColor={getStatusColor}
                             />
                         ) : (
@@ -230,7 +240,7 @@ export function Requests() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {currentItems.map((request) => (
+                                        {filteredRequests.map((request) => (
                                             <TableRow key={request.id}>
                                                 <TableCell className="font-medium">
                                                     {request.documentType}
@@ -255,7 +265,7 @@ export function Requests() {
                             <p className="text-sm text-muted-foreground">
                                 {searchTerm
                                     ? `${filteredRequests.length} results found`
-                                    : `Total Requests: ${filteredRequests.length}`}
+                                    : `Total Requests: ${totalItems}`}
                             </p>
                             <div className="flex items-center space-x-6 lg:space-x-8">
                                 <div className="flex w-[100px] items-center justify-center text-sm font-medium">
