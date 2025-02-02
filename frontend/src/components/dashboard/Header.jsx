@@ -28,8 +28,8 @@ export function Header() {
             const res = await axios.post("http://localhost:5000/api/auth/logout");
 
             if (res.status === 200) {
-                dispatch(logout());
                 localStorage.removeItem("token");
+                dispatch(logout());
                 navigate("/sign-in");
                 toast.success("Logged out successfully");
             }

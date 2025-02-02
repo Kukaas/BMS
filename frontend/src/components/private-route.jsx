@@ -54,13 +54,12 @@ const PrivateRoute = () => {
             try {
                 const isAuthenticated = await checkAuth();
                 if (!isAuthenticated) {
+                    // Don't show dialog here, just set session expired
                     setIsSessionExpired(true);
-                    setShowExpiredDialog(true);
                 }
             } catch (error) {
                 console.error("Auth verification failed:", error);
                 setIsSessionExpired(true);
-                setShowExpiredDialog(true);
             } finally {
                 setIsVerifying(false);
             }
@@ -73,6 +72,7 @@ const PrivateRoute = () => {
         }
     }, [currentUser]);
 
+    // Only show dialog when token is actually expired
     useEffect(() => {
         if (token && isTokenExpired(token)) {
             setIsSessionExpired(true);
