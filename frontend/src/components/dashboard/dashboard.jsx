@@ -33,6 +33,7 @@ import { Header } from "./Header";
 import Overview from "./Overview";
 import { DocumentRequestSecretary } from "./secretary/DocumentRequestSecretary";
 import { UserList } from "./UserList";
+import SecretaryResidentsDashboardPage from "@/pages/secretary-residents-dashboard";
 
 const componentMap = {
     overview: Overview,
@@ -43,6 +44,7 @@ const componentMap = {
     blotter: BlotterReportPage,
     incidents: IncidentReportSecretaryPage,
     requestdocs: DocumentRequestSecretary,
+    residents: SecretaryResidentsDashboardPage,
     // settings: Settings,
     // help: Help,
 };

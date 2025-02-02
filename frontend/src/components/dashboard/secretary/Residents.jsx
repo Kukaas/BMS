@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Search, UserPlus, Grid, List, Loader2 } from "lucide-react";
+import { Search, Grid, List, Loader2 } from "lucide-react";
 import { ResidentsListView } from "./ResidentsListView";
 import api from "@/lib/axios";
 import { toast } from "sonner";
@@ -51,10 +51,7 @@ export function SecretaryResidentsDashboard() {
             }
         } catch (error) {
             console.error("Error fetching residents:", error);
-            toast.error(
-                error.response?.data?.message ||
-                "Failed to fetch residents"
-            );
+            toast.error(error.response?.data?.message || "Failed to fetch residents");
         } finally {
             setLoading(false);
         }
@@ -132,10 +129,7 @@ export function SecretaryResidentsDashboard() {
                         />
                     </div>
                     <div className="flex items-center gap-2">
-                        <Select
-                            value={pageSize.toString()}
-                            onValueChange={handlePageSizeChange}
-                        >
+                        <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
                             <SelectTrigger className="w-[100px]">
                                 <SelectValue />
                             </SelectTrigger>
@@ -186,20 +180,34 @@ export function SecretaryResidentsDashboard() {
                                         </div>
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-muted-foreground">Joined:</span>
-                                                <span>{new Date(resident.createdAt).toLocaleDateString()}</span>
+                                                <span className="text-muted-foreground">
+                                                    Joined:
+                                                </span>
+                                                <span>
+                                                    {new Date(
+                                                        resident.createdAt
+                                                    ).toLocaleDateString()}
+                                                </span>
                                             </div>
 
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-muted-foreground">Status:</span>
+                                                <span className="text-muted-foreground">
+                                                    Status:
+                                                </span>
                                                 <Badge variant={resident.statusVariant}>
                                                     {resident.status}
                                                 </Badge>
                                             </div>
 
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-muted-foreground">Verification:</span>
-                                                <Badge variant={resident.isVerified ? "success" : "warning"}>
+                                                <span className="text-muted-foreground">
+                                                    Verification:
+                                                </span>
+                                                <Badge
+                                                    variant={
+                                                        resident.isVerified ? "success" : "warning"
+                                                    }
+                                                >
                                                     {resident.isVerified ? "Verified" : "Pending"}
                                                 </Badge>
                                             </div>
@@ -210,7 +218,9 @@ export function SecretaryResidentsDashboard() {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => setSelectedResident(resident)}
+                                                        onClick={() =>
+                                                            setSelectedResident(resident)
+                                                        }
                                                     >
                                                         View Details
                                                     </Button>
@@ -241,23 +251,37 @@ export function SecretaryResidentsDashboard() {
                                                             </div>
 
                                                             <div className="grid gap-2">
-                                                                <p className="text-sm font-medium">Account Status</p>
-                                                                <Badge variant={selectedResident.statusVariant}>
+                                                                <p className="text-sm font-medium">
+                                                                    Account Status
+                                                                </p>
+                                                                <Badge
+                                                                    variant={
+                                                                        selectedResident.statusVariant
+                                                                    }
+                                                                >
                                                                     {selectedResident.status}
                                                                 </Badge>
                                                             </div>
 
                                                             <div className="grid gap-2">
-                                                                <p className="text-sm font-medium">Joined Date</p>
+                                                                <p className="text-sm font-medium">
+                                                                    Joined Date
+                                                                </p>
                                                                 <p className="text-sm">
-                                                                    {new Date(selectedResident.createdAt).toLocaleDateString()}
+                                                                    {new Date(
+                                                                        selectedResident.createdAt
+                                                                    ).toLocaleDateString()}
                                                                 </p>
                                                             </div>
 
                                                             <div className="grid gap-2">
-                                                                <p className="text-sm font-medium">Last Updated</p>
+                                                                <p className="text-sm font-medium">
+                                                                    Last Updated
+                                                                </p>
                                                                 <p className="text-sm">
-                                                                    {new Date(selectedResident.updatedAt).toLocaleDateString()}
+                                                                    {new Date(
+                                                                        selectedResident.updatedAt
+                                                                    ).toLocaleDateString()}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -274,7 +298,8 @@ export function SecretaryResidentsDashboard() {
                     {/* Pagination Controls */}
                     <div className="mt-4 flex items-center justify-between">
                         <p className="text-sm text-muted-foreground">
-                            Showing {Math.min(pageSize, totalResidents)} of {totalResidents} residents
+                            Showing {Math.min(pageSize, totalResidents)} of {totalResidents}{" "}
+                            residents
                         </p>
                         <div className="flex items-center space-x-2">
                             <Button
@@ -287,10 +312,12 @@ export function SecretaryResidentsDashboard() {
                             </Button>
                             <div className="flex items-center gap-1">
                                 {Array.from({ length: totalPagesCount }, (_, i) => i + 1)
-                                    .filter(page => {
-                                        return page === 1 ||
+                                    .filter((page) => {
+                                        return (
+                                            page === 1 ||
                                             page === totalPagesCount ||
-                                            Math.abs(currentPage - page) <= 1;
+                                            Math.abs(currentPage - page) <= 1
+                                        );
                                     })
                                     .map((page, index, array) => (
                                         <Fragment key={page}>
@@ -298,7 +325,9 @@ export function SecretaryResidentsDashboard() {
                                                 <span className="text-muted-foreground">...</span>
                                             )}
                                             <Button
-                                                variant={currentPage === page ? "default" : "outline"}
+                                                variant={
+                                                    currentPage === page ? "default" : "outline"
+                                                }
                                                 size="sm"
                                                 onClick={() => handlePageChange(page)}
                                             >
