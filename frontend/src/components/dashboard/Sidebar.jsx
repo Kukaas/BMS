@@ -1,6 +1,6 @@
+import api from "@/lib/axios";
 import { cn } from "@/lib/utils";
 import { logout } from "@/redux/user/userSlice";
-import api from "@/lib/axios";
 import { motion } from "framer-motion";
 import {
     ChevronRight,
@@ -29,6 +29,7 @@ import {
 } from "../ui/alert-dialog";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 export function Sidebar() {
     const location = useLocation();
@@ -131,26 +132,43 @@ export function Sidebar() {
             <ScrollArea className="flex-1">
                 <nav className="p-2">
                     <div className="space-y-2">
-                        {sidebarItems.map((item) => (
-                            <Link
-                                key={item.href}
-                                to={item.href}
-                                className={cn(
-                                    "flex items-center w-full py-2 px-3 rounded-lg transition-colors",
-                                    currentTab === item.href.split("=")[1]
-                                        ? "bg-gray-100 text-black font-semibold"
-                                        : "text-white hover:bg-green-600"
-                                )}
-                            >
-                                <item.icon
-                                    className={cn("h-5 w-5", isCollapsed ? "mr-0" : "mr-3")}
-                                />
-                                {!isCollapsed && <span>{item.label}</span>}
-                                {!isCollapsed && currentTab === item.href.split("=")[1] && (
-                                    <ChevronRight className="ml-auto h-4 w-4" />
-                                )}
-                            </Link>
-                        ))}
+                        <TooltipProvider delayDuration={0}>
+                            {sidebarItems.map((item) => (
+                                <Tooltip key={item.href}>
+                                    <TooltipTrigger asChild>
+                                        <Link
+                                            to={item.href}
+                                            className={cn(
+                                                "flex items-center w-full py-2 px-3 rounded-lg transition-colors",
+                                                currentTab === item.href.split("=")[1]
+                                                    ? "bg-gray-100 text-black font-semibold"
+                                                    : "text-white hover:bg-green-600",
+                                                isCollapsed && "justify-center px-2"
+                                            )}
+                                        >
+                                            <div className="flex-shrink-0">
+                                                <item.icon className="h-5 w-5" />
+                                            </div>
+                                            {!isCollapsed && (
+                                                <span className="ml-3">{item.label}</span>
+                                            )}
+                                            {!isCollapsed &&
+                                                currentTab === item.href.split("=")[1] && (
+                                                    <ChevronRight className="ml-auto h-4 w-4" />
+                                                )}
+                                        </Link>
+                                    </TooltipTrigger>
+                                    {isCollapsed && (
+                                        <TooltipContent
+                                            side="right"
+                                            className="bg-green-800 text-white border-0"
+                                        >
+                                            {item.label}
+                                        </TooltipContent>
+                                    )}
+                                </Tooltip>
+                            ))}
+                        </TooltipProvider>
                     </div>
                 </nav>
             </ScrollArea>
@@ -159,13 +177,32 @@ export function Sidebar() {
             <div className="p-4 border-t">
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            className="w-full text-white hover:bg-green-600 justify-start"
-                        >
-                            <LogOut className={cn("h-5 w-5", isCollapsed ? "mr-0" : "mr-3")} />
-                            {!isCollapsed && <span>Logout</span>}
-                        </Button>
+                        <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className={cn(
+                                            "w-full text-white hover:bg-green-600",
+                                            isCollapsed ? "justify-center px-2" : "justify-start"
+                                        )}
+                                    >
+                                        <div className="flex-shrink-0">
+                                            <LogOut className="h-5 w-5" />
+                                        </div>
+                                        {!isCollapsed && <span className="ml-3">Logout</span>}
+                                    </Button>
+                                </TooltipTrigger>
+                                {isCollapsed && (
+                                    <TooltipContent
+                                        side="right"
+                                        className="bg-green-800 text-white border-0"
+                                    >
+                                        Logout
+                                    </TooltipContent>
+                                )}
+                            </Tooltip>
+                        </TooltipProvider>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                         <AlertDialogHeader>

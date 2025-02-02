@@ -11,11 +11,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { logout } from "@/redux/user/userSlice";
+import axios from "axios";
 import { Bell, Menu, Search, User } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import axios from "axios";
 import { NotificationsPopover } from "./NotificationsPopover";
 
 export function Header() {
@@ -40,20 +40,20 @@ export function Header() {
     };
 
     return (
-        <header className="bg-green-700 border-b px-4 py-3 sticky top-0 z-10">
-            <div className="flex items-center justify-between max-w-7xl mx-auto">
-                <div className="flex items-center gap-4 w-full max-w-md">
+        <header className="bg-green-700 border-b px-0 py-3 sticky top-0 z-10">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4 w-full max-w-md pl-3">
                     <SidebarTrigger>
                         <div className="p-2 hover:bg-green-600 rounded-md cursor-pointer">
                             <Menu className="h-5 w-5 text-white" />
                         </div>
                     </SidebarTrigger>
-                    <div className="relative w-full">
+                    <div className="relative w-full pr-4">
                         <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                         <Input type="search" placeholder="Search..." className="pl-8 w-full" />
                     </div>
                 </div>
-                <div className="flex items-center space-x-4 ml-4">
+                <div className="flex items-center space-x-4 mx-4">
                     <NotificationsPopover />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
