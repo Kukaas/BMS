@@ -44,10 +44,38 @@ export function DocumentRequestSecretary() {
 
     const fetchRequests = async () => {
         try {
-            const res = await api.get("/document-requests");
+            const res = await api.get("/document-requests", {
+                params: {
+                    page: currentPage,
+                    limit: pageSize
+                }
+            });
 
             if (res.data.success) {
-                setRequests(res.data.data);
+                // Transform the data to match the component's expected format
+                const transformedRequests = res.data.data.map(request => ({
+                    id: request._id,
+                    requestDate: request.createdAt,
+                    type: request.documentType,
+                    residentName: request.name || request.ownerName,
+                    status: request.status,
+                    purpose: request.purpose,
+                    email: request.email,
+                    contactNumber: request.contactNumber,
+                    // Business clearance specific fields
+                    businessName: request.businessName,
+                    businessType: request.businessType,
+                    businessNature: request.businessNature,
+                    ownerAddress: request.ownerAddress,
+                    // Cedula specific fields
+                    dateOfBirth: request.dateOfBirth,
+                    placeOfBirth: request.placeOfBirth,
+                    civilStatus: request.civilStatus,
+                    occupation: request.occupation,
+                    tax: request.tax
+                }));
+
+                setRequests(transformedRequests);
             }
         } catch (error) {
             console.error("Error fetching requests:", error);
@@ -64,12 +92,13 @@ export function DocumentRequestSecretary() {
         if (currentUser) {
             fetchRequests();
         }
-    }, [currentUser]);
+    }, [currentUser, currentPage, pageSize]); // Add pagination dependencies
 
     const handleStatusChange = async (requestId, requestType, newStatus) => {
         try {
             setUpdating(true);
-            const typeSlug = requestType.toLowerCase().replace(/ /g, "-");
+            // Convert document type to route format
+            const typeSlug = requestType.toLowerCase().replace(/\s+/g, "-");
 
             const res = await api.patch(
                 `/document-requests/${typeSlug}/${requestId}/status`,
@@ -77,19 +106,8 @@ export function DocumentRequestSecretary() {
             );
 
             if (res.data.success) {
-                setRequests((prevRequests) =>
-                    prevRequests.map((request) =>
-                        request.id === requestId ? { ...request, status: newStatus } : request
-                    )
-                );
-
-                if (selectedRequest?.id === requestId) {
-                    setSelectedRequest((prev) => ({
-                        ...prev,
-                        status: newStatus,
-                    }));
-                }
-
+                // Refresh the requests after status update
+                await fetchRequests();
                 toast.success("Status updated successfully");
             }
         } catch (error) {
@@ -353,9 +371,9 @@ export function DocumentRequestSecretary() {
                                                                     disabled={
                                                                         updating ||
                                                                         selectedRequest.status ===
-                                                                            "Completed" ||
+                                                                        "Completed" ||
                                                                         selectedRequest.status ===
-                                                                            "Rejected"
+                                                                        "Rejected"
                                                                     }
                                                                 >
                                                                     <SelectTrigger>
@@ -372,15 +390,15 @@ export function DocumentRequestSecretary() {
                                                                                 value={status}
                                                                                 className={
                                                                                     status ===
-                                                                                    "Rejected"
+                                                                                        "Rejected"
                                                                                         ? "text-destructive"
                                                                                         : status ===
                                                                                             "Completed"
-                                                                                          ? "text-primary"
-                                                                                          : status ===
-                                                                                              "Approved"
-                                                                                            ? "text-green-500"
-                                                                                            : ""
+                                                                                            ? "text-primary"
+                                                                                            : status ===
+                                                                                                "Approved"
+                                                                                                ? "text-green-500"
+                                                                                                : ""
                                                                                 }
                                                                             >
                                                                                 {status}

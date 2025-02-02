@@ -73,93 +73,36 @@ export const getAllDocumentRequests = async (req, res, next) => {
             });
         }
 
-        const { barangay, id: userId } = req.user;
+        const { barangay } = req.user;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 6;
         const skip = (page - 1) * limit;
 
-        // Fetch requests from all document types with consistent filtering
+        // Fetch requests from all document types
         const [clearances, indigency, business, cedulas] = await Promise.all([
-            BarangayClearance.find({
-                barangay,
-                $or: [{ userId }, { email: req.user.email }]
-            }).sort({ createdAt: -1 }),
-            BarangayIndigency.find({
-                barangay,
-                $or: [{ userId }, { email: req.user.email }]
-            }).sort({ createdAt: -1 }),
-            BusinessClearance.find({
-                barangay,
-                $or: [{ userId }, { email: req.user.email }]
-            }).sort({ createdAt: -1 }),
-            Cedula.find({
-                barangay,
-                $or: [{ userId }, { email: req.user.email }]
-            }).sort({ createdAt: -1 })
+            BarangayClearance.find({ barangay }).sort({ createdAt: -1 }),
+            BarangayIndigency.find({ barangay }).sort({ createdAt: -1 }),
+            BusinessClearance.find({ barangay }).sort({ createdAt: -1 }),
+            Cedula.find({ barangay }).sort({ createdAt: -1 })
         ]);
 
-        console.log('Found documents:', {
-            clearances: clearances.length,
-            indigency: indigency.length,
-            business: business.length,
-            cedulas: cedulas.length
-        });
-
-        // Transform and combine all requests with consistent mapping
+        // Transform and combine all requests
         const allRequests = [
-            ...clearances.map((doc) => ({
-                id: doc._id,
-                documentType: "Barangay Clearance",
-                createdAt: doc.createdAt,
-                status: doc.status || "Pending",
-                purpose: doc.purpose,
-                name: doc.name,
-                email: doc.email,
-                contactNumber: doc.contactNumber,
-                isVerified: doc.isVerified,
-                dateOfIssuance: doc.dateOfIssuance,
-                ...doc.toObject()
+            ...clearances.map(doc => ({
+                ...doc.toObject(),
+                documentType: 'Barangay Clearance'
             })),
-            ...indigency.map((doc) => ({
-                id: doc._id,
-                documentType: "Certificate of Indigency",
-                createdAt: doc.createdAt,
-                status: doc.status || "Pending",
-                purpose: doc.purpose,
-                name: doc.name,
-                contactNumber: doc.contactNumber,
-                isVerified: doc.isVerified,
-                dateOfIssuance: doc.dateOfIssuance,
-                ...doc.toObject()
+            ...indigency.map(doc => ({
+                ...doc.toObject(),
+                documentType: 'Barangay Indigency'
             })),
-            ...business.map((doc) => ({
-                id: doc._id,
-                documentType: "Business Clearance",
-                createdAt: doc.createdAt,
-                status: doc.status || "Pending",
-                purpose: "Business Permit",
-                name: doc.ownerName,
-                businessName: doc.businessName,
-                businessType: doc.businessType,
-                email: doc.email,
-                contactNumber: doc.contactNumber,
-                isVerified: doc.isVerified,
-                dateOfIssuance: doc.dateOfIssuance,
-                ...doc.toObject()
+            ...business.map(doc => ({
+                ...doc.toObject(),
+                documentType: 'Business Clearance'
             })),
-            ...cedulas.map((doc) => ({
-                id: doc._id,
-                documentType: "Cedula",
-                createdAt: doc.createdAt,
-                status: doc.status || "Pending",
-                purpose: "Community Tax Certificate",
-                name: doc.name,
-                dateOfBirth: doc.dateOfBirth,
-                civilStatus: doc.civilStatus,
-                occupation: doc.occupation,
-                isVerified: doc.isVerified,
-                dateOfIssuance: doc.dateOfIssuance,
-                ...doc.toObject()
+            ...cedulas.map(doc => ({
+                ...doc.toObject(),
+                documentType: 'Cedula'
             }))
         ];
 
@@ -182,7 +125,6 @@ export const getAllDocumentRequests = async (req, res, next) => {
             }
         });
     } catch (error) {
-        console.error("Error fetching user document requests:", error);
         next(error);
     }
 };
