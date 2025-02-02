@@ -1,7 +1,3 @@
-import { useState, useCallback, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { incidentReportSchema } from "./validationSchemas";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,9 +10,13 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
-import { toast } from "sonner";
+import { useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
+import { toast } from "sonner";
+import { incidentReportSchema } from "./validationSchemas";
 
 const incidentCategories = {
     "Crime-Related Incidents": [
@@ -121,8 +121,7 @@ export default function IncidentReportForm() {
 
     return (
         <Card className="w-full max-w-4xl mx-auto">
-            <CardHeader>
-            </CardHeader>
+            <CardHeader></CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
