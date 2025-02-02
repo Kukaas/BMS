@@ -27,39 +27,47 @@ export const getUserNotifications = async (req, res, next) => {
 export const markNotificationsAsRead = async (req, res, next) => {
     try {
         const { notificationIds } = req.body;
-        const user = await User.findById(req.user.id);
+
+        // Use findOneAndUpdate to update notifications atomically
+        const updateQuery =
+            notificationIds && notificationIds.length > 0
+                ? {
+                      $set: {
+                          "notifications.$[elem].read": true,
+                          unreadNotifications: 0,
+                      },
+                  }
+                : {
+                      $set: {
+                          "notifications.$[].read": true,
+                          unreadNotifications: 0,
+                      },
+                  };
+
+        const options =
+            notificationIds && notificationIds.length > 0
+                ? {
+                      arrayFilters: [{ "elem._id": { $in: notificationIds } }],
+                      new: true,
+                  }
+                : { new: true };
+
+        const user = await User.findOneAndUpdate({ _id: req.user.id }, updateQuery, options);
 
         if (!user) {
             return res.status(404).json({
                 success: false,
-                message: "User not found"
+                message: "User not found",
             });
         }
-
-        // Mark specific notifications as read
-        if (notificationIds && notificationIds.length > 0) {
-            user.notifications.forEach(notification => {
-                if (notificationIds.includes(notification._id.toString())) {
-                    notification.read = true;
-                }
-            });
-        } else {
-            // Mark all notifications as read if no specific IDs provided
-            user.notifications.forEach(notification => {
-                notification.read = true;
-            });
-        }
-
-        user.unreadNotifications = 0;
-        await user.save();
 
         res.status(200).json({
             success: true,
             message: "Notifications marked as read",
             data: {
                 notifications: user.notifications,
-                unreadCount: 0
-            }
+                unreadCount: 0,
+            },
         });
     } catch (error) {
         next(error);
@@ -70,41 +78,30 @@ export const markNotificationsAsRead = async (req, res, next) => {
 export const deleteNotification = async (req, res, next) => {
     try {
         const { notificationId } = req.params;
-        const user = await User.findById(req.user.id);
+
+        const user = await User.findOneAndUpdate(
+            { _id: req.user.id },
+            {
+                $pull: { notifications: { _id: notificationId } },
+                $inc: { unreadNotifications: -1 },
+            },
+            { new: true }
+        );
 
         if (!user) {
             return res.status(404).json({
                 success: false,
-                message: "User not found"
+                message: "User not found",
             });
         }
-
-        const notificationIndex = user.notifications.findIndex(
-            n => n._id.toString() === notificationId
-        );
-
-        if (notificationIndex === -1) {
-            return res.status(404).json({
-                success: false,
-                message: "Notification not found"
-            });
-        }
-
-        // Update unread count if deleting an unread notification
-        if (!user.notifications[notificationIndex].read) {
-            user.unreadNotifications = Math.max(0, user.unreadNotifications - 1);
-        }
-
-        user.notifications.splice(notificationIndex, 1);
-        await user.save();
 
         res.status(200).json({
             success: true,
             message: "Notification deleted successfully",
             data: {
                 notifications: user.notifications,
-                unreadCount: user.unreadNotifications
-            }
+                unreadCount: user.unreadNotifications,
+            },
         });
     } catch (error) {
         next(error);
