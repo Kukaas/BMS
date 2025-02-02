@@ -2,6 +2,8 @@ import express from "express";
 import { verifyToken } from "../utils/verifyToken.js";
 import {
     getAllDocumentRequests,
+    getUserDocumentRequests,
+    getDocumentRequestById,
     createBarangayClearance,
     createBarangayIndigency,
     createBusinessClearance,
@@ -17,6 +19,12 @@ const router = express.Router();
 
 // Get all document requests
 router.get("/", verifyToken, getAllDocumentRequests);
+
+// Get user's document requests
+router.get("/my-requests", verifyToken, getUserDocumentRequests);
+
+// Get specific document request by ID and type
+router.get("/:type/:id", verifyToken, getDocumentRequestById);
 
 // Create document requests
 router.post("/barangay-clearance", verifyToken, createBarangayClearance);
