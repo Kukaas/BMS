@@ -1,4 +1,6 @@
 import BusinessClearance from "../models/business.clearance.model.js";
+import { createNotification } from "../utils/notifications.js";
+import User from "../models/user.model.js";
 
 export const createBusinessClearance = async (req, res, next) => {
     try {
@@ -61,6 +63,41 @@ export const createBusinessClearance = async (req, res, next) => {
 
         await businessClearanceRequest.save();
 
+        // Create notifications
+        const userNotification = createNotification(
+            "Business Clearance Request Created",
+            `Your business clearance request for ${businessName} has been submitted successfully.`,
+            "request",
+            businessClearanceRequest._id,
+            "BusinessClearance"
+        );
+
+        const staffNotification = createNotification(
+            "New Business Clearance Request",
+            `A new business clearance request has been submitted by ${ownerName} for ${businessName}.`,
+            "request",
+            businessClearanceRequest._id,
+            "BusinessClearance"
+        );
+
+        // Update user's notifications
+        await User.findByIdAndUpdate(req.user.id, {
+            $push: { notifications: userNotification },
+            $inc: { unreadNotifications: 1 }
+        });
+
+        // Notify barangay staff
+        const barangayStaff = await User.find({
+            barangay,
+            role: { $in: ["secretary", "chairman"] }
+        });
+
+        for (const staff of barangayStaff) {
+            staff.notifications.push(staffNotification);
+            staff.unreadNotifications += 1;
+            await staff.save();
+        }
+
         res.status(201).json({
             success: true,
             message: "Business clearance request submitted successfully",
@@ -101,6 +138,7 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
+        const { name: secretaryName } = req.user;
 
         if (!["Pending", "Approved", "Rejected"].includes(status)) {
             return res.status(400).json({
@@ -119,7 +157,25 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
         }
 
         businessClearance.status = status;
+        businessClearance.isVerified = status === "Approved";
         await businessClearance.save();
+
+        // Create status update notification with secretary info
+        const statusNotification = createNotification(
+            "Business Clearance Status Update",
+            `Your business clearance request for ${businessClearance.businessName} has been ${status.toLowerCase()} by ${secretaryName}`,
+            "status_update",
+            businessClearance._id,
+            "BusinessClearance"
+        );
+
+        // Update requestor's notifications
+        if (businessClearance.userId) {
+            await User.findByIdAndUpdate(businessClearance.userId, {
+                $push: { notifications: statusNotification },
+                $inc: { unreadNotifications: 1 }
+            });
+        }
 
         res.status(200).json({
             success: true,

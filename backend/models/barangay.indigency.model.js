@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const BarangayIndigencySchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
     name: {
         type: String,
         required: true,
@@ -33,7 +38,7 @@ const BarangayIndigencySchema = new mongoose.Schema({
         enum: ["Pending", "Approved", "Completed", "Rejected"],
         default: "Pending",
     },
-});
+}, { timestamps: true });
 
 const BarangayIndigency = mongoose.model("BarangayIndigency", BarangayIndigencySchema);
 

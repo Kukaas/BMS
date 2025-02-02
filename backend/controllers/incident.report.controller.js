@@ -1,4 +1,6 @@
 import IncidentReport from "../models/incident.report.model.js";
+import { createNotification } from "../utils/notifications.js";
+import User from "../models/user.model.js";
 
 export const createIncidentReport = async (req, res, next) => {
     try {
@@ -24,9 +26,45 @@ export const createIncidentReport = async (req, res, next) => {
             reporterName,
             reporterContact,
             barangay: req.user.barangay,
+            userId: req.user.id // Add user ID to track who created the report
         });
 
         await incidentReport.save();
+
+        // Create notifications
+        const userNotification = createNotification(
+            "Incident Report Created",
+            `Your incident report for ${category} has been submitted successfully.`,
+            "report",
+            incidentReport._id,
+            "IncidentReport"
+        );
+
+        const staffNotification = createNotification(
+            "New Incident Report",
+            `A new incident report has been submitted by ${reporterName}.`,
+            "report",
+            incidentReport._id,
+            "IncidentReport"
+        );
+
+        // Update user's notifications
+        await User.findByIdAndUpdate(req.user.id, {
+            $push: { notifications: userNotification },
+            $inc: { unreadNotifications: 1 }
+        });
+
+        // Notify barangay staff
+        const barangayStaff = await User.find({
+            barangay: req.user.barangay,
+            role: { $in: ["secretary", "chairman"] }
+        });
+
+        for (const staff of barangayStaff) {
+            staff.notifications.push(staffNotification);
+            staff.unreadNotifications += 1;
+            await staff.save();
+        }
 
         res.status(201).json({
             success: true,
@@ -84,7 +122,7 @@ export const updateIncidentStatus = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
-        const { barangay } = req.user;
+        const { barangay, name: secretaryName } = req.user;
 
         // Validate status
         const validStatuses = ["New", "In Progress", "Resolved"];
@@ -105,6 +143,23 @@ export const updateIncidentStatus = async (req, res, next) => {
             return res.status(404).json({
                 success: false,
                 message: "Incident report not found",
+            });
+        }
+
+        // Create status update notification with secretary info
+        const statusNotification = createNotification(
+            "Incident Report Status Update",
+            `Your incident report status has been updated to ${status} by ${secretaryName}.`,
+            "status_update",
+            report._id,
+            "IncidentReport"
+        );
+
+        // Update reporter's notifications if they are a registered user
+        if (report.userId) {
+            await User.findByIdAndUpdate(report.userId, {
+                $push: { notifications: statusNotification },
+                $inc: { unreadNotifications: 1 }
             });
         }
 
