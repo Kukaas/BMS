@@ -78,7 +78,7 @@ export const getAllDocumentRequests = async (req, res, next) => {
         const limit = parseInt(req.query.limit) || 6;
         const skip = (page - 1) * limit;
 
-        // Fetch requests from all document types with proper filtering
+        // Fetch requests from all document types with consistent filtering
         const [clearances, indigency, business, cedulas] = await Promise.all([
             BarangayClearance.find({
                 barangay,
@@ -86,15 +86,15 @@ export const getAllDocumentRequests = async (req, res, next) => {
             }).sort({ createdAt: -1 }),
             BarangayIndigency.find({
                 barangay,
-                userId
+                $or: [{ userId }, { email: req.user.email }]
             }).sort({ createdAt: -1 }),
             BusinessClearance.find({
                 barangay,
-                userId
+                $or: [{ userId }, { email: req.user.email }]
             }).sort({ createdAt: -1 }),
             Cedula.find({
                 barangay,
-                userId
+                $or: [{ userId }, { email: req.user.email }]
             }).sort({ createdAt: -1 })
         ]);
 
@@ -105,7 +105,7 @@ export const getAllDocumentRequests = async (req, res, next) => {
             cedulas: cedulas.length
         });
 
-        // Transform and combine all requests
+        // Transform and combine all requests with consistent mapping
         const allRequests = [
             ...clearances.map((doc) => ({
                 id: doc._id,
@@ -115,7 +115,10 @@ export const getAllDocumentRequests = async (req, res, next) => {
                 purpose: doc.purpose,
                 name: doc.name,
                 email: doc.email,
-                contactNumber: doc.contactNumber
+                contactNumber: doc.contactNumber,
+                isVerified: doc.isVerified,
+                dateOfIssuance: doc.dateOfIssuance,
+                ...doc.toObject()
             })),
             ...indigency.map((doc) => ({
                 id: doc._id,
@@ -124,7 +127,10 @@ export const getAllDocumentRequests = async (req, res, next) => {
                 status: doc.status || "Pending",
                 purpose: doc.purpose,
                 name: doc.name,
-                contactNumber: doc.contactNumber
+                contactNumber: doc.contactNumber,
+                isVerified: doc.isVerified,
+                dateOfIssuance: doc.dateOfIssuance,
+                ...doc.toObject()
             })),
             ...business.map((doc) => ({
                 id: doc._id,
@@ -136,7 +142,10 @@ export const getAllDocumentRequests = async (req, res, next) => {
                 businessName: doc.businessName,
                 businessType: doc.businessType,
                 email: doc.email,
-                contactNumber: doc.contactNumber
+                contactNumber: doc.contactNumber,
+                isVerified: doc.isVerified,
+                dateOfIssuance: doc.dateOfIssuance,
+                ...doc.toObject()
             })),
             ...cedulas.map((doc) => ({
                 id: doc._id,
@@ -147,86 +156,55 @@ export const getAllDocumentRequests = async (req, res, next) => {
                 name: doc.name,
                 dateOfBirth: doc.dateOfBirth,
                 civilStatus: doc.civilStatus,
-                occupation: doc.occupation
+                occupation: doc.occupation,
+                isVerified: doc.isVerified,
+                dateOfIssuance: doc.dateOfIssuance,
+                ...doc.toObject()
             }))
         ];
 
-        // Sort by date and apply pagination
-        const sortedRequests = allRequests.sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        // Sort by creation date
+        const sortedRequests = allRequests.sort((a, b) =>
+            new Date(b.createdAt) - new Date(a.createdAt)
         );
 
-        const total = sortedRequests.length;
+        // Apply pagination
         const paginatedRequests = sortedRequests.slice(skip, skip + limit);
 
         res.status(200).json({
             success: true,
             data: paginatedRequests,
             pagination: {
+                total: allRequests.length,
                 page,
                 limit,
-                total,
-                totalPages: Math.ceil(total / limit)
+                totalPages: Math.ceil(allRequests.length / limit)
             }
         });
     } catch (error) {
-        console.error("Error fetching document requests:", error);
+        console.error("Error fetching user document requests:", error);
         next(error);
     }
 };
 
 // Generic function to create document request
-const createDocumentRequest = async (Model, requestType, reqBody, userBarangay) => {
-    const document = new Model({
-        ...reqBody,
-        barangay: userBarangay,
-        status: "Pending"
-    });
-
-    await document.save();
-
-    // Map display names to enum values
-    const docModelMap = {
-        "Barangay Clearance": "BarangayClearance",
-        "Barangay Indigency": "BarangayIndigency",
-        "Business Clearance": "BusinessClearance",
-        "Cedula": "Cedula"
-    };
-
-    const docModel = docModelMap[requestType];
-    if (!docModel) {
-        throw new Error(`Invalid document type: ${requestType}`);
-    }
-
-    // Create notifications with the correct enum value
-    const userNotification = createNotification(
-        `${requestType} Request Created`,
-        `Your ${requestType.toLowerCase()} request has been submitted successfully.`,
-        "request",
-        document._id,
-        docModel
-    );
-
-    const secretaryNotification = createNotification(
-        `New ${requestType} Request`,
-        `A new ${requestType.toLowerCase()} request has been submitted by ${reqBody.name || reqBody.ownerName}.`,
-        "request",
-        document._id,
-        docModel
-    );
-
-    // Send notification to secretaries
-    await sendDocumentRequestNotification(document, requestType, secretaryNotification);
-
-    // Update user's notifications if user ID exists
-    if (reqBody.userId) {
-        await User.findByIdAndUpdate(reqBody.userId, {
-            $push: { notifications: userNotification },
-            $inc: { unreadNotifications: 1 }
+const createDocumentRequest = async (Model, documentType, data, barangay) => {
+    try {
+        const document = new Model({
+            ...data,
+            userId: data.userId,
+            email: data.email,
+            barangay,
+            status: "pending",
+            documentType
         });
-    }
 
-    return document;
+        await document.save();
+        return document;
+    } catch (error) {
+        console.error(`Error creating ${documentType}:`, error);
+        throw error;
+    }
 };
 
 // Create document request handlers
@@ -426,108 +404,71 @@ export const updateCedulaStatus = async (req, res, next) => {
 // Update getUserDocumentRequests function
 export const getUserDocumentRequests = async (req, res, next) => {
     try {
-        const userId = req.user._id;
-        const userEmail = req.user.email; // Get user email from authenticated user
+        // Extract user info from the authenticated request
+        const userId = req.user.id;  // Get the user ID
+        const userEmail = req.user.email;
         const { barangay } = req.user;
+
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
-        console.log('Fetching requests for:', { userId, userEmail, barangay }); // Debug log
+        // Create base query with both userId and email
+        const baseQuery = {
+            barangay,
+            $or: [
+                { userId: userId },
+                { email: userEmail }
+            ]
+        };
 
-        // Fetch requests from all document types for this specific user
+        // Update queries to use both userId and email
         const [clearances, indigency, business, cedulas] = await Promise.all([
-            BarangayClearance.find({
-                email: userEmail, // Use email for clearance
-                barangay
-            }).sort({ createdAt: -1 }),
-            BarangayIndigency.find({
-                email: userEmail, // Use email for indigency
-                barangay
-            }).sort({ createdAt: -1 }),
-            BusinessClearance.find({
-                userId, // Use userId for business clearance
-                barangay
-            }).sort({ createdAt: -1 }),
-            Cedula.find({
-                userId, // Use userId for cedula
-                barangay
-            }).sort({ createdAt: -1 }),
+            BarangayClearance.find(baseQuery).sort({ createdAt: -1 }),
+            BarangayIndigency.find(baseQuery).sort({ createdAt: -1 }),
+            BusinessClearance.find(baseQuery).sort({ createdAt: -1 }),
+            Cedula.find(baseQuery).sort({ createdAt: -1 })
         ]);
 
-        // Add debug logs
-        console.log('Found requests:', {
-            clearances: clearances.length,
-            indigency: indigency.length,
-            business: business.length,
-            cedulas: cedulas.length
-        });
-
-        // Transform and combine all requests
+        // Combine and format all requests
         const allRequests = [
-            ...clearances.map((doc) => ({
-                id: doc._id,
-                documentType: "Barangay Clearance",
-                createdAt: doc.createdAt,
-                status: doc.status || "Pending",
-                purpose: doc.purpose,
-                name: doc.name,
-                email: doc.email,
-                contactNumber: doc.contactNumber,
+            ...clearances.map(doc => ({
+                ...doc.toObject(),
+                documentType: 'Barangay Clearance'
             })),
-            ...indigency.map((doc) => ({
-                id: doc._id,
-                documentType: "Certificate of Indigency",
-                createdAt: doc.createdAt,
-                status: doc.status || "Pending",
-                purpose: doc.purpose,
-                name: doc.name,
-                contactNumber: doc.contactNumber,
+            ...indigency.map(doc => ({
+                ...doc.toObject(),
+                documentType: 'Barangay Indigency'
             })),
-            ...business.map((doc) => ({
-                id: doc._id,
-                documentType: "Business Clearance",
-                createdAt: doc.createdAt,
-                status: doc.status || "Pending",
-                purpose: "Business Registration",
-                businessName: doc.businessName,
-                ownerName: doc.ownerName,
-                contactNumber: doc.contactNumber,
+            ...business.map(doc => ({
+                ...doc.toObject(),
+                documentType: 'Business Clearance'
             })),
-            ...cedulas.map((doc) => ({
-                id: doc._id,
-                documentType: "Cedula",
-                createdAt: doc.createdAt,
-                status: doc.status || "Pending",
-                purpose: "Personal Identification",
-                name: doc.name,
-                civilStatus: doc.civilStatus,
-                occupation: doc.occupation,
-            })),
+            ...cedulas.map(doc => ({
+                ...doc.toObject(),
+                documentType: 'Cedula'
+            }))
         ];
 
-        // Sort all requests by date
-        const sortedRequests = allRequests.sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        // Sort by creation date
+        const sortedRequests = allRequests.sort((a, b) =>
+            new Date(b.createdAt) - new Date(a.createdAt)
         );
 
         // Apply pagination
-        const total = sortedRequests.length;
-        const totalPages = Math.ceil(total / limit);
         const paginatedRequests = sortedRequests.slice(skip, skip + limit);
 
         res.status(200).json({
             success: true,
             data: paginatedRequests,
             pagination: {
+                total: allRequests.length,
                 page,
                 limit,
-                total,
-                totalPages,
-            },
+                totalPages: Math.ceil(allRequests.length / limit)
+            }
         });
     } catch (error) {
-        console.error("Error fetching user document requests:", error);
         next(error);
     }
 };
