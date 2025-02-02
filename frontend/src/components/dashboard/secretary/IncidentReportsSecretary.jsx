@@ -30,6 +30,15 @@ import { toast } from "sonner";
 import api from "@/lib/axios";
 import { useSelector } from "react-redux";
 
+// Add formatDate function
+const formatDate = (dateStr) => {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
+};
+
 export function IncidentReportsSecretary() {
     const [reports, setReports] = useState([]);
     const [selectedReport, setSelectedReport] = useState(null);
