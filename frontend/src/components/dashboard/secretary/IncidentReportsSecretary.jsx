@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -17,18 +17,18 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, MapPin, Phone, User } from "lucide-react";
-import { toast } from "sonner";
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import api from "@/lib/axios";
+import { Loader2, MapPin, Phone, User, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { toast } from "sonner";
 
 // Add formatDate function
 const formatDate = (dateStr) => {
@@ -176,35 +176,32 @@ export function IncidentReportsSecretary() {
                     {/* Search and Page Size Controls */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Input
-                                placeholder="Search reports..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-[300px]"
-                            />
+                            <div className="relative w-full">
+                                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                                <Input
+                                    placeholder="Search reports..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-[300px] pl-8"
+                                />
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Select
-                                value={pageSize.toString()}
-                                onValueChange={handlePageSizeChange}
-                            >
-                                <SelectTrigger className="w-[80px]">
-                                    <SelectValue placeholder={pageSize} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[5, 10, 20, 30, 40, 50].map((size) => (
-                                        <SelectItem key={size} value={size.toString()}>
-                                            {size}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <span className="text-sm text-muted-foreground">per page</span>
-                        </div>
+                        <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
+                            <SelectTrigger className="w-[130px]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {[5, 10, 20, 30, 40, 50].map((size) => (
+                                    <SelectItem key={size} value={size.toString()}>
+                                        {size} per page
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
-                    {/* Table with border */}
-                    <div className="rounded-md border">
+                    {/* Update table container to match DocumentRequestSecretary */}
+                    <div>
                         <Table>
                             <TableHeader>
                                 <TableRow>

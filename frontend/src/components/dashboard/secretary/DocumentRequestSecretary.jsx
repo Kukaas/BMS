@@ -28,7 +28,7 @@ import {
 import { useSelector } from "react-redux";
 import api from "@/lib/axios";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 
 export function DocumentRequestSecretary() {
     const [requests, setRequests] = useState([]);
@@ -215,32 +215,27 @@ export function DocumentRequestSecretary() {
                 <div className="space-y-4">
                     {/* Search and Page Size Controls */}
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                        <div className="relative flex-1 max-w-sm">
+                            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Search requests..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-[300px]"
+                                className="w-full pl-8"
                             />
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Select
-                                value={pageSize.toString()}
-                                onValueChange={handlePageSizeChange}
-                            >
-                                <SelectTrigger className="w-[80px]">
-                                    <SelectValue placeholder={pageSize} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[5, 10, 20, 30, 40, 50].map((size) => (
-                                        <SelectItem key={size} value={size.toString()}>
-                                            {size}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <span className="text-sm text-muted-foreground">per page</span>
-                        </div>
+                        <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
+                            <SelectTrigger className="w-[130px]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {[5, 10, 20, 30, 40, 50].map((size) => (
+                                    <SelectItem key={size} value={size.toString()}>
+                                        {size} per page
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     {/* Table */}
@@ -282,7 +277,9 @@ export function DocumentRequestSecretary() {
                                             </DialogTrigger>
                                             <DialogContent>
                                                 <DialogHeader>
-                                                    <DialogTitle>Document Request Details</DialogTitle>
+                                                    <DialogTitle>
+                                                        Document Request Details
+                                                    </DialogTitle>
                                                 </DialogHeader>
                                                 {selectedRequest && (
                                                     <div className="grid gap-4">
@@ -318,23 +315,23 @@ export function DocumentRequestSecretary() {
                                                                     </p>
                                                                 </div>
                                                             </div>
-                                                            {getDocumentDetails(selectedRequest).map(
-                                                                (detail, index) => (
-                                                                    <div
-                                                                        key={index}
-                                                                        className="grid gap-2"
-                                                                    >
-                                                                        <div className="flex flex-col gap-1">
-                                                                            <p className="text-sm font-medium leading-none">
-                                                                                {detail.label}
-                                                                            </p>
-                                                                            <p className="text-sm text-muted-foreground">
-                                                                                {detail.value || "N/A"}
-                                                                            </p>
-                                                                        </div>
+                                                            {getDocumentDetails(
+                                                                selectedRequest
+                                                            ).map((detail, index) => (
+                                                                <div
+                                                                    key={index}
+                                                                    className="grid gap-2"
+                                                                >
+                                                                    <div className="flex flex-col gap-1">
+                                                                        <p className="text-sm font-medium leading-none">
+                                                                            {detail.label}
+                                                                        </p>
+                                                                        <p className="text-sm text-muted-foreground">
+                                                                            {detail.value || "N/A"}
+                                                                        </p>
                                                                     </div>
-                                                                )
-                                                            )}
+                                                                </div>
+                                                            ))}
                                                         </div>
 
                                                         <div className="grid gap-2">
@@ -356,9 +353,9 @@ export function DocumentRequestSecretary() {
                                                                     disabled={
                                                                         updating ||
                                                                         selectedRequest.status ===
-                                                                        "Completed" ||
+                                                                            "Completed" ||
                                                                         selectedRequest.status ===
-                                                                        "Rejected"
+                                                                            "Rejected"
                                                                     }
                                                                 >
                                                                     <SelectTrigger>
@@ -375,15 +372,15 @@ export function DocumentRequestSecretary() {
                                                                                 value={status}
                                                                                 className={
                                                                                     status ===
-                                                                                        "Rejected"
+                                                                                    "Rejected"
                                                                                         ? "text-destructive"
                                                                                         : status ===
                                                                                             "Completed"
-                                                                                            ? "text-primary"
-                                                                                            : status ===
-                                                                                                "Approved"
-                                                                                                ? "text-green-500"
-                                                                                                : ""
+                                                                                          ? "text-primary"
+                                                                                          : status ===
+                                                                                              "Approved"
+                                                                                            ? "text-green-500"
+                                                                                            : ""
                                                                                 }
                                                                             >
                                                                                 {status}
