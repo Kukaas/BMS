@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { incidentReportSchema } from "./validationSchemas";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -122,9 +122,6 @@ export default function IncidentReportForm() {
     return (
         <Card className="w-full max-w-4xl mx-auto">
             <CardHeader>
-                <CardTitle className="text-2xl font-bold text-center">
-                    Incident Report Form
-                </CardTitle>
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

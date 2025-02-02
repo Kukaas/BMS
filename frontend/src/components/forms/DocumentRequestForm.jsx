@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
     Select,
@@ -177,9 +177,6 @@ export default function DocumentRequestForm() {
     return (
         <Card className="w-full max-w-4xl mx-auto">
             <CardHeader>
-                <CardTitle className="text-2xl font-bold text-center">
-                    Document Request Form
-                </CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="space-y-8">

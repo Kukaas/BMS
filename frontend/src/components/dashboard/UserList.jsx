@@ -404,23 +404,22 @@ export function UserList() {
                                                         }
                                                     >
                                                         {actionLoading.verifying &&
-                                                        actionLoading.userId === user._id ? (
+                                                            actionLoading.userId === user._id ? (
                                                             <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-green-600" />
                                                         ) : (
                                                             <CheckCircle2
-                                                                className={`mr-2 h-4 w-4 ${
-                                                                    user.isVerified
+                                                                className={`mr-2 h-4 w-4 ${user.isVerified
                                                                         ? "text-green-800"
                                                                         : "text-green-600"
-                                                                }`}
+                                                                    }`}
                                                             />
                                                         )}
                                                         {actionLoading.verifying &&
-                                                        actionLoading.userId === user._id
+                                                            actionLoading.userId === user._id
                                                             ? "Verifying..."
                                                             : user.isVerified
-                                                              ? "Already Verified"
-                                                              : "Verify User"}
+                                                                ? "Already Verified"
+                                                                : "Verify User"}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => handleRejectUser(user._id)}
@@ -438,23 +437,22 @@ export function UserList() {
                                                         }
                                                     >
                                                         {actionLoading.rejecting &&
-                                                        actionLoading.userId === user._id ? (
+                                                            actionLoading.userId === user._id ? (
                                                             <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-red-600" />
                                                         ) : (
                                                             <XCircle
-                                                                className={`mr-2 h-4 w-4 ${
-                                                                    user.isVerified
+                                                                className={`mr-2 h-4 w-4 ${user.isVerified
                                                                         ? "text-red-800"
                                                                         : "text-red-600"
-                                                                }`}
+                                                                    }`}
                                                             />
                                                         )}
                                                         {actionLoading.rejecting &&
-                                                        actionLoading.userId === user._id
+                                                            actionLoading.userId === user._id
                                                             ? "Rejecting..."
                                                             : user.isVerified
-                                                              ? "Cannot Reject"
-                                                              : "Reject User"}
+                                                                ? "Cannot Reject"
+                                                                : "Reject User"}
                                                     </DropdownMenuItem>
                                                     {user.role !== "admin" &&
                                                         user.role !== "chairman" &&
@@ -478,14 +476,14 @@ export function UserList() {
                                                                         className="text-red-600 focus:text-red-600 cursor-pointer border-t"
                                                                     >
                                                                         {actionLoading.deactivating &&
-                                                                        actionLoading.userId ===
+                                                                            actionLoading.userId ===
                                                                             user._id ? (
                                                                             <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-red-600" />
                                                                         ) : (
                                                                             <UserX className="mr-2 h-4 w-4 text-red-600" />
                                                                         )}
                                                                         {actionLoading.deactivating &&
-                                                                        actionLoading.userId ===
+                                                                            actionLoading.userId ===
                                                                             user._id
                                                                             ? "Deactivating..."
                                                                             : "Deactivate User"}
@@ -506,14 +504,14 @@ export function UserList() {
                                                                         className="text-green-600 focus:text-green-600 cursor-pointer border-t"
                                                                     >
                                                                         {actionLoading.activating &&
-                                                                        actionLoading.userId ===
+                                                                            actionLoading.userId ===
                                                                             user._id ? (
                                                                             <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-green-600" />
                                                                         ) : (
                                                                             <UserCheck className="mr-2 h-4 w-4 text-green-600" />
                                                                         )}
                                                                         {actionLoading.activating &&
-                                                                        actionLoading.userId ===
+                                                                            actionLoading.userId ===
                                                                             user._id
                                                                             ? "Activating..."
                                                                             : "Activate User"}

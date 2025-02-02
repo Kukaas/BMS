@@ -209,7 +209,7 @@ export function DocumentRequestSecretary() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Recent Document Requests</CardTitle>
+                <CardTitle>Document Requests</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">

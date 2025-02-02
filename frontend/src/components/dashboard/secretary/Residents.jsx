@@ -104,55 +104,61 @@ export function SecretaryResidentsDashboard() {
     }
 
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <CardTitle>Residents Information</CardTitle>
-                        <div className="flex space-x-2">
-                            <Button onClick={toggleViewMode}>
-                                {viewMode === "grid" ? (
-                                    <List className="h-4 w-4" />
-                                ) : (
-                                    <Grid className="h-4 w-4" />
-                                )}
-                                <span className="ml-2">
-                                    {viewMode === "grid" ? "List View" : "Grid View"}
-                                </span>
-                            </Button>
-                        </div>
+        <Card className="w-full">
+            <CardHeader>
+                <div className="flex justify-between items-center">
+                    <CardTitle>Residents Information</CardTitle>
+                    <div className="flex space-x-2">
+                        <Button onClick={toggleViewMode}>
+                            {viewMode === "grid" ? (
+                                <List className="h-4 w-4" />
+                            ) : (
+                                <Grid className="h-4 w-4" />
+                            )}
+                            <span className="ml-2">
+                                {viewMode === "grid" ? "List View" : "Grid View"}
+                            </span>
+                        </Button>
                     </div>
-                    <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center flex-1 max-w-sm">
-                            <Search className="mr-2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search by name or email"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full"
-                            />
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Select
-                                value={pageSize.toString()}
-                                onValueChange={handlePageSizeChange}
-                            >
-                                <SelectTrigger className="w-[100px]">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[6, 12, 24, 48].map((size) => (
-                                        <SelectItem key={size} value={size.toString()}>
-                                            {size} per page
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                </div>
+                <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center flex-1 max-w-sm">
+                        <Search className="mr-2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search by name or email"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full"
+                        />
                     </div>
-                </CardHeader>
-                <CardContent>
-                    {viewMode === "grid" ? (
+                    <div className="flex items-center gap-2">
+                        <Select
+                            value={pageSize.toString()}
+                            onValueChange={handlePageSizeChange}
+                        >
+                            <SelectTrigger className="w-[100px]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {[6, 12, 24, 48].map((size) => (
+                                    <SelectItem key={size} value={size.toString()}>
+                                        {size} per page
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    {/* List/Grid View */}
+                    {viewMode === "list" ? (
+                        <ResidentsListView
+                            residents={getCurrentPageResidents()}
+                            setSelectedResident={setSelectedResident}
+                        />
+                    ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {getCurrentPageResidents().map((resident) => (
                                 <Card
@@ -263,11 +269,6 @@ export function SecretaryResidentsDashboard() {
                                 </Card>
                             ))}
                         </div>
-                    ) : (
-                        <ResidentsListView
-                            residents={getCurrentPageResidents()}
-                            setSelectedResident={setSelectedResident}
-                        />
                     )}
 
                     {/* Pagination Controls */}
@@ -316,8 +317,8 @@ export function SecretaryResidentsDashboard() {
                             </Button>
                         </div>
                     </div>
-                </CardContent>
-            </Card>
-        </div>
+                </div>
+            </CardContent>
+        </Card>
     );
 }
