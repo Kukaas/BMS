@@ -298,3 +298,135 @@ export const updateCedulaStatus = async (req, res, next) => {
         next(error);
     }
 };
+
+// Add this new function to get user's document requests
+export const getUserDocumentRequests = async (req, res, next) => {
+    try {
+        const userId = req.user._id;
+        const { barangay } = req.user;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        // Fetch requests from all document types for this user
+        const [clearances, indigency, business, cedulas] = await Promise.all([
+            BarangayClearance.find({ userId, barangay }).sort({ createdAt: -1 }),
+            BarangayIndigency.find({ userId, barangay }).sort({ createdAt: -1 }),
+            BusinessClearance.find({ userId, barangay }).sort({ createdAt: -1 }),
+            Cedula.find({ userId, barangay }).sort({ createdAt: -1 }),
+        ]);
+
+        // Transform and combine all requests
+        const allRequests = [
+            ...clearances.map((doc) => ({
+                id: doc._id,
+                documentType: "Barangay Clearance",
+                createdAt: doc.createdAt,
+                status: doc.status || "Pending",
+                purpose: doc.purpose,
+                name: doc.name,
+                email: doc.email,
+                contactNumber: doc.contactNumber,
+            })),
+            ...indigency.map((doc) => ({
+                id: doc._id,
+                documentType: "Certificate of Indigency",
+                createdAt: doc.createdAt,
+                status: doc.status || "Pending",
+                purpose: doc.purpose,
+                name: doc.name,
+                contactNumber: doc.contactNumber,
+            })),
+            ...business.map((doc) => ({
+                id: doc._id,
+                documentType: "Business Clearance",
+                createdAt: doc.createdAt,
+                status: doc.status || "Pending",
+                purpose: "Business Registration",
+                businessName: doc.businessName,
+                ownerName: doc.ownerName,
+                contactNumber: doc.contactNumber,
+            })),
+            ...cedulas.map((doc) => ({
+                id: doc._id,
+                documentType: "Cedula",
+                createdAt: doc.createdAt,
+                status: doc.status || "Pending",
+                purpose: "Personal Identification",
+                name: doc.name,
+                civilStatus: doc.civilStatus,
+                occupation: doc.occupation,
+            })),
+        ];
+
+        // Sort all requests by date
+        const sortedRequests = allRequests.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        // Apply pagination
+        const paginatedRequests = sortedRequests.slice(skip, skip + limit);
+        const total = sortedRequests.length;
+        const totalPages = Math.ceil(total / limit);
+
+        res.status(200).json({
+            success: true,
+            data: paginatedRequests,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages,
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching user document requests:", error);
+        next(error);
+    }
+};
+
+// Add this function to get a specific document request
+export const getDocumentRequestById = async (req, res, next) => {
+    try {
+        const { id, type } = req.params;
+        const userId = req.user._id;
+        const { barangay } = req.user;
+
+        let document;
+        switch (type.toLowerCase()) {
+            case 'clearance':
+                document = await BarangayClearance.findOne({ _id: id, userId, barangay });
+                break;
+            case 'indigency':
+                document = await BarangayIndigency.findOne({ _id: id, userId, barangay });
+                break;
+            case 'business':
+                document = await BusinessClearance.findOne({ _id: id, userId, barangay });
+                break;
+            case 'cedula':
+                document = await Cedula.findOne({ _id: id, userId, barangay });
+                break;
+            default:
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid document type"
+                });
+        }
+
+        if (!document) {
+            return res.status(404).json({
+                success: false,
+                message: "Document request not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: document
+        });
+
+    } catch (error) {
+        console.error("Error fetching document request:", error);
+        next(error);
+    }
+};
