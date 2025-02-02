@@ -131,3 +131,35 @@ export const mockResidents = [
         profileImage: "/placeholder.svg?height=100&width=100",
     },
 ];
+
+// Mock data for testing
+export const mockRequests = [
+    {
+        id: 1,
+        documentType: "Barangay Clearance",
+        status: "pending",
+        createdAt: "2024-03-15",
+        purpose: "Job Application",
+    },
+    {
+        id: 2,
+        documentType: "Barangay Indigency",
+        status: "approved",
+        createdAt: "2024-03-10",
+        purpose: "Medical Assistance",
+    },
+    {
+        id: 3,
+        documentType: "Cedula",
+        status: "rejected",
+        createdAt: "2024-03-05",
+        purpose: "Business Permit",
+    },
+    {
+        id: 4,
+        documentType: "Barangay Business Clearance",
+        status: "approved",
+        createdAt: "2024-03-01",
+        purpose: "Business Registration",
+    },
+];
