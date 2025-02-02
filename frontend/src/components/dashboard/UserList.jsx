@@ -15,7 +15,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CheckCircle2, MoreHorizontal, XCircle, UserX, UserCheck, Loader2 } from "lucide-react";
+import { CheckCircle2, MoreHorizontal, XCircle, UserX, UserCheck, Loader2, Search } from "lucide-react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { toast } from "sonner";
@@ -311,34 +311,31 @@ export function UserList() {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Input
-                                placeholder="Search users..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-[300px]"
-                            />
+                            <div className="relative">
+                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search users..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-[300px] pl-8"
+                                />
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Select
-                                value={pageSize.toString()}
-                                onValueChange={handlePageSizeChange}
-                            >
-                                <SelectTrigger className="w-[80px]">
-                                    <SelectValue placeholder={pageSize} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[5, 10, 20, 30, 40, 50].map((size) => (
-                                        <SelectItem key={size} value={size.toString()}>
-                                            {size}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <span className="text-sm text-muted-foreground">per page</span>
-                        </div>
+                        <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
+                            <SelectTrigger className="w-[130px]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {[5, 10, 20, 30, 40, 50].map((size) => (
+                                    <SelectItem key={size} value={size.toString()}>
+                                        {size} per page
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
-                    <div className="rounded-md border">
+                    <div>
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -404,22 +401,23 @@ export function UserList() {
                                                         }
                                                     >
                                                         {actionLoading.verifying &&
-                                                            actionLoading.userId === user._id ? (
+                                                        actionLoading.userId === user._id ? (
                                                             <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-green-600" />
                                                         ) : (
                                                             <CheckCircle2
-                                                                className={`mr-2 h-4 w-4 ${user.isVerified
+                                                                className={`mr-2 h-4 w-4 ${
+                                                                    user.isVerified
                                                                         ? "text-green-800"
                                                                         : "text-green-600"
-                                                                    }`}
+                                                                }`}
                                                             />
                                                         )}
                                                         {actionLoading.verifying &&
-                                                            actionLoading.userId === user._id
+                                                        actionLoading.userId === user._id
                                                             ? "Verifying..."
                                                             : user.isVerified
-                                                                ? "Already Verified"
-                                                                : "Verify User"}
+                                                              ? "Already Verified"
+                                                              : "Verify User"}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => handleRejectUser(user._id)}
@@ -437,22 +435,23 @@ export function UserList() {
                                                         }
                                                     >
                                                         {actionLoading.rejecting &&
-                                                            actionLoading.userId === user._id ? (
+                                                        actionLoading.userId === user._id ? (
                                                             <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-red-600" />
                                                         ) : (
                                                             <XCircle
-                                                                className={`mr-2 h-4 w-4 ${user.isVerified
+                                                                className={`mr-2 h-4 w-4 ${
+                                                                    user.isVerified
                                                                         ? "text-red-800"
                                                                         : "text-red-600"
-                                                                    }`}
+                                                                }`}
                                                             />
                                                         )}
                                                         {actionLoading.rejecting &&
-                                                            actionLoading.userId === user._id
+                                                        actionLoading.userId === user._id
                                                             ? "Rejecting..."
                                                             : user.isVerified
-                                                                ? "Cannot Reject"
-                                                                : "Reject User"}
+                                                              ? "Cannot Reject"
+                                                              : "Reject User"}
                                                     </DropdownMenuItem>
                                                     {user.role !== "admin" &&
                                                         user.role !== "chairman" &&
@@ -476,14 +475,14 @@ export function UserList() {
                                                                         className="text-red-600 focus:text-red-600 cursor-pointer border-t"
                                                                     >
                                                                         {actionLoading.deactivating &&
-                                                                            actionLoading.userId ===
+                                                                        actionLoading.userId ===
                                                                             user._id ? (
                                                                             <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-red-600" />
                                                                         ) : (
                                                                             <UserX className="mr-2 h-4 w-4 text-red-600" />
                                                                         )}
                                                                         {actionLoading.deactivating &&
-                                                                            actionLoading.userId ===
+                                                                        actionLoading.userId ===
                                                                             user._id
                                                                             ? "Deactivating..."
                                                                             : "Deactivate User"}
@@ -504,14 +503,14 @@ export function UserList() {
                                                                         className="text-green-600 focus:text-green-600 cursor-pointer border-t"
                                                                     >
                                                                         {actionLoading.activating &&
-                                                                            actionLoading.userId ===
+                                                                        actionLoading.userId ===
                                                                             user._id ? (
                                                                             <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-green-600" />
                                                                         ) : (
                                                                             <UserCheck className="mr-2 h-4 w-4 text-green-600" />
                                                                         )}
                                                                         {actionLoading.activating &&
-                                                                            actionLoading.userId ===
+                                                                        actionLoading.userId ===
                                                                             user._id
                                                                             ? "Activating..."
                                                                             : "Activate User"}

@@ -103,34 +103,34 @@ export function SecretaryResidentsDashboard() {
     return (
         <Card className="w-full">
             <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mb-4">
                     <CardTitle>Residents Information</CardTitle>
-                    <div className="flex space-x-2">
-                        <Button onClick={toggleViewMode}>
-                            {viewMode === "grid" ? (
-                                <List className="h-4 w-4" />
-                            ) : (
-                                <Grid className="h-4 w-4" />
-                            )}
-                            <span className="ml-2">
-                                {viewMode === "grid" ? "List View" : "Grid View"}
-                            </span>
-                        </Button>
-                    </div>
                 </div>
                 <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center flex-1 max-w-sm">
-                        <Search className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <div className="relative flex-1 max-w-sm">
+                        <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             placeholder="Search by name or email"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full"
+                            className="w-full pl-8"
                         />
                     </div>
                     <div className="flex items-center gap-2">
+                        <div className="flex space-x-2">
+                            <Button onClick={toggleViewMode}>
+                                {viewMode === "grid" ? (
+                                    <List className="h-4 w-4" />
+                                ) : (
+                                    <Grid className="h-4 w-4" />
+                                )}
+                                <span className="ml-2">
+                                    {viewMode === "grid" ? "List View" : "Grid View"}
+                                </span>
+                            </Button>
+                        </div>
                         <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
-                            <SelectTrigger className="w-[100px]">
+                            <SelectTrigger className="w-[130px]">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
