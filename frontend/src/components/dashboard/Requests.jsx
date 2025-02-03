@@ -156,11 +156,13 @@ export function Requests() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <Card>
-                <CardHeader>
+        <div className="container mx-auto p-0 sm:px-4 sm:py-8">
+            <Card className="sm:rounded-lg rounded-none border-0 sm:border">
+                <CardHeader className="p-3 sm:p-6">
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <CardTitle className="text-2xl sm:text-3xl">My Document Requests</CardTitle>
+                        <CardTitle className="text-xl sm:text-2xl md:text-3xl">
+                            My Document Requests
+                        </CardTitle>
                         <div className="flex items-center gap-2">
                             <Button
                                 variant="outline"
@@ -193,18 +195,16 @@ export function Requests() {
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-3 sm:p-6">
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Input
-                                    placeholder="Search requests..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-[300px]"
-                                />
-                            </div>
-                            <div className="flex items-center gap-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <Input
+                                placeholder="Search requests..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full sm:w-[300px]"
+                            />
+                            <div className="flex items-center gap-2 self-end sm:self-auto">
                                 <Select
                                     value={pageSize.toString()}
                                     onValueChange={handlePageSizeChange}
@@ -249,13 +249,17 @@ export function Requests() {
                                                     {request.documentType}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Badge className={getStatusColor(request.status)}>
-                                                        {request.status || 'Pending'}
+                                                    <Badge
+                                                        className={getStatusColor(request.status)}
+                                                    >
+                                                        {request.status || "Pending"}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell>{request.purpose || 'N/A'}</TableCell>
+                                                <TableCell>{request.purpose || "N/A"}</TableCell>
                                                 <TableCell>
-                                                    {new Date(request.createdAt).toLocaleDateString()}
+                                                    {new Date(
+                                                        request.createdAt
+                                                    ).toLocaleDateString()}
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -264,17 +268,17 @@ export function Requests() {
                             </div>
                         )}
 
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm text-muted-foreground">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <p className="text-sm text-muted-foreground text-center sm:text-left">
                                 {searchTerm
                                     ? `${filteredRequests.length} results found`
                                     : `Total Requests: ${totalItems}`}
                             </p>
-                            <div className="flex items-center space-x-6 lg:space-x-8">
-                                <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                            <div className="flex flex-col sm:flex-row items-center gap-3 sm:space-x-6 lg:space-x-8">
+                                <div className="text-sm font-medium">
                                     Page {currentPage} of {totalPages}
                                 </div>
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-center gap-2">
                                     <Button
                                         variant="outline"
                                         size="sm"
