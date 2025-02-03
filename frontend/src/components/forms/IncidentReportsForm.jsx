@@ -17,9 +17,18 @@ import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import { incidentReportSchema } from "./validationSchemas";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search, Grid, List } from "lucide-react";
 import { mockIncidentReports } from "@/components/dashboard/secretary/mockData";
 import { Badge } from "@/components/ui/badge";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { IncidentReportGrid } from "@/components/dashboard/components/IncidentReportGrid";
 
 const incidentCategories = {
     "Crime-Related Incidents": [
@@ -46,6 +55,19 @@ const incidentCategories = {
     "Missing Persons & Lost Items": ["Missing Person", "Lost & Found"],
     "Domestic & Civil Disputes": ["Family Disputes", "Land/Property Issues", "Neighbor Conflicts"],
     "Animal-Related Incidents": ["Stray Animals", "Animal Bites"],
+};
+
+const getStatusColor = (status) => {
+    switch (status) {
+        case "New":
+            return "bg-blue-500 text-white";
+        case "In Progress":
+            return "bg-yellow-500 text-white";
+        case "Resolved":
+            return "bg-green-500 text-white";
+        default:
+            return "bg-gray-500 text-white";
+    }
 };
 
 const IncidentReportFormContent = ({ onComplete, onCancel }) => {
@@ -249,25 +271,69 @@ export default function IncidentReportForm() {
     const [showReportForm, setShowReportForm] = useState(false);
     const [incidents, setIncidents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { currentUser } = useSelector((state) => state.user);
+
+    // Add pagination and search states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(6);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    // Add filtered incidents logic
+    const filteredIncidents = incidents.filter((incident) => {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+            incident.category.toLowerCase().includes(searchLower) ||
+            incident.subCategory.toLowerCase().includes(searchLower) ||
+            incident.description.toLowerCase().includes(searchLower) ||
+            incident.status.toLowerCase().includes(searchLower)
+        );
+    });
+
+    // Calculate pagination
+    const totalIncidents = filteredIncidents.length;
+    const totalPages = Math.ceil(totalIncidents / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const currentIncidents = filteredIncidents.slice(startIndex, endIndex);
+
+    // Fetch user's incident reports
+    const fetchIncidents = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get(
+                "http://localhost:5000/api/incident-report/user/reports",
+                {
+                    headers: {
+                        Authorization: `Bearer ${currentUser.token}`,
+                    },
+                }
+            );
+            setIncidents(response.data.data);
+        } catch (error) {
+            console.error("Error fetching incidents:", error);
+            toast.error("Failed to load incident reports");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        // Simulate API call delay
-        const timer = setTimeout(() => {
-            setIncidents(mockIncidentReports);
-            setLoading(false);
-        }, 1000);
-
-        return () => clearTimeout(timer);
-    }, []);
+        if (currentUser) {
+            fetchIncidents();
+        }
+    }, [currentUser]);
 
     const handleReportComplete = () => {
         setShowReportForm(false);
-        // Refresh the incidents list here when you have the API
+        fetchIncidents(); // Refresh the list after new report
     };
 
     const handleCancel = () => {
         setShowReportForm(false);
     };
+
+    // Add view mode state
+    const [viewMode, setViewMode] = useState("grid");
 
     if (loading) {
         return (
@@ -283,59 +349,147 @@ export default function IncidentReportForm() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="pt-0 md:pt-8 lg:pt-8">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                     <CardTitle className="text-2xl font-bold">My Incident Reports</CardTitle>
-                    <Button onClick={() => setShowReportForm(true)}>Report New Incident</Button>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+                        >
+                            {viewMode === "grid" ? (
+                                <List className="h-4 w-4" />
+                            ) : (
+                                <Grid className="h-4 w-4" />
+                            )}
+                        </Button>
+                        <Button onClick={() => setShowReportForm(true)}>Report New Incident</Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
-                    {incidents.length === 0 ? (
-                        <p className="text-center text-muted-foreground">
-                            No incident reports found.
-                        </p>
-                    ) : (
-                        <div className="space-y-4">
-                            {incidents.map((incident) => (
-                                <div
-                                    key={incident._id}
-                                    className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+                    <div className="space-y-4">
+                        {/* Search and Page Size Controls */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div className="relative w-full sm:w-[300px]">
+                                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                                <Input
+                                    placeholder="Search reports..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pl-8"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 self-end sm:self-auto">
+                                <Select
+                                    value={pageSize.toString()}
+                                    onValueChange={(value) => {
+                                        setPageSize(Number(value));
+                                        setCurrentPage(1);
+                                    }}
                                 >
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <h3 className="font-semibold">{incident.category}</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                {incident.subCategory}
-                                            </p>
-                                        </div>
-                                        <Badge
-                                            variant={
-                                                incident.status === "pending"
-                                                    ? "warning"
-                                                    : incident.status === "resolved"
-                                                      ? "success"
-                                                      : "secondary"
-                                            }
-                                        >
-                                            {incident.status}
-                                        </Badge>
-                                    </div>
-                                    <p className="text-sm mb-2">{incident.description}</p>
-                                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                                        <span>Location: {incident.location}</span>
-                                        <span>
-                                            Date: {new Date(incident.date).toLocaleDateString()}
-                                        </span>
-                                        <span>Time: {incident.time}</span>
-                                    </div>
-                                    <div className="mt-2 text-sm text-muted-foreground">
-                                        <p>Reported by: {incident.reporterName}</p>
-                                        <p>Contact: {incident.reporterContact}</p>
-                                    </div>
-                                </div>
-                            ))}
+                                    <SelectTrigger className="w-[80px]">
+                                        <SelectValue placeholder={pageSize} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {[6, 12, 18, 24, 30].map((size) => (
+                                            <SelectItem key={size} value={size.toString()}>
+                                                {size}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <span className="text-sm text-muted-foreground">per page</span>
+                            </div>
                         </div>
-                    )}
+
+                        {currentIncidents.length === 0 ? (
+                            <p className="text-gray-500 text-center">No incident reports found.</p>
+                        ) : viewMode === "grid" ? (
+                            <IncidentReportGrid
+                                incidents={currentIncidents}
+                                getStatusColor={getStatusColor}
+                            />
+                        ) : (
+                            <div className="rounded-md border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Category</TableHead>
+                                            <TableHead>Location</TableHead>
+                                            <TableHead>Date & Time</TableHead>
+                                            <TableHead>Status</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {currentIncidents.map((incident) => (
+                                            <TableRow key={incident._id}>
+                                                <TableCell>
+                                                    <div>
+                                                        <p className="font-medium">
+                                                            {incident.category}
+                                                        </p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {incident.subCategory}
+                                                        </p>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>{incident.location}</TableCell>
+                                                <TableCell>
+                                                    <div>
+                                                        <p>{incident.date}</p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {incident.time}
+                                                        </p>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge
+                                                        className={getStatusColor(incident.status)}
+                                                    >
+                                                        {incident.status}
+                                                    </Badge>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        )}
+
+                        {/* Pagination Controls */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <p className="text-sm text-muted-foreground text-center sm:text-left">
+                                {searchTerm
+                                    ? `${filteredIncidents.length} results found`
+                                    : `Total Reports: ${totalIncidents}`}
+                            </p>
+                            <div className="flex flex-col sm:flex-row items-center gap-3 sm:space-x-6 lg:space-x-8">
+                                <div className="text-sm font-medium">
+                                    Page {currentPage} of {totalPages}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCurrentPage(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                    >
+                                        Previous
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCurrentPage(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 
