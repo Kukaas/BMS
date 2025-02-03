@@ -2,7 +2,7 @@ import { logout } from "@/redux/user/userSlice";
 import { checkAuth } from "@/utils/auth";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Navigate, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { isTokenExpired } from "@/lib/auth";
 import {
     AlertDialog,
@@ -26,7 +26,14 @@ const PrivateRoute = () => {
     const tab = new URLSearchParams(location.search).get("tab");
 
     // Define valid tabs for each role
-    const adminTabs = ["overview", "users", "requestdocs", "incidents", "residents"];
+    const adminTabs = [
+        "overview",
+        "users",
+        "requestdocs",
+        "incidents",
+        "residents",
+        "blotterreports",
+    ];
     const userTabs = ["overview", "requests", "reports", "blotter", "settings"];
 
     // Check if current tab is valid for user's role

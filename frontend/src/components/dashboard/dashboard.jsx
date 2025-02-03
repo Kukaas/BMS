@@ -34,6 +34,7 @@ import Overview from "./Overview";
 import { DocumentRequestSecretary } from "./secretary/DocumentRequestSecretary";
 import { UserList } from "./UserList";
 import SecretaryResidentsDashboardPage from "@/pages/secretary-residents-dashboard";
+import { SecretaryBlotterDashboard } from "./secretary/BlotterReportsSecretary";
 
 const componentMap = {
     overview: Overview,
@@ -45,6 +46,7 @@ const componentMap = {
     incidents: IncidentReportSecretaryPage,
     requestdocs: DocumentRequestSecretary,
     residents: SecretaryResidentsDashboardPage,
+    blotterreports: SecretaryBlotterDashboard,
     // settings: Settings,
     // help: Help,
 };
@@ -124,6 +126,11 @@ function Dashboard({ tab }) {
                       icon: FileText,
                       label: "Incident Report",
                       href: "/dashboard?tab=incidents",
+                  },
+                  {
+                      icon: FileText,
+                      label: "Blotter Report",
+                      href: "/dashboard?tab=blotterreports",
                   },
                   {
                       icon: Users,

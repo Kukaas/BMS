@@ -29,15 +29,10 @@ const DashboardWrapper = () => {
         "requestdocs",
         "incidents",
         "residents",
+        "blotterreports",
     ];
 
-    const userTabs = [
-        "overview",
-        "requests",
-        "reports",
-        "blotter",
-        "settings",
-    ];
+    const userTabs = ["overview", "requests", "reports", "blotter", "settings"];
 
     const validTabs = isAdminRole(currentUser?.role) ? adminTabs : userTabs;
 
