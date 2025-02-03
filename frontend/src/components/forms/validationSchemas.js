@@ -130,7 +130,14 @@ export const blotterReportSchema = z.object({
     witnessContact: z.string().optional(),
 
     // Evidence
-    evidence: z.any().optional(),
+    evidenceFile: z
+        .object({
+            filename: z.string(),
+            contentType: z.string(),
+            data: z.string(),
+        })
+        .nullable()
+        .optional(),
 
     // Action Requested
     actionRequested: z.string().min(1, "Action requested is required"),

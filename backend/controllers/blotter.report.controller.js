@@ -5,36 +5,26 @@ import User from "../models/user.model.js";
 // Create a new blotter report
 export const createBlotterReport = async (req, res, next) => {
     try {
-        const { evidence, ...otherData } = req.body;
-
-        // Process evidence files in chunks if they exist
-        let evidenceFiles = [];
-        if (evidence && Array.isArray(evidence)) {
-            evidenceFiles = evidence.map((file) => ({
-                filename: file.filename,
-                contentType: file.contentType,
-                data: Buffer.from(file.data, "base64"),
-            }));
-        }
+        const { evidenceFile, ...otherData } = req.body;
 
         // Create report object with all required fields
         const blotterReport = new BlotterReport({
             ...otherData,
-            evidenceFiles,
+            // Store the evidence file directly
+            evidenceFile: evidenceFile
+                ? {
+                      filename: evidenceFile.filename,
+                      contentType: evidenceFile.contentType,
+                      data: evidenceFile.data,
+                  }
+                : null,
             userId: req.user.id,
             // Ensure date is properly formatted
             incidentDate: new Date(otherData.incidentDate),
         });
 
-        // Set timeout for the save operation
-        const saveTimeout = new Promise((resolve, reject) => {
-            setTimeout(() => {
-                reject(new Error("Save operation timed out"));
-            }, 30000); // 30 second timeout
-        });
-
-        // Save with timeout
-        const savedReport = await Promise.race([blotterReport.save(), saveTimeout]);
+        // Save the report
+        const savedReport = await blotterReport.save();
 
         // Create notifications
         const userNotification = createNotification(
@@ -45,47 +35,28 @@ export const createBlotterReport = async (req, res, next) => {
             "BlotterReport"
         );
 
-        const staffNotification = createNotification(
-            "New Blotter Report",
-            `A new blotter report has been submitted by ${req.user.name}.`,
-            "report",
-            savedReport._id,
-            "BlotterReport"
-        );
-
         // Update user's notifications
         await User.findByIdAndUpdate(req.user.id, {
             $push: { notifications: userNotification },
-            $inc: { unreadNotifications: 1 }
+            $inc: { unreadNotifications: 1 },
         });
-
-        // Notify barangay staff
-        const barangayStaff = await User.find({
-            barangay: req.user.barangay,
-            role: { $in: ["secretary", "chairman"] }
-        });
-
-        for (const staff of barangayStaff) {
-            staff.notifications.push(staffNotification);
-            staff.unreadNotifications += 1;
-            await staff.save();
-        }
 
         res.status(201).json({
+            success: true,
             message: "Blotter report created successfully",
             report: savedReport,
         });
     } catch (error) {
         console.error("Error creating blotter report:", error);
-        // Send a more detailed error message to the client
         res.status(500).json({
+            success: false,
             message: "Failed to create blotter report",
             error: error.message,
             details: error.errors
                 ? Object.keys(error.errors).map((key) => ({
-                    field: key,
-                    message: error.errors[key].message,
-                }))
+                      field: key,
+                      message: error.errors[key].message,
+                  }))
                 : null,
         });
     }
@@ -146,9 +117,17 @@ export const updateBlotterReport = async (req, res, next) => {
             return res.status(404).json({ message: "Report not found" });
         }
 
-        // Only allow updates if user is admin or report owner
-        if (req.user.role !== "admin" && report.userId.toString() !== req.user.id) {
-            return res.status(403).json({ message: "You can only update your own reports" });
+        // Allow updates if user is admin, secretary, chairman, or report owner
+        const isAuthorized =
+            req.user.role === "admin" ||
+            req.user.role === "secretary" ||
+            req.user.role === "chairman" ||
+            report.userId.toString() === req.user.id;
+
+        if (!isAuthorized) {
+            return res
+                .status(403)
+                .json({ message: "You are not authorized to update this report" });
         }
 
         const updatedReport = await BlotterReport.findByIdAndUpdate(
@@ -170,7 +149,7 @@ export const updateBlotterReport = async (req, res, next) => {
             // Update reporter's notifications
             await User.findByIdAndUpdate(report.userId, {
                 $push: { notifications: statusNotification },
-                $inc: { unreadNotifications: 1 }
+                $inc: { unreadNotifications: 1 },
             });
         }
 
@@ -198,5 +177,49 @@ export const deleteBlotterReport = async (req, res, next) => {
         res.status(200).json({ message: "Report has been deleted" });
     } catch (error) {
         next(error);
+    }
+};
+
+// Add this new controller function
+export const getBarangayBlotterReports = async (req, res, next) => {
+    try {
+        // Check if user is secretary or chairman
+        if (!["secretary", "chairman"].includes(req.user.role)) {
+            return res.status(403).json({
+                message: "Access denied. Only secretaries and chairmen can access barangay reports",
+            });
+        }
+
+        const reports = await BlotterReport.find()
+            .populate({
+                path: "userId",
+                match: { barangay: req.user.barangay },
+                select: "name email barangay",
+            })
+            .sort({ createdAt: -1 });
+
+        // Filter out reports where userId is null (meaning they don't match the barangay)
+        const barangayReports = reports.filter((report) => report.userId !== null);
+
+        res.status(200).json(barangayReports);
+    } catch (error) {
+        console.error("Error fetching barangay blotter reports:", error);
+        res.status(500).json({
+            message: "Failed to fetch barangay blotter reports",
+            error: error.message,
+        });
+    }
+};
+
+// Get Blotter Reports
+export const getBlotterReports = async (req, res) => {
+    try {
+        const reports = await BlotterReport.find().sort({ createdAt: -1 });
+
+        // Make sure to include evidenceFiles in the response
+        res.status(200).json(reports);
+    } catch (error) {
+        console.error("Error fetching blotter reports:", error);
+        res.status(500).json({ message: error.message });
     }
 };
