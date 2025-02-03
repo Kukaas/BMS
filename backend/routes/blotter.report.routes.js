@@ -7,6 +7,7 @@ import {
     deleteBlotterReport,
     getEvidenceFile,
     getBarangayBlotterReports,
+    getUserBlotterReports,
 } from "../controllers/blotter.report.controller.js";
 import verifyToken from "../utils/verifyToken.js";
 
@@ -23,5 +24,6 @@ router.get("/:id", getBlotterReport);
 router.get("/:reportId/evidence/:fileIndex", getEvidenceFile);
 router.put("/:id", updateBlotterReport);
 router.delete("/:id", deleteBlotterReport);
+router.get("/user/reports", getUserBlotterReports);
 
 export default router;

@@ -223,3 +223,25 @@ export const getBlotterReports = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// Add this new controller function
+export const getUserBlotterReports = async (req, res, next) => {
+    try {
+        // Get reports for the authenticated user
+        const reports = await BlotterReport.find({ userId: req.user.id })
+            .sort({ createdAt: -1 })
+            .populate("userId", "name email");
+
+        res.status(200).json({
+            success: true,
+            reports
+        });
+    } catch (error) {
+        console.error("Error fetching user blotter reports:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch user blotter reports",
+            error: error.message
+        });
+    }
+};
