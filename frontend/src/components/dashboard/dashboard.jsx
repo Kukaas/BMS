@@ -203,7 +203,7 @@ function Dashboard({ tab }) {
                 </Sidebar>
                 <div className="flex-1 flex flex-col min-h-0">
                     <Header />
-                    <main className="flex-1 min-h-0 h-screen overflow-y-auto p-8 my-auto bg-gradient-to-b from-gray-100 to-gray-200">
+                    <main className="flex-1 min-h-0 h-screen overflow-y-auto p-0 md:p-4 lg:p-8 my-auto bg-gradient-to-b from-gray-100 to-gray-200">
                         <ComponentToRender />
                     </main>
                 </div>
