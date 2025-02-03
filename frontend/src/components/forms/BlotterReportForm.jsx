@@ -16,6 +16,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PropTypes from "prop-types";
 import { Button } from "../ui/button";
 import { useSelector } from "react-redux";
+import api from "@/lib/axios";
+import { toast } from "sonner";
+import { X } from "lucide-react";
 
 export default function BlotterReportForm({ onSubmit, isSubmitting }) {
     const { currentUser } = useSelector((state) => state.user);
@@ -26,6 +29,7 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
         formState: { errors },
         setValue,
         reset,
+        watch,
     } = useForm({
         resolver: zodResolver(blotterReportSchema),
         defaultValues: {
@@ -34,6 +38,7 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
             complainantGender: "",
             complainantCivilStatus: "",
             actionRequested: "",
+            evidenceFile: null,
         },
     });
 
@@ -67,89 +72,80 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
         [setValue]
     );
 
-    const convertFileToBase64 = (file) => {
-        return new Promise((resolve, reject) => {
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
             const reader = new FileReader();
-            reader.readAsDataURL(file);
             reader.onload = () => {
-                const base64String = reader.result.split(",")[1];
-                resolve({
-                    filename: file.name,
-                    contentType: file.type,
-                    data: base64String,
-                });
+                console.log("File read successfully");
+                console.log("File data preview:", reader.result.substring(0, 100) + "...");
+
+                setValue(
+                    "evidenceFile",
+                    {
+                        filename: file.name,
+                        contentType: file.type,
+                        data: reader.result,
+                    },
+                    { shouldValidate: true }
+                );
             };
-            reader.onerror = (error) => reject(error);
-        });
+            reader.onerror = (error) => {
+                console.error("Error reading file:", error);
+                toast.error("Failed to read file");
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleFormSubmit = async (data) => {
         try {
-            const evidenceFiles = data.evidence ? Array.from(data.evidence) : [];
-            const evidenceBase64 = await Promise.all(
-                evidenceFiles.map((file) => convertFileToBase64(file))
-            );
-
-            // Format the data before submission
             const submitData = {
-                // Complainant Information
-                complainantName: data.complainantName,
-                complainantAge: data.complainantAge?.toString(),
-                complainantGender: data.complainantGender,
-                complainantCivilStatus: data.complainantCivilStatus,
-                complainantAddress: data.complainantAddress,
-                complainantContact: data.complainantContact,
-
-                // Respondent Information
-                respondentName: data.respondentName,
-                respondentAddress: data.respondentAddress || "",
-                respondentContact: data.respondentContact || "",
-
-                // Incident Details
-                incidentDate: data.incidentDate,
-                incidentTime: data.incidentTime,
-                incidentLocation: data.incidentLocation,
-                incidentType: data.incidentType,
-                narrative: data.narrative,
-                motive: data.motive || "",
-
-                // Witnesses and Evidence
-                witnessName: data.witnessName || "",
-                witnessContact: data.witnessContact || "",
-                evidence: evidenceBase64,
-
-                // Action Requested
-                actionRequested: data.actionRequested,
+                ...data,
+                // Send evidence files directly without any transformation
+                evidenceFiles: data.evidenceFiles || [],
             };
 
             console.log("Submitting data:", submitData);
 
-            // Pass the reset function to the parent component
-            onSubmit(submitData, () => {
-                reset({
-                    complainantName: currentUser?.name || "",
-                    complainantAddress: currentUser?.barangay || "",
-                    complainantGender: "",
-                    complainantCivilStatus: "",
-                    complainantAge: "",
-                    complainantContact: "",
-                    respondentName: "",
-                    respondentAddress: "",
-                    respondentContact: "",
-                    incidentDate: "",
-                    incidentTime: "",
-                    incidentLocation: "",
-                    incidentType: "",
-                    narrative: "",
-                    motive: "",
-                    witnessName: "",
-                    witnessContact: "",
-                    evidence: null,
-                    actionRequested: "",
-                });
+            const response = await api.post("/blotter/report", submitData, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${currentUser.token}`,
+                },
             });
+
+            console.log("Response from server:", response.data); // Debug log
+
+            if (response.data) {
+                console.log("Blotter report created successfully:", response.data);
+                onSubmit(response.data, () => {
+                    reset({
+                        complainantName: currentUser?.name || "",
+                        complainantAddress: currentUser?.barangay || "",
+                        complainantGender: "",
+                        complainantCivilStatus: "",
+                        complainantAge: "",
+                        complainantContact: "",
+                        respondentName: "",
+                        respondentAddress: "",
+                        respondentContact: "",
+                        incidentDate: "",
+                        incidentTime: "",
+                        incidentLocation: "",
+                        incidentType: "",
+                        narrative: "",
+                        motive: "",
+                        witnessName: "",
+                        witnessContact: "",
+                        evidenceFiles: [],
+                        actionRequested: "",
+                    });
+                });
+            }
         } catch (error) {
-            console.error("Error processing form:", error);
+            console.error("Error creating blotter report:", error);
+            toast.error(error.response?.data?.message || "Failed to create blotter report");
         }
     };
 
@@ -398,8 +394,48 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
                     </div>
 
                     <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="evidence">Evidence (Optional)</Label>
-                        <Input id="evidence" type="file" {...register("evidence")} multiple />
+                        <Label htmlFor="evidenceFile">Evidence File</Label>
+                        <Input
+                            id="evidenceFile"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="cursor-pointer"
+                        />
+                        {/* Preview uploaded image */}
+                        {watch("evidenceFile") && (
+                            <div className="relative mt-4">
+                                {/* Add debug output */}
+                                <pre className="text-xs">
+                                    {JSON.stringify(watch("evidenceFile"), null, 2)}
+                                </pre>
+
+                                <img
+                                    src={watch("evidenceFile").data}
+                                    alt={watch("evidenceFile").filename}
+                                    className="w-full h-40 object-cover rounded-lg"
+                                    // Add error handler to debug image loading issues
+                                    onError={(e) => {
+                                        console.error("Image failed to load:", e);
+                                        console.log(
+                                            "Image data:",
+                                            watch("evidenceFile").data?.substring(0, 100) + "..."
+                                        );
+                                    }}
+                                />
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute top-2 right-2"
+                                    onClick={() => {
+                                        setValue("evidenceFile", null, { shouldValidate: true });
+                                    }}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>

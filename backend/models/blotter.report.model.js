@@ -36,13 +36,11 @@ const blotterReportSchema = new mongoose.Schema(
         witnessContact: { type: String },
 
         // Evidence
-        evidenceFiles: [
-            {
-                filename: String,
-                contentType: String,
-                data: Buffer,
-            },
-        ],
+        evidenceFile: {
+            filename: String,
+            contentType: String,
+            data: String, // Store base64 data URL
+        },
 
         // Action Requested
         actionRequested: {
