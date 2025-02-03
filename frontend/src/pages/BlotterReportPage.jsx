@@ -52,7 +52,6 @@ export default function BlotterReportPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(6);
     const [searchTerm, setSearchTerm] = useState("");
-    const [viewMode, setViewMode] = useState("grid");
 
     // Fetch user's blotter reports
     const fetchBlotterReports = async () => {
@@ -99,11 +98,39 @@ export default function BlotterReportPage() {
     const handleSubmit = async (data, resetForm) => {
         try {
             setIsSubmitting(true);
-            const response = await axios.post("http://localhost:5000/api/blotter/report", data, {
-                headers: {
-                    Authorization: `Bearer ${currentUser.token}`,
-                },
-            });
+
+            // Format the date properly before sending
+            const formattedData = {
+                ...data,
+                // Convert date string to ISO format
+                incidentDate: new Date(data.incidentDate).toISOString(),
+                // Ensure all required fields are present
+                complainantName: data.complainantName,
+                complainantAge: data.complainantAge,
+                complainantGender: data.complainantGender,
+                complainantCivilStatus: data.complainantCivilStatus,
+                complainantAddress: data.complainantAddress,
+                complainantContact: data.complainantContact,
+                respondentName: data.respondentName,
+                incidentTime: data.incidentTime,
+                incidentLocation: data.incidentLocation,
+                incidentType: data.incidentType,
+                narrative: data.narrative,
+                actionRequested: data.actionRequested,
+            };
+
+            console.log("Submitting data:", formattedData); // Debug log
+
+            const response = await axios.post(
+                "http://localhost:5000/api/blotter/report",
+                formattedData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${currentUser.token}`,
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
 
             if (response.status === 201) {
                 toast.success("Blotter report submitted successfully!");
@@ -113,7 +140,12 @@ export default function BlotterReportPage() {
             }
         } catch (error) {
             console.error("Error submitting blotter:", error);
-            toast.error("Failed to submit blotter report");
+            // More detailed error message
+            const errorMessage =
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                "Failed to submit blotter report";
+            toast.error(errorMessage);
         } finally {
             setIsSubmitting(false);
         }
@@ -351,18 +383,7 @@ export default function BlotterReportPage() {
                                                 ? "warning"
                                                 : blotter.status === "Resolved"
                                                   ? "success"
-                                                  : blotter.status === "Under Investigation"
-                                                    ? "default"
-                                                    : "secondary"
-                                        }
-                                        className={
-                                            blotter.status === "Pending"
-                                                ? "bg-yellow-500 w-fit"
-                                                : blotter.status === "Resolved"
-                                                  ? "bg-green-500 w-fit"
-                                                  : blotter.status === "Under Investigation"
-                                                    ? "bg-blue-500 w-fit"
-                                                    : "bg-gray-500 w-fit"
+                                                  : "bg-gray-500 w-fit"
                                         }
                                     >
                                         {blotter.status}
@@ -402,9 +423,9 @@ export default function BlotterReportPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {/* Search and Page Size Controls */}
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="relative flex-1 max-w-sm">
+                        {/* Search and Controls - Matching Requests.jsx layout */}
+                        <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                            <div className="relative w-full md:w-[350px] order-2 md:order-1">
                                 <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     placeholder="Search reports..."
@@ -413,7 +434,7 @@ export default function BlotterReportPage() {
                                     className="w-full pl-8"
                                 />
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center justify-end gap-2 order-1 md:order-2">
                                 <Select
                                     value={pageSize.toString()}
                                     onValueChange={(value) => {
@@ -425,140 +446,131 @@ export default function BlotterReportPage() {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {[5, 10, 20, 30, 40, 50].map((size) => (
+                                        {[6, 12, 18, 24, 30].map((size) => (
                                             <SelectItem key={size} value={size.toString()}>
                                                 {size} per page
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() =>
-                                        setViewMode(viewMode === "grid" ? "list" : "grid")
-                                    }
-                                >
-                                    {viewMode === "grid" ? (
-                                        <List className="h-4 w-4" />
-                                    ) : (
-                                        <Grid className="h-4 w-4" />
-                                    )}
-                                </Button>
                                 <Button onClick={() => setShowReportForm(true)}>
                                     File New Blotter
                                 </Button>
                             </div>
                         </div>
 
+                        {/* Content */}
                         {currentBlotters.length === 0 ? (
                             <p className="text-gray-500 text-center">No blotter reports found.</p>
-                        ) : viewMode === "grid" ? (
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {currentBlotters.map(renderBlotterCard)}
-                            </div>
                         ) : (
-                            <div className="rounded-md border">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Case Type</TableHead>
-                                            <TableHead>Complainant</TableHead>
-                                            <TableHead>Respondent</TableHead>
-                                            <TableHead>Date Filed</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead>Action</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {currentBlotters.map((blotter) => (
-                                            <TableRow key={blotter._id}>
-                                                <TableCell>{blotter.incidentType}</TableCell>
-                                                <TableCell>{blotter.complainantName}</TableCell>
-                                                <TableCell>{blotter.respondentName}</TableCell>
-                                                <TableCell>
-                                                    {new Date(
-                                                        blotter.createdAt
-                                                    ).toLocaleDateString()}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge
-                                                        variant={
-                                                            blotter.status === "Pending"
-                                                                ? "warning"
-                                                                : blotter.status === "Resolved"
-                                                                  ? "success"
-                                                                  : "secondary"
-                                                        }
-                                                    >
-                                                        {blotter.status}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Dialog>
-                                                        <DialogTrigger asChild>
-                                                            <Button variant="outline" size="sm">
-                                                                <Eye className="h-4 w-4 mr-2" />
-                                                                View Details
-                                                            </Button>
-                                                        </DialogTrigger>
-                                                        <DialogContent className="max-w-3xl max-h-[90vh]">
-                                                            <DialogHeader className="border-b pb-4">
-                                                                <DialogTitle className="text-2xl font-bold">
-                                                                    Blotter Report Details
-                                                                </DialogTitle>
-                                                                <div className="flex flex-col gap-2">
-                                                                    <p className="text-sm text-muted-foreground">
-                                                                        Reported on{" "}
-                                                                        {formatDate(
-                                                                            blotter.createdAt
-                                                                        )}
-                                                                    </p>
-                                                                    <Badge
-                                                                        variant={
-                                                                            blotter.status ===
-                                                                            "Pending"
-                                                                                ? "warning"
-                                                                                : blotter.status ===
-                                                                                    "Resolved"
-                                                                                  ? "success"
-                                                                                  : blotter.status ===
-                                                                                      "Under Investigation"
-                                                                                    ? "default"
-                                                                                    : "secondary"
-                                                                        }
-                                                                        className={
-                                                                            blotter.status ===
-                                                                            "Pending"
-                                                                                ? "bg-yellow-500 w-fit"
-                                                                                : blotter.status ===
-                                                                                    "Resolved"
-                                                                                  ? "bg-green-500 w-fit"
-                                                                                  : blotter.status ===
-                                                                                      "Under Investigation"
-                                                                                    ? "bg-blue-500 w-fit"
-                                                                                    : "bg-gray-500 w-fit"
-                                                                        }
-                                                                    >
-                                                                        {blotter.status}
-                                                                    </Badge>
-                                                                </div>
-                                                            </DialogHeader>
-                                                            <ScrollArea className="h-[calc(80vh-8rem)]">
-                                                                <div className="p-6">
-                                                                    <BlotterDetails
-                                                                        blotter={blotter}
-                                                                    />
-                                                                </div>
-                                                            </ScrollArea>
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                </TableCell>
+                            <>
+                                {/* Grid view for small screens */}
+                                <div className="md:hidden grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                    {currentBlotters.map(renderBlotterCard)}
+                                </div>
+
+                                {/* Table view for medium and larger screens */}
+                                <div className="hidden md:block rounded-md border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Category</TableHead>
+                                                <TableHead>Location</TableHead>
+                                                <TableHead>Date & Time</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Action</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {currentBlotters.map((blotter) => (
+                                                <TableRow key={blotter._id}>
+                                                    <TableCell>
+                                                        <div>
+                                                            <p className="font-medium">
+                                                                {blotter.incidentType}
+                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {blotter.narrative}
+                                                            </p>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {blotter.incidentLocation}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div>
+                                                            <p>
+                                                                {formatDate(blotter.incidentDate)}
+                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {blotter.incidentTime}
+                                                            </p>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge
+                                                            className={
+                                                                blotter.status === "Pending"
+                                                                    ? "bg-yellow-500 w-fit"
+                                                                    : blotter.status === "Resolved"
+                                                                      ? "bg-green-500 w-fit"
+                                                                      : "bg-gray-500 w-fit"
+                                                            }
+                                                        >
+                                                            {blotter.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Dialog>
+                                                            <DialogTrigger asChild>
+                                                                <Button variant="outline" size="sm">
+                                                                    <Eye className="h-4 w-4 mr-2" />
+                                                                    View Details
+                                                                </Button>
+                                                            </DialogTrigger>
+                                                            <DialogContent className="max-w-3xl max-h-[90vh]">
+                                                                <DialogHeader className="border-b pb-4">
+                                                                    <DialogTitle className="text-2xl font-bold">
+                                                                        Blotter Report Details
+                                                                    </DialogTitle>
+                                                                    <div className="flex flex-col gap-2">
+                                                                        <p className="text-sm text-muted-foreground">
+                                                                            Reported on{" "}
+                                                                            {formatDate(
+                                                                                blotter.createdAt
+                                                                            )}
+                                                                        </p>
+                                                                        <Badge
+                                                                            className={
+                                                                                blotter.status ===
+                                                                                "Pending"
+                                                                                    ? "bg-yellow-500 w-fit"
+                                                                                    : blotter.status ===
+                                                                                        "Resolved"
+                                                                                      ? "bg-green-500 w-fit"
+                                                                                      : "bg-gray-500 w-fit"
+                                                                            }
+                                                                        >
+                                                                            {blotter.status}
+                                                                        </Badge>
+                                                                    </div>
+                                                                </DialogHeader>
+                                                                <ScrollArea className="h-[calc(80vh-8rem)]">
+                                                                    <div className="p-6">
+                                                                        <BlotterDetails
+                                                                            blotter={blotter}
+                                                                        />
+                                                                    </div>
+                                                                </ScrollArea>
+                                                            </DialogContent>
+                                                        </Dialog>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </>
                         )}
 
                         {/* Pagination Controls */}
