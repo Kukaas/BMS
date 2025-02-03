@@ -332,9 +332,6 @@ export default function IncidentReportForm() {
         setShowReportForm(false);
     };
 
-    // Add view mode state
-    const [viewMode, setViewMode] = useState("grid");
-
     if (loading) {
         return (
             <Card>
@@ -351,37 +348,22 @@ export default function IncidentReportForm() {
     return (
         <div className="pt-0 md:pt-8 lg:pt-8">
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                    <CardTitle className="text-2xl font-bold">My Incident Reports</CardTitle>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-                        >
-                            {viewMode === "grid" ? (
-                                <List className="h-4 w-4" />
-                            ) : (
-                                <Grid className="h-4 w-4" />
-                            )}
-                        </Button>
-                        <Button onClick={() => setShowReportForm(true)}>Report New Incident</Button>
-                    </div>
+                <CardHeader>
+                    <CardTitle>Incident Reports</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {/* Search and Page Size Controls */}
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div className="relative w-full sm:w-[300px]">
-                                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                        <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                            <div className="relative w-full md:w-[350px] order-2 md:order-1">
+                                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     placeholder="Search reports..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-8"
+                                    className="w-full pl-8"
                                 />
                             </div>
-                            <div className="flex items-center gap-2 self-end sm:self-auto">
+                            <div className="flex items-center justify-end gap-2 order-1 md:order-2">
                                 <Select
                                     value={pageSize.toString()}
                                     onValueChange={(value) => {
@@ -389,73 +371,114 @@ export default function IncidentReportForm() {
                                         setCurrentPage(1);
                                     }}
                                 >
-                                    <SelectTrigger className="w-[80px]">
-                                        <SelectValue placeholder={pageSize} />
+                                    <SelectTrigger className="w-[130px]">
+                                        <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {[6, 12, 18, 24, 30].map((size) => (
                                             <SelectItem key={size} value={size.toString()}>
-                                                {size}
+                                                {size} per page
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <span className="text-sm text-muted-foreground">per page</span>
+                                <Button onClick={() => setShowReportForm(true)}>
+                                    Report New Incident
+                                </Button>
                             </div>
                         </div>
 
-                        {currentIncidents.length === 0 ? (
+                        {incidents.length === 0 ? (
                             <p className="text-gray-500 text-center">No incident reports found.</p>
-                        ) : viewMode === "grid" ? (
-                            <IncidentReportGrid
-                                incidents={currentIncidents}
-                                getStatusColor={getStatusColor}
-                            />
                         ) : (
-                            <div className="rounded-md border">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Category</TableHead>
-                                            <TableHead>Location</TableHead>
-                                            <TableHead>Date & Time</TableHead>
-                                            <TableHead>Status</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {currentIncidents.map((incident) => (
-                                            <TableRow key={incident._id}>
-                                                <TableCell>
+                            <>
+                                {/* Grid view for small screens */}
+                                <div className="md:hidden grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                    {currentIncidents.map((incident) => (
+                                        <Card key={incident._id}>
+                                            <CardContent className="p-4">
+                                                <div className="flex justify-between items-start mb-2">
                                                     <div>
-                                                        <p className="font-medium">
+                                                        <h3 className="font-semibold">
                                                             {incident.category}
-                                                        </p>
+                                                        </h3>
                                                         <p className="text-sm text-muted-foreground">
                                                             {incident.subCategory}
                                                         </p>
                                                     </div>
-                                                </TableCell>
-                                                <TableCell>{incident.location}</TableCell>
-                                                <TableCell>
-                                                    <div>
-                                                        <p>{incident.date}</p>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            {incident.time}
-                                                        </p>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
                                                     <Badge
                                                         className={getStatusColor(incident.status)}
                                                     >
                                                         {incident.status}
                                                     </Badge>
-                                                </TableCell>
+                                                </div>
+                                                <div className="space-y-2 mt-4">
+                                                    <div>
+                                                        <h4 className="font-medium">Location</h4>
+                                                        <p className="text-sm">
+                                                            {incident.location}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-medium">Date & Time</h4>
+                                                        <p className="text-sm">
+                                                            {incident.date} at {incident.time}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+
+                                {/* Table view for medium and larger screens */}
+                                <div className="hidden md:block rounded-md border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Category</TableHead>
+                                                <TableHead>Location</TableHead>
+                                                <TableHead>Date & Time</TableHead>
+                                                <TableHead>Status</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {currentIncidents.map((incident) => (
+                                                <TableRow key={incident._id}>
+                                                    <TableCell>
+                                                        <div>
+                                                            <p className="font-medium">
+                                                                {incident.category}
+                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {incident.subCategory}
+                                                            </p>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>{incident.location}</TableCell>
+                                                    <TableCell>
+                                                        <div>
+                                                            <p>{incident.date}</p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {incident.time}
+                                                            </p>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge
+                                                            className={getStatusColor(
+                                                                incident.status
+                                                            )}
+                                                        >
+                                                            {incident.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </>
                         )}
 
                         {/* Pagination Controls */}
@@ -493,6 +516,7 @@ export default function IncidentReportForm() {
                 </CardContent>
             </Card>
 
+            {/* Form Modal */}
             {showReportForm && (
                 <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
                     <div className="bg-background rounded-lg w-full max-w-4xl my-8 shadow-lg overflow-hidden">

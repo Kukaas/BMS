@@ -37,6 +37,19 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
             complainantAddress: currentUser?.barangay || "",
             complainantGender: "",
             complainantCivilStatus: "",
+            complainantAge: "",
+            complainantContact: "",
+            respondentName: "",
+            respondentAddress: "",
+            respondentContact: "",
+            incidentDate: "",
+            incidentTime: "",
+            incidentLocation: "",
+            incidentType: "",
+            narrative: "",
+            motive: "",
+            witnessName: "",
+            witnessContact: "",
             actionRequested: "",
             evidenceFile: null,
         },
@@ -98,59 +111,18 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
         }
     };
 
-    const handleFormSubmit = async (data) => {
-        try {
-            const submitData = {
-                ...data,
-                // Send evidence files directly without any transformation
-                evidenceFiles: data.evidenceFiles || [],
-            };
+    const onFormSubmit = (data) => {
+        // Log the data being submitted
+        console.log("Form data before submission:", data);
 
-            console.log("Submitting data:", submitData);
-
-            const response = await api.post("/blotter/report", submitData, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${currentUser.token}`,
-                },
-            });
-
-            console.log("Response from server:", response.data); // Debug log
-
-            if (response.data) {
-                console.log("Blotter report created successfully:", response.data);
-                onSubmit(response.data, () => {
-                    reset({
-                        complainantName: currentUser?.name || "",
-                        complainantAddress: currentUser?.barangay || "",
-                        complainantGender: "",
-                        complainantCivilStatus: "",
-                        complainantAge: "",
-                        complainantContact: "",
-                        respondentName: "",
-                        respondentAddress: "",
-                        respondentContact: "",
-                        incidentDate: "",
-                        incidentTime: "",
-                        incidentLocation: "",
-                        incidentType: "",
-                        narrative: "",
-                        motive: "",
-                        witnessName: "",
-                        witnessContact: "",
-                        evidenceFiles: [],
-                        actionRequested: "",
-                    });
-                });
-            }
-        } catch (error) {
-            console.error("Error creating blotter report:", error);
-            toast.error(error.response?.data?.message || "Failed to create blotter report");
-        }
+        // Call the parent component's onSubmit
+        onSubmit(data, () => {
+            reset(); // Reset form after successful submission
+        });
     };
 
     return (
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
+        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-8">
             {/* Complainant Information */}
             <Card>
                 <CardHeader>

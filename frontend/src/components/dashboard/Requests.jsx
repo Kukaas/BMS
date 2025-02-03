@@ -18,10 +18,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Grid, List, Loader2 } from "lucide-react";
+import { Grid, List, Loader2, Search } from "lucide-react";
 import DocumentRequestForm from "@/components/forms/DocumentRequestForm";
 import { DocumentRequestGrid } from "./components/DocumentRequestGrid";
-import axiosInstance from '@/lib/axios';
+import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,11 +31,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function Requests() {
     const [showRequestForm, setShowRequestForm] = useState(false);
     const [requests, setRequests] = useState([]);
-    const [viewMode, setViewMode] = useState("grid");
     const [loading, setLoading] = useState(true);
     const { currentUser } = useSelector((state) => state.user);
 
@@ -56,14 +56,14 @@ export function Requests() {
 
         try {
             setLoading(true);
-            const response = await axiosInstance.get('/document-requests/my-requests', {
+            const response = await axiosInstance.get("/document-requests/my-requests", {
                 params: {
                     page: currentPage,
-                    limit: pageSize
+                    limit: pageSize,
                 },
                 headers: {
-                    Authorization: `Bearer ${currentUser.token}`
-                }
+                    Authorization: `Bearer ${currentUser.token}`,
+                },
             });
 
             if (response.data.success) {
@@ -156,118 +156,146 @@ export function Requests() {
     }
 
     return (
-        <div className="container mx-auto p-0 sm:px-4 sm:py-8">
-            <Card className="sm:rounded-lg rounded-none border-0 sm:border">
-                <CardHeader className="p-3 sm:p-6">
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <CardTitle className="text-xl sm:text-2xl md:text-3xl">
-                            My Document Requests
-                        </CardTitle>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-                            >
-                                {viewMode === "grid" ? (
-                                    <List className="h-4 w-4" />
-                                ) : (
-                                    <Grid className="h-4 w-4" />
-                                )}
-                            </Button>
-                            <Dialog open={showRequestForm} onOpenChange={setShowRequestForm}>
-                                <DialogTrigger asChild>
-                                    <Button>Request New Document</Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-[600px] w-[90vw]">
-                                    <DialogHeader>
-                                        <DialogTitle>Request New Document</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="p-4 max-h-[80vh] overflow-y-auto">
-                                        <DocumentRequestForm
-                                            onComplete={handleRequestComplete}
-                                            className="w-full"
-                                            currentUser={currentUser}
-                                        />
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-                    </div>
+        <div className="pt-0 md:pt-8 lg:pt-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Document Requests</CardTitle>
                 </CardHeader>
-                <CardContent className="p-3 sm:p-6">
+                <CardContent>
                     <div className="space-y-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <Input
-                                placeholder="Search requests..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full sm:w-[300px]"
-                            />
-                            <div className="flex items-center gap-2 self-end sm:self-auto">
+                        <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                            <div className="relative w-full md:w-[350px] order-2 md:order-1">
+                                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search requests..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-8"
+                                />
+                            </div>
+                            <div className="flex items-center justify-end gap-2 order-1 md:order-2">
                                 <Select
                                     value={pageSize.toString()}
                                     onValueChange={handlePageSizeChange}
                                 >
-                                    <SelectTrigger className="w-[80px]">
-                                        <SelectValue placeholder={pageSize} />
+                                    <SelectTrigger className="w-[130px]">
+                                        <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {[6, 12, 18, 24, 30].map((size) => (
                                             <SelectItem key={size} value={size.toString()}>
-                                                {size}
+                                                {size} per page
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <span className="text-sm text-muted-foreground">per page</span>
+                                <Dialog open={showRequestForm} onOpenChange={setShowRequestForm}>
+                                    <DialogTrigger asChild>
+                                        <Button>Request New Document</Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-3xl max-h-[90vh]">
+                                        <DialogHeader className="border-b pb-4">
+                                            <DialogTitle className="text-2xl font-bold">
+                                                Request New Document
+                                            </DialogTitle>
+                                        </DialogHeader>
+                                        <ScrollArea className="h-[calc(80vh-8rem)]">
+                                            <div className="p-6">
+                                                <DocumentRequestForm
+                                                    onComplete={handleRequestComplete}
+                                                    className="w-full"
+                                                    currentUser={currentUser}
+                                                />
+                                            </div>
+                                        </ScrollArea>
+                                    </DialogContent>
+                                </Dialog>
                             </div>
                         </div>
 
                         {filteredRequests.length === 0 ? (
                             <p className="text-gray-500 text-center">No document requests found.</p>
-                        ) : viewMode === "grid" ? (
-                            <DocumentRequestGrid
-                                requests={filteredRequests}
-                                getStatusColor={getStatusColor}
-                            />
                         ) : (
-                            <div className="rounded-md border">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Document Type</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead>Purpose</TableHead>
-                                            <TableHead>Requested On</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {filteredRequests.map((request) => (
-                                            <TableRow key={request.id}>
-                                                <TableCell className="font-medium">
-                                                    {request.documentType}
-                                                </TableCell>
-                                                <TableCell>
+                            <>
+                                {/* Grid view for small screens */}
+                                <div className="md:hidden grid gap-4 grid-cols-1 sm:grid-cols-2">
+                                    {filteredRequests.map((request) => (
+                                        <Card key={request.id}>
+                                            <CardContent className="p-4">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <h3 className="font-semibold">
+                                                            {request.documentType}
+                                                        </h3>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Requested on:{" "}
+                                                            {new Date(
+                                                                request.createdAt
+                                                            ).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
                                                     <Badge
                                                         className={getStatusColor(request.status)}
                                                     >
                                                         {request.status || "Pending"}
                                                     </Badge>
-                                                </TableCell>
-                                                <TableCell>{request.purpose || "N/A"}</TableCell>
-                                                <TableCell>
-                                                    {new Date(
-                                                        request.createdAt
-                                                    ).toLocaleDateString()}
-                                                </TableCell>
+                                                </div>
+                                                <div className="space-y-2 mt-4">
+                                                    <div>
+                                                        <h4 className="font-medium">Purpose</h4>
+                                                        <p className="text-sm">
+                                                            {request.purpose || "N/A"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+
+                                {/* Table view for medium and larger screens */}
+                                <div className="hidden md:block rounded-md border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Document Type</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Purpose</TableHead>
+                                                <TableHead>Requested On</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {filteredRequests.map((request) => (
+                                                <TableRow key={request.id}>
+                                                    <TableCell className="font-medium">
+                                                        {request.documentType}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge
+                                                            className={getStatusColor(
+                                                                request.status
+                                                            )}
+                                                        >
+                                                            {request.status || "Pending"}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {request.purpose || "N/A"}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {new Date(
+                                                            request.createdAt
+                                                        ).toLocaleDateString()}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </>
                         )}
 
+                        {/* Pagination Controls */}
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <p className="text-sm text-muted-foreground text-center sm:text-left">
                                 {searchTerm
