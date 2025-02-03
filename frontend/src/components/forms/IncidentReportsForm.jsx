@@ -17,7 +17,18 @@ import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import { incidentReportSchema } from "./validationSchemas";
-import { Loader2, Search, Grid, List, X } from "lucide-react";
+import {
+    Loader2,
+    Search,
+    Grid,
+    List,
+    X,
+    Eye,
+    Download,
+    FileText,
+    MapPin,
+    User,
+} from "lucide-react";
 import { mockIncidentReports } from "@/components/dashboard/secretary/mockData";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -29,6 +40,15 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { IncidentReportGrid } from "@/components/dashboard/components/IncidentReportGrid";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const incidentCategories = {
     "Crime-Related Incidents": [
@@ -67,6 +87,48 @@ const getStatusColor = (status) => {
             return "bg-green-500 text-white";
         default:
             return "bg-gray-500 text-white";
+    }
+};
+
+const formatDate = (dateStr) => {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
+};
+
+const handleDownload = (evidenceFile) => {
+    try {
+        let base64Data;
+        if (evidenceFile.data.startsWith("data:")) {
+            base64Data = evidenceFile.data.split(",")[1];
+        } else {
+            base64Data = evidenceFile.data;
+        }
+
+        const byteString = atob(base64Data);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+
+        for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+
+        const blob = new Blob([ab], { type: evidenceFile.contentType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = evidenceFile.filename;
+        document.body.appendChild(link);
+        link.click();
+
+        // Cleanup
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error("Download error:", error);
+        toast.error("Failed to download file");
     }
 };
 
@@ -298,10 +360,51 @@ const IncidentReportFormContent = ({ onComplete, onCancel }) => {
                                 size="icon"
                                 className="absolute top-2 right-2"
                                 onClick={() => {
-                                    setValue("evidenceFile", null);
+                                    // Create and show the image preview dialog
+                                    const imageDialog = document.createElement("dialog");
+                                    imageDialog.className = "fixed inset-0 z-50";
+                                    imageDialog.innerHTML = `
+                                        <div class="bg-white rounded-lg shadow-lg max-w-3xl mx-auto mt-20">
+                                            <div class="flex items-center justify-between p-4 border-b">
+                                                <h2 class="text-lg font-semibold">Evidence Image</h2>
+                                                <button class="hover:bg-gray-100 rounded-full p-2">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+                                                        <path d="M18 6 6 18"></path>
+                                                        <path d="m6 6 12 12"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div class="p-6">
+                                                <img
+                                                    src="${evidenceFile.data}"
+                                                    alt="Evidence"
+                                                    class="w-full h-auto max-h-[70vh] object-contain"
+                                                />
+                                            </div>
+                                        </div>
+                                    `;
+
+                                    document.body.appendChild(imageDialog);
+                                    imageDialog.showModal();
+
+                                    // Add close functionality
+                                    const closeButton = imageDialog.querySelector("button");
+                                    closeButton.onclick = () => {
+                                        imageDialog.close();
+                                        imageDialog.remove();
+                                    };
+
+                                    // Close when clicking outside
+                                    imageDialog.addEventListener("click", (e) => {
+                                        if (e.target === imageDialog) {
+                                            imageDialog.close();
+                                            imageDialog.remove();
+                                        }
+                                    });
                                 }}
                             >
-                                <X className="h-4 w-4" />
+                                <Eye className="h-4 w-4 mr-2" />
+                                Preview
                             </Button>
                         </div>
                     )}
@@ -355,7 +458,7 @@ export default function IncidentReportForm() {
     const totalPages = Math.ceil(totalIncidents / pageSize);
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    const currentIncidents = filteredIncidents.slice(startIndex, endIndex);
+    const currentReports = filteredIncidents.slice(startIndex, endIndex);
 
     // Fetch user's incident reports
     const fetchIncidents = async () => {
@@ -453,91 +556,389 @@ export default function IncidentReportForm() {
                             <p className="text-gray-500 text-center">No incident reports found.</p>
                         ) : (
                             <>
-                                {/* Grid view for small screens */}
-                                <div className="md:hidden grid gap-4 grid-cols-1 sm:grid-cols-2">
-                                    {currentIncidents.map((incident) => (
-                                        <Card key={incident._id}>
-                                            <CardContent className="p-4">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div>
-                                                        <h3 className="font-semibold">
-                                                            {incident.category}
-                                                        </h3>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            {incident.subCategory}
-                                                        </p>
-                                                    </div>
-                                                    <Badge
-                                                        className={getStatusColor(incident.status)}
-                                                    >
-                                                        {incident.status}
-                                                    </Badge>
-                                                </div>
-                                                <div className="space-y-2 mt-4">
-                                                    <div>
-                                                        <h4 className="font-medium">Location</h4>
-                                                        <p className="text-sm">
-                                                            {incident.location}
-                                                        </p>
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-medium">Date & Time</h4>
-                                                        <p className="text-sm">
-                                                            {incident.date} at {incident.time}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                </div>
-
                                 {/* Table view for medium and larger screens */}
                                 <div className="hidden md:block rounded-md border">
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
+                                                <TableHead>Date</TableHead>
                                                 <TableHead>Category</TableHead>
                                                 <TableHead>Location</TableHead>
-                                                <TableHead>Date & Time</TableHead>
                                                 <TableHead>Status</TableHead>
+                                                <TableHead>Action</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {currentIncidents.map((incident) => (
-                                                <TableRow key={incident._id}>
+                                            {currentReports.map((report) => (
+                                                <TableRow key={report._id}>
+                                                    <TableCell>{report.date}</TableCell>
                                                     <TableCell>
                                                         <div>
                                                             <p className="font-medium">
-                                                                {incident.category}
+                                                                {report.category}
                                                             </p>
                                                             <p className="text-sm text-muted-foreground">
-                                                                {incident.subCategory}
+                                                                {report.subCategory}
                                                             </p>
                                                         </div>
                                                     </TableCell>
-                                                    <TableCell>{incident.location}</TableCell>
-                                                    <TableCell>
-                                                        <div>
-                                                            <p>{incident.date}</p>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                {incident.time}
-                                                            </p>
-                                                        </div>
-                                                    </TableCell>
+                                                    <TableCell>{report.location}</TableCell>
                                                     <TableCell>
                                                         <Badge
                                                             className={getStatusColor(
-                                                                incident.status
+                                                                report.status
                                                             )}
                                                         >
-                                                            {incident.status}
+                                                            {report.status}
                                                         </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Dialog>
+                                                            <DialogTrigger asChild>
+                                                                <Button variant="outline" size="sm">
+                                                                    <Eye className="h-4 w-4 mr-2" />
+                                                                    View Details
+                                                                </Button>
+                                                            </DialogTrigger>
+                                                            <DialogContent className="max-w-4xl max-h-[90vh]">
+                                                                <DialogHeader className="border-b pb-4">
+                                                                    <DialogTitle className="text-2xl font-bold">
+                                                                        Incident Report Details
+                                                                    </DialogTitle>
+                                                                    <div className="flex flex-col gap-2">
+                                                                        <p className="text-sm text-muted-foreground">
+                                                                            Reported on {formatDate(report.createdAt)}
+                                                                        </p>
+                                                                        <Badge
+                                                                            className={`${
+                                                                                report.status === "New"
+                                                                                    ? "bg-blue-500 w-fit"
+                                                                                    : report.status === "In Progress"
+                                                                                    ? "bg-yellow-500 w-fit"
+                                                                                    : report.status === "Resolved"
+                                                                                    ? "bg-green-500 w-fit"
+                                                                                    : "bg-gray-500 w-fit"
+                                                                            }`}
+                                                                        >
+                                                                            {report.status}
+                                                                        </Badge>
+                                                                    </div>
+                                                                </DialogHeader>
+                                                                <ScrollArea className="h-[calc(80vh-8rem)]">
+                                                                    <div className="p-6">
+                                                                        {/* Incident Information */}
+                                                                        <div className="bg-muted/50 rounded-lg p-6">
+                                                                            <h3 className="font-semibold mb-4 flex items-center gap-2">
+                                                                                <FileText className="h-5 w-5" />
+                                                                                Incident Information
+                                                                            </h3>
+                                                                            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                                                                                <div className="space-y-1">
+                                                                                    <p className="text-sm font-medium text-muted-foreground">Category</p>
+                                                                                    <p>{report.category}</p>
+                                                                                </div>
+                                                                                <div className="space-y-1">
+                                                                                    <p className="text-sm font-medium text-muted-foreground">Sub-category</p>
+                                                                                    <p>{report.subCategory}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {/* Location and Time */}
+                                                                        <div className="bg-muted/50 rounded-lg p-6 mt-6">
+                                                                            <h3 className="font-semibold mb-4 flex items-center gap-2">
+                                                                                <MapPin className="h-5 w-5" />
+                                                                                Location and Time
+                                                                            </h3>
+                                                                            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                                                                                <div className="space-y-1">
+                                                                                    <p className="text-sm font-medium text-muted-foreground">Date</p>
+                                                                                    <p>{report.date}</p>
+                                                                                </div>
+                                                                                <div className="space-y-1">
+                                                                                    <p className="text-sm font-medium text-muted-foreground">Time</p>
+                                                                                    <p>{report.time}</p>
+                                                                                </div>
+                                                                                <div className="space-y-1 md:col-span-2">
+                                                                                    <p className="text-sm font-medium text-muted-foreground">Location</p>
+                                                                                    <p>{report.location}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {/* Description */}
+                                                                        <div className="bg-muted/50 rounded-lg p-6 mt-6">
+                                                                            <h3 className="font-semibold mb-4">Description</h3>
+                                                                            <p className="text-sm whitespace-pre-wrap">{report.description}</p>
+                                                                        </div>
+
+                                                                        {/* Reporter Information */}
+                                                                        <div className="bg-muted/50 rounded-lg p-6 mt-6">
+                                                                            <h3 className="font-semibold mb-4 flex items-center gap-2">
+                                                                                <User className="h-5 w-5" />
+                                                                                Reporter Information
+                                                                            </h3>
+                                                                            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                                                                                <div className="space-y-1">
+                                                                                    <p className="text-sm font-medium text-muted-foreground">Name</p>
+                                                                                    <p>{report.reporterName}</p>
+                                                                                </div>
+                                                                                <div className="space-y-1">
+                                                                                    <p className="text-sm font-medium text-muted-foreground">Contact</p>
+                                                                                    <p>{report.reporterContact}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {/* Evidence Files */}
+                                                                        {report.evidenceFile && (
+                                                                            <div className="bg-muted/50 rounded-lg p-6 mt-6">
+                                                                                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                                                                                    <FileText className="h-5 w-5" />
+                                                                                    Evidence Files
+                                                                                </h3>
+                                                                                <div className="mt-2">
+                                                                                    <div className="flex items-center gap-4 mb-2">
+                                                                                        <div className="flex-1 truncate">
+                                                                                            <p className="text-sm text-muted-foreground truncate">
+                                                                                                {report.evidenceFile.filename}
+                                                                                            </p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="flex gap-2">
+                                                                                        <Dialog>
+                                                                                            <DialogTrigger asChild>
+                                                                                                <Button variant="outline" size="sm">
+                                                                                                    <Eye className="h-4 w-4 mr-2" />
+                                                                                                    View Image
+                                                                                                </Button>
+                                                                                            </DialogTrigger>
+                                                                                            <DialogContent className="max-w-4xl">
+                                                                                                <DialogHeader>
+                                                                                                    <DialogTitle>Evidence Image</DialogTitle>
+                                                                                                </DialogHeader>
+                                                                                                <div className="relative w-full aspect-video">
+                                                                                                    <img
+                                                                                                        src={report.evidenceFile.data}
+                                                                                                        alt="Evidence"
+                                                                                                        className="w-full h-full object-contain rounded-md"
+                                                                                                    />
+                                                                                                </div>
+                                                                                            </DialogContent>
+                                                                                        </Dialog>
+                                                                                        <Button
+                                                                                            variant="outline"
+                                                                                            size="sm"
+                                                                                            onClick={() => handleDownload(report.evidenceFile)}
+                                                                                        >
+                                                                                            <Download className="h-4 w-4 mr-2" />
+                                                                                            Download
+                                                                                        </Button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </ScrollArea>
+                                                            </DialogContent>
+                                                        </Dialog>
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
                                     </Table>
+                                </div>
+
+                                {/* Grid view for small screens */}
+                                <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {currentReports.map((report) => (
+                                        <Card key={report._id}>
+                                            <CardContent className="p-4">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <h3 className="font-semibold">
+                                                            {report.category}
+                                                        </h3>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {report.subCategory}
+                                                        </p>
+                                                    </div>
+                                                    <Badge
+                                                        className={getStatusColor(report.status)}
+                                                    >
+                                                        {report.status}
+                                                    </Badge>
+                                                </div>
+                                                <div className="space-y-2 mt-4">
+                                                    <div>
+                                                        <h4 className="font-medium">Location</h4>
+                                                        <p className="text-sm">{report.location}</p>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-medium">Date & Time</h4>
+                                                        <p className="text-sm">
+                                                            {report.date} at {report.time}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-4">
+                                                    <Dialog>
+                                                        <DialogTrigger asChild>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="w-full"
+                                                            >
+                                                                <Eye className="h-4 w-4 mr-2" />
+                                                                View Details
+                                                            </Button>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="max-w-4xl max-h-[90vh]">
+                                                            <DialogHeader className="border-b pb-4">
+                                                                <DialogTitle className="text-2xl font-bold">
+                                                                    Incident Report Details
+                                                                </DialogTitle>
+                                                                <div className="flex flex-col gap-2">
+                                                                    <p className="text-sm text-muted-foreground">
+                                                                        Reported on {formatDate(report.createdAt)}
+                                                                    </p>
+                                                                    <Badge
+                                                                        className={`${
+                                                                            report.status === "New"
+                                                                                ? "bg-blue-500 w-fit"
+                                                                                : report.status === "In Progress"
+                                                                                ? "bg-yellow-500 w-fit"
+                                                                                : report.status === "Resolved"
+                                                                                ? "bg-green-500 w-fit"
+                                                                                : "bg-gray-500 w-fit"
+                                                                        }`}
+                                                                    >
+                                                                        {report.status}
+                                                                    </Badge>
+                                                                </div>
+                                                            </DialogHeader>
+                                                            <ScrollArea className="h-[calc(80vh-8rem)]">
+                                                                <div className="p-6">
+                                                                    {/* Incident Information */}
+                                                                    <div className="bg-muted/50 rounded-lg p-6">
+                                                                        <h3 className="font-semibold mb-4 flex items-center gap-2">
+                                                                            <FileText className="h-5 w-5" />
+                                                                            Incident Information
+                                                                        </h3>
+                                                                        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                                                                            <div className="space-y-1">
+                                                                                <p className="text-sm font-medium text-muted-foreground">Category</p>
+                                                                                <p>{report.category}</p>
+                                                                            </div>
+                                                                            <div className="space-y-1">
+                                                                                <p className="text-sm font-medium text-muted-foreground">Sub-category</p>
+                                                                                <p>{report.subCategory}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Location and Time */}
+                                                                    <div className="bg-muted/50 rounded-lg p-6 mt-6">
+                                                                        <h3 className="font-semibold mb-4 flex items-center gap-2">
+                                                                            <MapPin className="h-5 w-5" />
+                                                                            Location and Time
+                                                                        </h3>
+                                                                        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                                                                            <div className="space-y-1">
+                                                                                <p className="text-sm font-medium text-muted-foreground">Date</p>
+                                                                                <p>{report.date}</p>
+                                                                            </div>
+                                                                            <div className="space-y-1">
+                                                                                <p className="text-sm font-medium text-muted-foreground">Time</p>
+                                                                                <p>{report.time}</p>
+                                                                            </div>
+                                                                            <div className="space-y-1 md:col-span-2">
+                                                                                <p className="text-sm font-medium text-muted-foreground">Location</p>
+                                                                                <p>{report.location}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Description */}
+                                                                    <div className="bg-muted/50 rounded-lg p-6 mt-6">
+                                                                        <h3 className="font-semibold mb-4">Description</h3>
+                                                                        <p className="text-sm whitespace-pre-wrap">{report.description}</p>
+                                                                    </div>
+
+                                                                    {/* Reporter Information */}
+                                                                    <div className="bg-muted/50 rounded-lg p-6 mt-6">
+                                                                        <h3 className="font-semibold mb-4 flex items-center gap-2">
+                                                                            <User className="h-5 w-5" />
+                                                                            Reporter Information
+                                                                        </h3>
+                                                                        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                                                                            <div className="space-y-1">
+                                                                                <p className="text-sm font-medium text-muted-foreground">Name</p>
+                                                                                <p>{report.reporterName}</p>
+                                                                            </div>
+                                                                            <div className="space-y-1">
+                                                                                <p className="text-sm font-medium text-muted-foreground">Contact</p>
+                                                                                <p>{report.reporterContact}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Evidence Files */}
+                                                                    {report.evidenceFile && (
+                                                                        <div className="bg-muted/50 rounded-lg p-6 mt-6">
+                                                                            <h3 className="font-semibold mb-4 flex items-center gap-2">
+                                                                                <FileText className="h-5 w-5" />
+                                                                                Evidence Files
+                                                                            </h3>
+                                                                            <div className="mt-2">
+                                                                                <div className="flex items-center gap-4 mb-2">
+                                                                                    <div className="flex-1 truncate">
+                                                                                        <p className="text-sm text-muted-foreground truncate">
+                                                                                            {report.evidenceFile.filename}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div className="flex gap-2">
+                                                                                    <Dialog>
+                                                                                        <DialogTrigger asChild>
+                                                                                            <Button variant="outline" size="sm">
+                                                                                                <Eye className="h-4 w-4 mr-2" />
+                                                                                                View Image
+                                                                                            </Button>
+                                                                                        </DialogTrigger>
+                                                                                        <DialogContent className="max-w-4xl">
+                                                                                            <DialogHeader>
+                                                                                                <DialogTitle>Evidence Image</DialogTitle>
+                                                                                            </DialogHeader>
+                                                                                            <div className="relative w-full aspect-video">
+                                                                                                <img
+                                                                                                    src={report.evidenceFile.data}
+                                                                                                    alt="Evidence"
+                                                                                                    className="w-full h-full object-contain rounded-md"
+                                                                                                />
+                                                                                            </div>
+                                                                                        </DialogContent>
+                                                                                    </Dialog>
+                                                                                    <Button
+                                                                                        variant="outline"
+                                                                                        size="sm"
+                                                                                        onClick={() => handleDownload(report.evidenceFile)}
+                                                                                    >
+                                                                                        <Download className="h-4 w-4 mr-2" />
+                                                                                        Download
+                                                                                    </Button>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </ScrollArea>
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
                                 </div>
                             </>
                         )}
