@@ -41,19 +41,20 @@ export function DocumentRequestSecretary() {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedType, setSelectedType] = useState("all");
 
     const fetchRequests = async () => {
         try {
             const res = await api.get("/document-requests", {
                 params: {
                     page: currentPage,
-                    limit: pageSize
-                }
+                    limit: pageSize,
+                },
             });
 
             if (res.data.success) {
                 // Transform the data to match the component's expected format
-                const transformedRequests = res.data.data.map(request => ({
+                const transformedRequests = res.data.data.map((request) => ({
                     id: request._id,
                     requestDate: request.createdAt,
                     type: request.documentType,
@@ -72,7 +73,7 @@ export function DocumentRequestSecretary() {
                     placeOfBirth: request.placeOfBirth,
                     civilStatus: request.civilStatus,
                     occupation: request.occupation,
-                    tax: request.tax
+                    tax: request.tax,
                 }));
 
                 setRequests(transformedRequests);
@@ -81,7 +82,7 @@ export function DocumentRequestSecretary() {
             console.error("Error fetching requests:", error);
             toast.error(
                 error.response?.data?.message ||
-                "Failed to fetch requests. Please check if the server is running."
+                    "Failed to fetch requests. Please check if the server is running."
             );
         } finally {
             setLoading(false);
@@ -100,10 +101,9 @@ export function DocumentRequestSecretary() {
             // Convert document type to route format
             const typeSlug = requestType.toLowerCase().replace(/\s+/g, "-");
 
-            const res = await api.patch(
-                `/document-requests/${typeSlug}/${requestId}/status`,
-                { status: newStatus }
-            );
+            const res = await api.patch(`/document-requests/${typeSlug}/${requestId}/status`, {
+                status: newStatus,
+            });
 
             if (res.data.success) {
                 // Refresh the requests after status update
@@ -144,7 +144,7 @@ export function DocumentRequestSecretary() {
                     { label: "Email", value: request.email },
                     { label: "Contact Number", value: request.contactNumber },
                 ];
-            case "Certificate of Indigency":
+            case "Barangay Indigency":
                 return [
                     { label: "Name", value: request.residentName },
                     { label: "Purpose", value: request.purpose },
@@ -190,10 +190,24 @@ export function DocumentRequestSecretary() {
         }
     };
 
-    // Filter requests based on search term
-    const filteredRequests = requests.filter((request) =>
-        Object.values(request).join(" ").toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Update the filteredRequests logic to include type filtering
+    const filteredRequests = requests.filter((request) => {
+        const matchesSearch = Object.values(request)
+            .join(" ")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+        const matchesType = selectedType === "all" || request.type === selectedType;
+        return matchesSearch && matchesType;
+    });
+
+    // Update the documentTypes constant
+    const documentTypes = [
+        "all",
+        "Barangay Clearance",
+        "Barangay Indigency",
+        "Business Clearance",
+        "Cedula",
+    ];
 
     // Calculate pagination
     const totalRequests = filteredRequests.length;
@@ -231,16 +245,30 @@ export function DocumentRequestSecretary() {
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    {/* Search and Page Size Controls */}
-                    <div className="flex items-center justify-between">
-                        <div className="relative flex-1 max-w-sm">
-                            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                placeholder="Search requests..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-8"
-                            />
+                    {/* Search, Filter, and Page Size Controls */}
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 flex-1">
+                            <div className="relative flex-1 max-w-sm">
+                                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search requests..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-8"
+                                />
+                            </div>
+                            <Select value={selectedType} onValueChange={setSelectedType}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Filter by type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {documentTypes.map((type) => (
+                                        <SelectItem key={type} value={type}>
+                                            {type === "all" ? "All Types" : type}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
                             <SelectTrigger className="w-[130px]">
@@ -371,9 +399,9 @@ export function DocumentRequestSecretary() {
                                                                     disabled={
                                                                         updating ||
                                                                         selectedRequest.status ===
-                                                                        "Completed" ||
+                                                                            "Completed" ||
                                                                         selectedRequest.status ===
-                                                                        "Rejected"
+                                                                            "Rejected"
                                                                     }
                                                                 >
                                                                     <SelectTrigger>
@@ -390,15 +418,15 @@ export function DocumentRequestSecretary() {
                                                                                 value={status}
                                                                                 className={
                                                                                     status ===
-                                                                                        "Rejected"
+                                                                                    "Rejected"
                                                                                         ? "text-destructive"
                                                                                         : status ===
                                                                                             "Completed"
-                                                                                            ? "text-primary"
-                                                                                            : status ===
-                                                                                                "Approved"
-                                                                                                ? "text-green-500"
-                                                                                                : ""
+                                                                                          ? "text-primary"
+                                                                                          : status ===
+                                                                                              "Approved"
+                                                                                            ? "text-green-500"
+                                                                                            : ""
                                                                                 }
                                                                             >
                                                                                 {status}

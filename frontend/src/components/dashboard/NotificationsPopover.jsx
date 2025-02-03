@@ -64,7 +64,6 @@ export function NotificationsPopover() {
                         n._id === notification._id ? { ...n, read: true } : n
                     )
                 );
-                toast.success("Marked as read");
             }
         } catch (error) {
             toast.error("Failed to mark as read");
@@ -79,30 +78,27 @@ export function NotificationsPopover() {
         if (notification.type === "request") {
             // For request notifications, navigate based on user role
             const dashboardPath =
-                user?.role === "secretary"
+                user?.role === "secretary" || user?.role === "chairman"
                     ? "/dashboard?tab=requestdocs"
                     : "/dashboard?tab=requests";
             navigate(dashboardPath);
         } else if (notification.type === "status_update") {
-            // For status updates, navigate to the specific document type
-            let path = "";
-            switch (notification.docModel) {
-                case "BarangayClearance":
-                    path = "/barangay-clearance";
-                    break;
-                case "BarangayIndigency":
-                    path = "/barangay-indigency";
-                    break;
-                case "BusinessClearance":
-                    path = "/business-clearance";
-                    break;
-                case "Cedula":
-                    path = "/cedula";
-                    break;
-                default:
-                    path = "/dashboard";
+            // For status updates, navigate based on document type
+            let path = "/dashboard?tab=requests"; // Default path for users
+
+            // Handle different document types
+            if (
+                notification.docModel === "IncidentReport" ||
+                notification.docModel === "BlotterReport"
+            ) {
+                path = "/dashboard?tab=incidents";
+            } else if (user?.role === "secretary" || user?.role === "chairman") {
+                path = "/dashboard?tab=requestdocs";
             }
             navigate(path);
+        } else if (notification.type === "report") {
+            // For report notifications, navigate to incidents tab
+            navigate("/dashboard?tab=incidents");
         }
 
         setOpen(false);
