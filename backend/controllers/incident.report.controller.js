@@ -13,9 +13,10 @@ export const createIncidentReport = async (req, res, next) => {
             description,
             reporterName,
             reporterContact,
+            evidenceFile,
         } = req.body;
 
-        // Create new incident report
+        // Create new incident report with evidence file
         const incidentReport = new IncidentReport({
             category,
             subCategory,
@@ -26,7 +27,14 @@ export const createIncidentReport = async (req, res, next) => {
             reporterName,
             reporterContact,
             barangay: req.user.barangay,
-            userId: req.user.id // Add user ID to track who created the report
+            userId: req.user.id,
+            evidenceFile: evidenceFile
+                ? {
+                      filename: evidenceFile.filename,
+                      contentType: evidenceFile.contentType,
+                      data: evidenceFile.data,
+                  }
+                : null,
         });
 
         await incidentReport.save();
@@ -51,13 +59,13 @@ export const createIncidentReport = async (req, res, next) => {
         // Update user's notifications
         await User.findByIdAndUpdate(req.user.id, {
             $push: { notifications: userNotification },
-            $inc: { unreadNotifications: 1 }
+            $inc: { unreadNotifications: 1 },
         });
 
         // Notify barangay staff
         const barangayStaff = await User.find({
             barangay: req.user.barangay,
-            role: { $in: ["secretary", "chairman"] }
+            role: { $in: ["secretary", "chairman"] },
         });
 
         for (const staff of barangayStaff) {

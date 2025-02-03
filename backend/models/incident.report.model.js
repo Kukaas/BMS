@@ -49,6 +49,11 @@ const incidentReportSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+        evidenceFile: {
+            filename: String,
+            contentType: String,
+            data: String, // Store base64 data URL
+        },
     },
     { timestamps: true }
 );
