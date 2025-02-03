@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { barangayClearanceSchema } from "../validationSchemas";
+import { barangayClearanceSchema } from "../../../schema/validationSchemas";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {

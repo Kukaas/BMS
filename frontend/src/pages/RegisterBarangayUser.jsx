@@ -1,6 +1,5 @@
-
-import { Toaster } from "sonner"
-import {BarangayUserRegistration} from "@/components/forms/barangay-user-registration.jsx";
+import { Toaster } from "sonner";
+import { BarangayUserRegistration } from "@/components/forms/BarangayUserRegistration.jsx";
 
 export default function RegisterBarangayUserPage() {
     return (
@@ -8,5 +7,5 @@ export default function RegisterBarangayUserPage() {
             <BarangayUserRegistration className="max-w-md mx-auto" />
             <Toaster />
         </div>
-    )
+    );
 }

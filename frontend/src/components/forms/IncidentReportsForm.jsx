@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
-import { incidentReportSchema } from "./validationSchemas";
+import { incidentReportSchema } from "../../schema/validationSchemas";
 import {
     Loader2,
     Search,
