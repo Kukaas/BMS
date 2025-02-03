@@ -1,4 +1,4 @@
-import { LoginForm } from "@/components/forms/login-form";
+import { LoginForm } from "@/components/forms/LoginForm";
 import { ArrowLeft, GalleryVerticalEnd } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -6,7 +6,7 @@ import { getRedirectPath } from "@/lib/auth";
 import { useEffect } from "react";
 
 export default function SignIn() {
-    const { currentUser } = useSelector ((state) => state.user);
+    const { currentUser } = useSelector((state) => state.user);
     const navigate = useNavigate();
 
     useEffect(() => {

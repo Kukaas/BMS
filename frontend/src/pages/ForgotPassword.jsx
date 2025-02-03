@@ -1,4 +1,4 @@
-import ForgotPasswordForm from "@/components/forms/forgot-password-form";
+import ForgotPasswordForm from "@/components/forms/ForgotPasswordForm";
 import { ArrowLeft, GalleryVerticalEnd } from "lucide-react";
 import { Link } from "react-router-dom";
 

@@ -1,5 +1,4 @@
 import { logout } from "@/redux/user/userSlice";
-import { checkAuth } from "@/utils/auth";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
@@ -18,9 +17,7 @@ const PrivateRoute = () => {
     const { currentUser } = useSelector((state) => state.user);
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const [isVerifying, setIsVerifying] = useState(true);
     const [showExpiredDialog, setShowExpiredDialog] = useState(false);
-    const [isSessionExpired, setIsSessionExpired] = useState(false);
     const token = localStorage.getItem("token");
     const location = useLocation();
     const tab = new URLSearchParams(location.search).get("tab");
@@ -46,7 +43,7 @@ const PrivateRoute = () => {
     // Get default redirect path based on role
     const getDefaultPath = () => {
         const isAdmin = currentUser?.role === "chairman" || currentUser?.role === "secretary";
-        return isAdmin ? "/dashboard?tab=overview" : "/dashboard?tab=requests";
+        return isAdmin ? "/dashboard?tab=overview" : "/dashboard?tab=overview";
     };
 
     const handleSessionExpired = () => {
@@ -56,47 +53,24 @@ const PrivateRoute = () => {
         navigate("/sign-in");
     };
 
+    // Check for token expiration
     useEffect(() => {
-        const verifyAuth = async () => {
-            try {
-                const isAuthenticated = await checkAuth();
-                if (!isAuthenticated) {
-                    // Don't show dialog here, just set session expired
-                    setIsSessionExpired(true);
-                }
-            } catch (error) {
-                console.error("Auth verification failed:", error);
-                setIsSessionExpired(true);
-            } finally {
-                setIsVerifying(false);
-            }
-        };
-
         if (!currentUser) {
-            verifyAuth();
-        } else {
-            setIsVerifying(false);
+            navigate("/sign-in");
+            return;
         }
-    }, [currentUser]);
 
-    // Only show dialog when token is actually expired
-    useEffect(() => {
         if (token && isTokenExpired(token)) {
-            setIsSessionExpired(true);
             setShowExpiredDialog(true);
         }
-    }, [token]);
+    }, [currentUser, token, navigate]);
 
     // Redirect to appropriate dashboard if tab is invalid
     useEffect(() => {
-        if (currentUser && tab && !isValidTab() && !isSessionExpired) {
+        if (currentUser && tab && !isValidTab()) {
             navigate(getDefaultPath());
         }
-    }, [currentUser, tab, navigate, isSessionExpired]);
-
-    if (isVerifying) {
-        return null; // or a loading spinner
-    }
+    }, [currentUser, tab]);
 
     return (
         <>
@@ -116,7 +90,7 @@ const PrivateRoute = () => {
                 </AlertDialogContent>
             </AlertDialog>
 
-            {currentUser && !isSessionExpired ? <Outlet /> : null}
+            {currentUser && !showExpiredDialog ? <Outlet /> : null}
         </>
     );
 };

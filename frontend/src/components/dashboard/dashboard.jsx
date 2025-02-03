@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import BlotterReportPage from "@/pages/BlotterReportPage";
-import IncidentReportSecretaryPage from "@/pages/incident-report.jsx";
+import IncidentReportSecretaryPage from "@/pages/IncidentReport.jsx";
 import IncidentReportsPage from "@/pages/IncidentReportsPage";
 import { logout } from "@/redux/user/userSlice";
 import axios from "axios";
@@ -33,7 +33,7 @@ import { Header } from "./Header";
 import Overview from "./Overview";
 import { DocumentRequestSecretary } from "./secretary/DocumentRequestSecretary";
 import { UserList } from "./UserList";
-import SecretaryResidentsDashboardPage from "@/pages/secretary-residents-dashboard";
+import SecretaryResidentsDashboardPage from "@/pages/SecretaryResidentsDashboard";
 import { SecretaryBlotterDashboard } from "./secretary/BlotterReportsSecretary";
 
 const componentMap = {
