@@ -41,8 +41,8 @@ export function Header() {
 
     return (
         <header className="bg-green-700 border-b px-0 py-3 sticky top-0 z-10">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4 w-full max-w-md pl-3">
+            <div className="flex items-center sm:justify-between">
+                <div className="flex items-center gap-4 w-full max-w-[300px] sm:max-w-md pl-3">
                     <SidebarTrigger>
                         <div className="p-2 hover:bg-green-600 rounded-md cursor-pointer">
                             <Menu className="h-5 w-5 text-white" />
