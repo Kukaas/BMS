@@ -6,6 +6,7 @@ import {
     getIncidentReport,
     deleteIncidentReport,
     getEvidence,
+    getUserIncidentReports,
 } from "../controllers/incident.report.controller.js";
 import { verifyToken } from "../utils/verifyToken.js";
 
@@ -28,5 +29,8 @@ router.delete("/:id", verifyToken, deleteIncidentReport);
 
 // Add route for getting evidence
 router.get("/:id/evidence/:fileIndex", verifyToken, getEvidence);
+
+// Add this new route before other routes
+router.get("/user/reports", verifyToken, getUserIncidentReports);
 
 export default router;

@@ -237,3 +237,18 @@ export const getEvidence = async (req, res, next) => {
         next(error);
     }
 };
+
+export const getUserIncidentReports = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+
+        const reports = await IncidentReport.find({ userId }).sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            data: reports,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
