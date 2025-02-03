@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import { incidentReportSchema } from "./validationSchemas";
-import { Loader2, Search, Grid, List } from "lucide-react";
+import { Loader2, Search, Grid, List, X } from "lucide-react";
 import { mockIncidentReports } from "@/components/dashboard/secretary/mockData";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -81,11 +81,13 @@ const IncidentReportFormContent = ({ onComplete, onCancel }) => {
         formState: { errors },
         reset,
         setValue,
+        watch,
     } = useForm({
         resolver: zodResolver(incidentReportSchema),
         defaultValues: {
             reporterName: currentUser?.name || "",
             location: currentUser?.barangay || "",
+            evidenceFile: null,
         },
     });
 
@@ -108,14 +110,43 @@ const IncidentReportFormContent = ({ onComplete, onCancel }) => {
         setSelectedCategory(value);
     }, []);
 
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            console.log("Processing file:", file.name); // Debug log
+            const reader = new FileReader();
+            reader.onload = () => {
+                console.log("File read successfully"); // Debug log
+                const fileData = {
+                    filename: file.name,
+                    contentType: file.type,
+                    data: reader.result,
+                };
+                console.log("Setting file data:", fileData); // Debug log
+                setValue("evidenceFile", fileData, { shouldValidate: true });
+            };
+            reader.onerror = (error) => {
+                console.error("Error reading file:", error);
+                toast.error("Failed to read file");
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const evidenceFile = watch("evidenceFile");
+
     const onSubmit = async (data) => {
         try {
             setIsSubmitting(true);
 
+            // Include evidenceFile in the request body
             const requestBody = {
                 ...data,
                 barangay: currentUser.barangay,
+                evidenceFile: data.evidenceFile, // Make sure to include the evidence file
             };
+
+            console.log("Submitting data:", requestBody); // Debug log
 
             const response = await axios.post(
                 "http://localhost:5000/api/incident-report",
@@ -243,6 +274,36 @@ const IncidentReportFormContent = ({ onComplete, onCancel }) => {
                     />
                     {errors.reporterContact && (
                         <p className="text-red-500 text-sm">{errors.reporterContact.message}</p>
+                    )}
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="evidenceFile">Evidence Image (Optional)</Label>
+                    <Input
+                        id="evidenceFile"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="cursor-pointer"
+                    />
+                    {evidenceFile && (
+                        <div className="relative mt-4">
+                            <img
+                                src={evidenceFile.data}
+                                alt={evidenceFile.filename}
+                                className="w-full h-40 object-cover rounded-lg"
+                            />
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                className="absolute top-2 right-2"
+                                onClick={() => {
+                                    setValue("evidenceFile", null);
+                                }}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
                     )}
                 </div>
             </div>

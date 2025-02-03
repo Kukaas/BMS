@@ -25,7 +25,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import api from "@/lib/axios";
-import { Loader2, MapPin, Phone, User, Search } from "lucide-react";
+import { Loader2, MapPin, Phone, User, Search, Eye, Download, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
@@ -153,6 +153,41 @@ export function IncidentReportsSecretary() {
     // Handle page change
     const handlePageChange = (page) => {
         setCurrentPage(page);
+    };
+
+    // Add download handler
+    const handleDownload = (evidenceFile) => {
+        try {
+            let base64Data;
+            if (evidenceFile.data.startsWith("data:")) {
+                base64Data = evidenceFile.data.split(",")[1];
+            } else {
+                base64Data = evidenceFile.data;
+            }
+
+            const byteString = atob(base64Data);
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+
+            const blob = new Blob([ab], { type: evidenceFile.contentType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = evidenceFile.filename;
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Download error:", error);
+            toast.error("Failed to download file");
+        }
     };
 
     if (loading) {
@@ -333,6 +368,55 @@ export function IncidentReportsSecretary() {
                                                                     </div>
                                                                 </div>
                                                             </div>
+
+                                                            {/* Evidence Files Section */}
+                                                            {selectedReport?.evidenceFile && (
+                                                                <div className="bg-muted/50 rounded-lg p-6">
+                                                                    <h3 className="font-semibold mb-4 flex items-center gap-2">
+                                                                        <FileText className="h-5 w-5" />
+                                                                        Evidence Files
+                                                                    </h3>
+                                                                    <div className="mt-2">
+                                                                        <div className="flex items-center gap-4 mb-2">
+                                                                            <div className="flex-1 truncate">
+                                                                                <p className="text-sm text-muted-foreground truncate">
+                                                                                    {selectedReport.evidenceFile.filename}
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="flex gap-2">
+                                                                            <Dialog>
+                                                                                <DialogTrigger asChild>
+                                                                                    <Button variant="outline" size="sm">
+                                                                                        <Eye className="h-4 w-4 mr-2" />
+                                                                                        Preview
+                                                                                    </Button>
+                                                                                </DialogTrigger>
+                                                                                <DialogContent className="max-w-4xl w-full h-[90vh]">
+                                                                                    <DialogHeader>
+                                                                                        <DialogTitle>Evidence Image</DialogTitle>
+                                                                                    </DialogHeader>
+                                                                                    <div className="relative w-full h-full">
+                                                                                        <img
+                                                                                            src={selectedReport.evidenceFile.data}
+                                                                                            alt={selectedReport.evidenceFile.filename}
+                                                                                            className="w-full h-full object-contain"
+                                                                                        />
+                                                                                    </div>
+                                                                                </DialogContent>
+                                                                            </Dialog>
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                size="sm"
+                                                                                onClick={() => handleDownload(selectedReport.evidenceFile)}
+                                                                            >
+                                                                                <Download className="h-4 w-4 mr-2" />
+                                                                                Download
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
 
                                                             {/* Status Update */}
                                                             <div className="border-t pt-4">
