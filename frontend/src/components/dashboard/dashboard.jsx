@@ -1,4 +1,4 @@
-import { Requests } from "@/components/dashboard/Requests.jsx";
+import { Requests } from "@/components/dashboard/user/Requests.jsx";
 import {
     AlertDialog,
     AlertDialogAction,

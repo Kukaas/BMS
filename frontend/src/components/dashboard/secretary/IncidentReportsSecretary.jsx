@@ -1,13 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -16,19 +9,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import api from "@/lib/axios";
-import { Loader2, MapPin, Phone, User, Search, Eye, Download, FileText } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
+import { IncidentTableView } from "./components/IncidentTableView";
+import { IncidentReportGrid } from "./components/IncidentReportGrid";
 
 // Add formatDate function
 const formatDate = (dateStr) => {
@@ -192,12 +179,14 @@ export function IncidentReportsSecretary() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full">
-                <div className="flex flex-col items-center gap-2">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">Loading reports...</p>
-                </div>
-            </div>
+            <Card>
+                <CardContent className="flex items-center justify-center py-8">
+                    <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="text-sm text-muted-foreground">Loading requests...</p>
+                    </div>
+                </CardContent>
+            </Card>
         );
     }
 
@@ -235,234 +224,29 @@ export function IncidentReportsSecretary() {
                         </Select>
                     </div>
 
-                    {/* Update table container to match DocumentRequestSecretary */}
-                    <div>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Category</TableHead>
-                                    <TableHead>Location</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Action</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {currentReports.map((report) => (
-                                    <TableRow key={report._id}>
-                                        <TableCell>{report.date}</TableCell>
-                                        <TableCell>{report.category}</TableCell>
-                                        <TableCell>{report.location}</TableCell>
-                                        <TableCell>
-                                            <Badge className={getStatusColor(report.status)}>
-                                                {report.status}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setSelectedReport(report)}
-                                                    >
-                                                        View Details
-                                                    </Button>
-                                                </DialogTrigger>
-                                                {selectedReport && (
-                                                    <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-                                                        <DialogHeader className="border-b pb-4">
-                                                            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-                                                                <Badge
-                                                                    className={`${getStatusColor(
-                                                                        selectedReport.status
-                                                                    )} px-4 py-1`}
-                                                                >
-                                                                    {selectedReport.status}
-                                                                </Badge>
-                                                                <span>Incident Report Details</span>
-                                                            </DialogTitle>
-                                                            <p className="text-sm text-muted-foreground mt-2">
-                                                                Reported on{" "}
-                                                                {formatDate(selectedReport.date)} at{" "}
-                                                                {selectedReport.time}
-                                                            </p>
-                                                        </DialogHeader>
-                                                        <div className="space-y-8 py-4">
-                                                            {/* Category Section */}
-                                                            <div className="grid grid-cols-2 gap-6">
-                                                                <div className="space-y-2">
-                                                                    <h3 className="text-sm font-medium text-muted-foreground">
-                                                                        Category
-                                                                    </h3>
-                                                                    <p className="text-lg font-medium">
-                                                                        {selectedReport.category}
-                                                                    </p>
-                                                                </div>
-                                                                <div className="space-y-2">
-                                                                    <h3 className="text-sm font-medium text-muted-foreground">
-                                                                        Sub-category
-                                                                    </h3>
-                                                                    <p className="text-lg font-medium">
-                                                                        {selectedReport.subCategory}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
+                    {/* Grid View (Mobile) */}
+                    <IncidentReportGrid
+                        incidents={currentReports}
+                        setSelectedIncident={setSelectedReport}
+                        selectedIncident={selectedReport}
+                        getStatusColor={getStatusColor}
+                        handleStatusChange={handleStatusChange}
+                        updating={updating}
+                        handleDownload={handleDownload}
+                        formatDate={formatDate}
+                    />
 
-                                                            {/* Location */}
-                                                            <div className="space-y-2">
-                                                                <h3 className="text-sm font-medium text-muted-foreground">
-                                                                    Location
-                                                                </h3>
-                                                                <div className="flex items-center gap-2 bg-muted p-3 rounded-lg">
-                                                                    <MapPin className="h-5 w-5 text-primary" />
-                                                                    <p className="text-lg">
-                                                                        {selectedReport.location}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Description */}
-                                                            <div className="space-y-2">
-                                                                <h3 className="text-sm font-medium text-muted-foreground">
-                                                                    Description
-                                                                </h3>
-                                                                <div className="bg-muted p-4 rounded-lg">
-                                                                    <p className="text-lg leading-relaxed whitespace-pre-wrap">
-                                                                        {selectedReport.description}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Reporter Information */}
-                                                            <div className="space-y-3">
-                                                                <h3 className="text-sm font-medium text-muted-foreground">
-                                                                    Reporter Information
-                                                                </h3>
-                                                                <div className="grid grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-                                                                    <div className="space-y-1">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <User className="h-4 w-4 text-primary" />
-                                                                            <span className="text-sm text-muted-foreground">
-                                                                                Name
-                                                                            </span>
-                                                                        </div>
-                                                                        <p className="font-medium">
-                                                                            {
-                                                                                selectedReport.reporterName
-                                                                            }
-                                                                        </p>
-                                                                    </div>
-                                                                    <div className="space-y-1">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <Phone className="h-4 w-4 text-primary" />
-                                                                            <span className="text-sm text-muted-foreground">
-                                                                                Contact
-                                                                            </span>
-                                                                        </div>
-                                                                        <p className="font-medium">
-                                                                            {
-                                                                                selectedReport.reporterContact
-                                                                            }
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Evidence Files Section */}
-                                                            {selectedReport?.evidenceFile && (
-                                                                <div className="bg-muted/50 rounded-lg p-6">
-                                                                    <h3 className="font-semibold mb-4 flex items-center gap-2">
-                                                                        <FileText className="h-5 w-5" />
-                                                                        Evidence Files
-                                                                    </h3>
-                                                                    <div className="mt-2">
-                                                                        <div className="flex items-center gap-4 mb-2">
-                                                                            <div className="flex-1 truncate">
-                                                                                <p className="text-sm text-muted-foreground truncate">
-                                                                                    {selectedReport.evidenceFile.filename}
-                                                                                </p>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="flex gap-2">
-                                                                            <Dialog>
-                                                                                <DialogTrigger asChild>
-                                                                                    <Button variant="outline" size="sm">
-                                                                                        <Eye className="h-4 w-4 mr-2" />
-                                                                                        Preview
-                                                                                    </Button>
-                                                                                </DialogTrigger>
-                                                                                <DialogContent className="max-w-4xl w-full h-[90vh]">
-                                                                                    <DialogHeader>
-                                                                                        <DialogTitle>Evidence Image</DialogTitle>
-                                                                                    </DialogHeader>
-                                                                                    <div className="relative w-full h-full">
-                                                                                        <img
-                                                                                            src={selectedReport.evidenceFile.data}
-                                                                                            alt={selectedReport.evidenceFile.filename}
-                                                                                            className="w-full h-full object-contain"
-                                                                                        />
-                                                                                    </div>
-                                                                                </DialogContent>
-                                                                            </Dialog>
-                                                                            <Button
-                                                                                variant="outline"
-                                                                                size="sm"
-                                                                                onClick={() => handleDownload(selectedReport.evidenceFile)}
-                                                                            >
-                                                                                <Download className="h-4 w-4 mr-2" />
-                                                                                Download
-                                                                            </Button>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-
-                                                            {/* Status Update */}
-                                                            <div className="border-t pt-4">
-                                                                <div className="flex items-center justify-between">
-                                                                    <h3 className="text-sm font-medium text-muted-foreground">
-                                                                        Update Status
-                                                                    </h3>
-                                                                    <Select
-                                                                        onValueChange={(value) =>
-                                                                            handleStatusChange(
-                                                                                selectedReport._id,
-                                                                                value
-                                                                            )
-                                                                        }
-                                                                        defaultValue={
-                                                                            selectedReport.status
-                                                                        }
-                                                                        disabled={updating}
-                                                                    >
-                                                                        <SelectTrigger className="w-[180px]">
-                                                                            <SelectValue placeholder="Change status" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            <SelectItem value="New">
-                                                                                New
-                                                                            </SelectItem>
-                                                                            <SelectItem value="In Progress">
-                                                                                In Progress
-                                                                            </SelectItem>
-                                                                            <SelectItem value="Resolved">
-                                                                                Resolved
-                                                                            </SelectItem>
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </DialogContent>
-                                                )}
-                                            </Dialog>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
+                    {/* Table View (Desktop) */}
+                    <IncidentTableView
+                        currentReports={currentReports}
+                        setSelectedReport={setSelectedReport}
+                        selectedReport={selectedReport}
+                        getStatusColor={getStatusColor}
+                        handleStatusChange={handleStatusChange}
+                        updating={updating}
+                        handleDownload={handleDownload}
+                        formatDate={formatDate}
+                    />
 
                     {/* Pagination Controls */}
                     <div className="flex items-center justify-between">
