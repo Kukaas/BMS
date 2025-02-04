@@ -1,0 +1,186 @@
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { BlotterDetailsView } from "./BlotterDetailsView";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+
+export function BlotterTableView({
+    currentReports = [],
+    setSelectedReport,
+    selectedReport,
+    getStatusColor,
+    handleStatusChange,
+    updating,
+    handleDownload,
+    formatDate,
+    searchTerm,
+    onSearchChange,
+    pageSize,
+    onPageSizeChange,
+    currentPage,
+    totalPages,
+    onPageChange,
+}) {
+    if (!currentReports.length) {
+        return <div className="text-center py-8 text-gray-500">No blotter reports found</div>;
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-2xl font-bold">Blotter Reports</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+                {/* Search and Page Size Controls */}
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-2">
+                        <div className="relative w-full">
+                            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                            <Input
+                                placeholder="Search reports..."
+                                value={searchTerm}
+                                onChange={(e) => onSearchChange(e.target.value)}
+                                className="w-[300px] pl-8"
+                            />
+                        </div>
+                    </div>
+                    <Select value={pageSize.toString()} onValueChange={onPageSizeChange}>
+                        <SelectTrigger className="w-[130px]">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {[5, 10, 20, 30, 40, 50].map((size) => (
+                                <SelectItem key={size} value={size.toString()}>
+                                    {size} per page
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Table */}
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Complainant</TableHead>
+                                <TableHead>Respondent</TableHead>
+                                <TableHead>Incident Type</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {currentReports.map((report) => (
+                                <TableRow key={report.id}>
+                                    <TableCell>
+                                        {new Date(report.incidentDate).toLocaleDateString()}
+                                    </TableCell>
+                                    <TableCell>{report.complainantName}</TableCell>
+                                    <TableCell>{report.respondentName}</TableCell>
+                                    <TableCell>{report.incidentType}</TableCell>
+                                    <TableCell>
+                                        <Badge className={getStatusColor(report.status)}>
+                                            {report.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setSelectedReport(report)}
+                                                >
+                                                    View Details
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-3xl max-h-[90vh]">
+                                                <DialogHeader className="border-b pb-4">
+                                                    <DialogTitle className="text-2xl font-bold">
+                                                        Blotter Report Details
+                                                    </DialogTitle>
+                                                    <div className="flex flex-col gap-2">
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Reported on{" "}
+                                                            {formatDate(report.incidentDate)}
+                                                        </p>
+                                                        <Badge
+                                                            className={`${getStatusColor(report.status)} w-fit`}
+                                                        >
+                                                            {report.status}
+                                                        </Badge>
+                                                    </div>
+                                                </DialogHeader>
+                                                <ScrollArea className="h-[calc(80vh-8rem)]">
+                                                    <div className="p-6">
+                                                        <BlotterDetailsView
+                                                            blotter={selectedReport}
+                                                            handleDownload={handleDownload}
+                                                            handleStatusChange={handleStatusChange}
+                                                            updating={updating}
+                                                        />
+                                                    </div>
+                                                </ScrollArea>
+                                            </DialogContent>
+                                        </Dialog>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between mt-4">
+                    <p className="text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                    </p>
+                    <div className="flex items-center space-x-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onPageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onPageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}

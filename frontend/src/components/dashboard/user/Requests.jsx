@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Grid, List, Loader2, Search } from "lucide-react";
 import DocumentRequestForm from "@/components/forms/DocumentRequestForm";
-import { DocumentRequestGrid } from "./components/DocumentRequestGrid";
+
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { RequestsGridView } from "./components/RequestsGridView";
+import { RequestsTableView } from "./components/RequestsTableView";
 
 export function Requests() {
     const [showRequestForm, setShowRequestForm] = useState(false);
@@ -217,81 +219,14 @@ export function Requests() {
                             <p className="text-gray-500 text-center">No document requests found.</p>
                         ) : (
                             <>
-                                {/* Grid view for small screens */}
-                                <div className="md:hidden grid gap-4 grid-cols-1 sm:grid-cols-2">
-                                    {filteredRequests.map((request) => (
-                                        <Card key={request.id}>
-                                            <CardContent className="p-4">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div>
-                                                        <h3 className="font-semibold">
-                                                            {request.documentType}
-                                                        </h3>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Requested on:{" "}
-                                                            {new Date(
-                                                                request.createdAt
-                                                            ).toLocaleDateString()}
-                                                        </p>
-                                                    </div>
-                                                    <Badge
-                                                        className={getStatusColor(request.status)}
-                                                    >
-                                                        {request.status || "Pending"}
-                                                    </Badge>
-                                                </div>
-                                                <div className="space-y-2 mt-4">
-                                                    <div>
-                                                        <h4 className="font-medium">Purpose</h4>
-                                                        <p className="text-sm">
-                                                            {request.purpose || "N/A"}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                </div>
-
-                                {/* Table view for medium and larger screens */}
-                                <div className="hidden md:block rounded-md border">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Document Type</TableHead>
-                                                <TableHead>Status</TableHead>
-                                                <TableHead>Purpose</TableHead>
-                                                <TableHead>Requested On</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {filteredRequests.map((request) => (
-                                                <TableRow key={request.id}>
-                                                    <TableCell className="font-medium">
-                                                        {request.documentType}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge
-                                                            className={getStatusColor(
-                                                                request.status
-                                                            )}
-                                                        >
-                                                            {request.status || "Pending"}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {request.purpose || "N/A"}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {new Date(
-                                                            request.createdAt
-                                                        ).toLocaleDateString()}
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
+                                <RequestsGridView
+                                    requests={filteredRequests}
+                                    getStatusColor={getStatusColor}
+                                />
+                                <RequestsTableView
+                                    requests={filteredRequests}
+                                    getStatusColor={getStatusColor}
+                                />
                             </>
                         )}
 

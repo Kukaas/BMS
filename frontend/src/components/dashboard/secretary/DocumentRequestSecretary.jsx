@@ -1,23 +1,6 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
 import {
     Select,
     SelectContent,
@@ -29,6 +12,8 @@ import { useSelector } from "react-redux";
 import api from "@/lib/axios";
 import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
+import { DocumentTableView } from "./components/DocumentTableView";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function DocumentRequestSecretary() {
     const [requests, setRequests] = useState([]);
@@ -135,45 +120,6 @@ export function DocumentRequestSecretary() {
         }
     };
 
-    const getDocumentDetails = (request) => {
-        switch (request.type) {
-            case "Barangay Clearance":
-                return [
-                    { label: "Name", value: request.residentName },
-                    { label: "Purpose", value: request.purpose },
-                    { label: "Email", value: request.email },
-                    { label: "Contact Number", value: request.contactNumber },
-                ];
-            case "Barangay Indigency":
-                return [
-                    { label: "Name", value: request.residentName },
-                    { label: "Purpose", value: request.purpose },
-                    { label: "Contact Number", value: request.contactNumber },
-                ];
-            case "Business Clearance":
-                return [
-                    { label: "Owner Name", value: request.residentName },
-                    { label: "Business Name", value: request.businessName },
-                    { label: "Business Type", value: request.businessType },
-                    { label: "Business Nature", value: request.businessNature },
-                    { label: "Owner Address", value: request.ownerAddress },
-                    { label: "Contact Number", value: request.contactNumber },
-                    { label: "Email", value: request.email },
-                ];
-            case "Cedula":
-                return [
-                    { label: "Name", value: request.residentName },
-                    { label: "Date of Birth", value: request.dateOfBirth },
-                    { label: "Place of Birth", value: request.placeOfBirth },
-                    { label: "Civil Status", value: request.civilStatus },
-                    { label: "Occupation", value: request.occupation },
-                    { label: "Tax", value: request.tax ? `₱${request.tax.toFixed(2)}` : "N/A" },
-                ];
-            default:
-                return [];
-        }
-    };
-
     // Add this function to determine available statuses
     const getAvailableStatuses = (currentStatus) => {
         switch (currentStatus) {
@@ -229,12 +175,14 @@ export function DocumentRequestSecretary() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full">
-                <div className="flex flex-col items-center gap-2">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">Loading requests...</p>
-                </div>
-            </div>
+            <Card>
+                <CardContent className="flex items-center justify-center py-8">
+                    <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="text-sm text-muted-foreground">Loading requests...</p>
+                    </div>
+                </CardContent>
+            </Card>
         );
     }
 
@@ -284,167 +232,16 @@ export function DocumentRequestSecretary() {
                         </Select>
                     </div>
 
-                    {/* Table */}
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead>Resident</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Action</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {currentRequests.map((request) => (
-                                <TableRow key={request.id}>
-                                    <TableCell>
-                                        {request.requestDate
-                                            ? new Date(request.requestDate).toLocaleDateString()
-                                            : "N/A"}
-                                    </TableCell>
-                                    <TableCell>{request.type}</TableCell>
-                                    <TableCell>{request.residentName}</TableCell>
-                                    <TableCell>
-                                        <Badge className={getStatusColor(request.status)}>
-                                            {request.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => setSelectedRequest(request)}
-                                                >
-                                                    View Details
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent>
-                                                <DialogHeader>
-                                                    <DialogTitle>
-                                                        Document Request Details
-                                                    </DialogTitle>
-                                                </DialogHeader>
-                                                {selectedRequest && (
-                                                    <div className="grid gap-4">
-                                                        <div className="space-y-4">
-                                                            <div className="grid gap-2">
-                                                                <div className="flex items-center justify-between">
-                                                                    <div className="flex flex-col gap-1">
-                                                                        <p className="text-sm font-medium leading-none">
-                                                                            Request Date
-                                                                        </p>
-                                                                        <p className="text-sm text-muted-foreground">
-                                                                            {new Date(
-                                                                                selectedRequest.requestDate
-                                                                            ).toLocaleDateString()}
-                                                                        </p>
-                                                                    </div>
-                                                                    <Badge
-                                                                        className={getStatusColor(
-                                                                            selectedRequest.status
-                                                                        )}
-                                                                    >
-                                                                        {selectedRequest.status}
-                                                                    </Badge>
-                                                                </div>
-                                                            </div>
-                                                            <div className="grid gap-2">
-                                                                <div className="flex flex-col gap-1">
-                                                                    <p className="text-sm font-medium leading-none">
-                                                                        Document Type
-                                                                    </p>
-                                                                    <p className="text-sm text-muted-foreground">
-                                                                        {selectedRequest.type}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                            {getDocumentDetails(
-                                                                selectedRequest
-                                                            ).map((detail, index) => (
-                                                                <div
-                                                                    key={index}
-                                                                    className="grid gap-2"
-                                                                >
-                                                                    <div className="flex flex-col gap-1">
-                                                                        <p className="text-sm font-medium leading-none">
-                                                                            {detail.label}
-                                                                        </p>
-                                                                        <p className="text-sm text-muted-foreground">
-                                                                            {detail.value || "N/A"}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-
-                                                        <div className="grid gap-2">
-                                                            <div className="flex flex-col gap-1">
-                                                                <p className="text-sm font-medium leading-none">
-                                                                    Update Status
-                                                                </p>
-                                                                <Select
-                                                                    onValueChange={(value) =>
-                                                                        handleStatusChange(
-                                                                            selectedRequest.id,
-                                                                            selectedRequest.type,
-                                                                            value
-                                                                        )
-                                                                    }
-                                                                    defaultValue={
-                                                                        selectedRequest.status
-                                                                    }
-                                                                    disabled={
-                                                                        updating ||
-                                                                        selectedRequest.status ===
-                                                                            "Completed" ||
-                                                                        selectedRequest.status ===
-                                                                            "Rejected"
-                                                                    }
-                                                                >
-                                                                    <SelectTrigger>
-                                                                        <SelectValue>
-                                                                            {selectedRequest.status}
-                                                                        </SelectValue>
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {getAvailableStatuses(
-                                                                            selectedRequest.status
-                                                                        ).map((status) => (
-                                                                            <SelectItem
-                                                                                key={status}
-                                                                                value={status}
-                                                                                className={
-                                                                                    status ===
-                                                                                    "Rejected"
-                                                                                        ? "text-destructive"
-                                                                                        : status ===
-                                                                                            "Completed"
-                                                                                          ? "text-primary"
-                                                                                          : status ===
-                                                                                              "Approved"
-                                                                                            ? "text-green-500"
-                                                                                            : ""
-                                                                                }
-                                                                            >
-                                                                                {status}
-                                                                            </SelectItem>
-                                                                        ))}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </DialogContent>
-                                        </Dialog>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    {/* Table View */}
+                    <DocumentTableView
+                        currentRequests={currentRequests}
+                        setSelectedRequest={setSelectedRequest}
+                        selectedRequest={selectedRequest}
+                        getStatusColor={getStatusColor}
+                        handleStatusChange={handleStatusChange}
+                        updating={updating}
+                        getAvailableStatuses={getAvailableStatuses}
+                    />
 
                     {/* Pagination Controls */}
                     <div className="flex items-center justify-between">

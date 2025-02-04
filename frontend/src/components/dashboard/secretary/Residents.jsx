@@ -19,7 +19,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Search, Grid, List, Loader2 } from "lucide-react";
-import { ResidentsListView } from "./ResidentsListView";
+import { ResidentsTableView } from "./components/ResidentsTableView";
 import api from "@/lib/axios";
 import { toast } from "sonner";
 
@@ -91,21 +91,21 @@ export function SecretaryResidentsDashboard() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-[500px]">
-                <div className="flex flex-col items-center gap-2">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">Loading residents...</p>
-                </div>
-            </div>
+            <Card>
+                <CardContent className="flex items-center justify-center py-8">
+                    <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="text-sm text-muted-foreground">Loading residents...</p>
+                    </div>
+                </CardContent>
+            </Card>
         );
     }
 
     return (
         <Card className="w-full">
             <CardHeader>
-                <div className="flex justify-between items-center mb-4">
-                    <CardTitle>Residents Information</CardTitle>
-                </div>
+                <CardTitle>Residents Information</CardTitle>
                 <div className="flex items-center justify-between mt-4">
                     <div className="relative flex-1 max-w-sm">
                         <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -146,11 +146,11 @@ export function SecretaryResidentsDashboard() {
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    {/* List/Grid View */}
                     {viewMode === "list" ? (
-                        <ResidentsListView
-                            residents={getCurrentPageResidents()}
+                        <ResidentsTableView
+                            currentResidents={getCurrentPageResidents()}
                             setSelectedResident={setSelectedResident}
+                            selectedResident={selectedResident}
                         />
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
