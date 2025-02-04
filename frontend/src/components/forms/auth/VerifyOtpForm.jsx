@@ -9,14 +9,27 @@ import { z } from "zod";
 // Components and UI elements
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
 
 // Utilities
 import { cn } from "@/lib/utils";
 
 // Hooks
 import { useForm } from "react-hook-form";
-import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "../ui/input-otp";
+
+import {
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSeparator,
+    InputOTPSlot,
+} from "@/components/ui/input-otp";
 
 const schema = z.object({
     otp: z.string().min(6),
