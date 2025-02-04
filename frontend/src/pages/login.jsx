@@ -1,9 +1,9 @@
-import { LoginForm } from "@/components/forms/LoginForm";
 import { ArrowLeft, GalleryVerticalEnd } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { getRedirectPath } from "@/lib/auth";
 import { useEffect } from "react";
+import { LoginForm } from "@/components/forms/auth/LoginForm";
 
 export default function SignIn() {
     const { currentUser } = useSelector((state) => state.user);

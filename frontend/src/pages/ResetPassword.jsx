@@ -1,6 +1,7 @@
 import { GalleryVerticalEnd } from "lucide-react";
 import bg from "../assets/bg.png";
-import { ResetPasswordForm } from "@/components/forms/ResetPassword";
+import { ResetPasswordForm } from "@/components/forms/auth/ResetPassword";
+
 
 export default function ResetPassword() {
     return (

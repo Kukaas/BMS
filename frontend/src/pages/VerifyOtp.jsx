@@ -1,4 +1,4 @@
-import VerifyOTPForm from "@/components/forms/VerifyOtpForm";
+import VerifyOTPForm from "@/components/forms/auth/VerifyOtpForm";
 import { GalleryVerticalEnd } from "lucide-react";
 
 import bg from "../assets/bg.png";
