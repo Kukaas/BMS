@@ -40,6 +40,7 @@ export function LoginForm({ className }) {
         },
     });
 
+
     const handleLogin = async (values) => {
         try {
             setLoading(true);
@@ -52,7 +53,7 @@ export function LoginForm({ className }) {
                 },
             });
 
-            if (response.status === 200 && response.data.success) {
+            if (response.status === 200) {
                 const { user, token } = response.data;
                 localStorage.setItem("token", token);
                 api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
