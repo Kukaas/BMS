@@ -49,6 +49,38 @@ export function SignupForm({ className }) {
     const [barangays, setBarangays] = useState([]);
     const navigate = useNavigate();
 
+    const allowedBarangays = [
+        'Antipolo',
+        'Bahi',
+        'Bangbang',
+        'Banuyo',
+        'Cabugao',
+        'Dawis',
+        'Dili',
+        'Libtangin',
+        'Mangiliol',
+        'Masiga',
+        'Pangi',
+        'Tapuyan'
+    ];
+
+    const fetchBarangays = async () => {
+        try {
+            const res = await axios.get(import.meta.env.VITE_GASAN_BARANGAYS_API_URL);
+            // Filter and sort the barangays
+            const filteredBarangays = res.data
+                .filter(barangay => allowedBarangays.includes(barangay.name))
+                .sort((a, b) => a.name.localeCompare(b.name));
+            setBarangays(filteredBarangays);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    useEffect(() => {
+        fetchBarangays();
+    }, []);
+
     const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: {
@@ -106,19 +138,6 @@ export function SignupForm({ className }) {
             setLoading(false);
         }
     };
-
-    const fetchBarangays = async () => {
-        try {
-            const res = await axios.get(import.meta.env.VITE_GASAN_BARANGAYS_API_URL);
-            setBarangays(res.data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    useEffect(() => {
-        fetchBarangays();
-    }, []);
 
     return (
         <Form {...form}>
