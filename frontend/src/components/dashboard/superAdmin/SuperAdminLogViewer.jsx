@@ -37,7 +37,7 @@ import {
 // } from "@/components/ui/pagination";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Search, User } from "lucide-react";
+import { CalendarIcon, Search, User, FileText, Clock } from "lucide-react";
 import { format, isWithinInterval } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -289,57 +289,69 @@ export function SuperAdminLogViewer() {
                                                     View Details
                                                 </Button>
                                             </DialogTrigger>
-                                            <DialogContent className="sm:max-w-[425px]">
+                                            <DialogContent className="sm:max-w-[600px]">
                                                 <DialogHeader>
                                                     <DialogTitle>Log Details</DialogTitle>
                                                 </DialogHeader>
-                                                {selectedLog && (
-                                                    <div className="grid gap-4 py-4">
-                                                        <div className="grid grid-cols-4 items-center gap-4">
-                                                            <Label className="text-right">
-                                                                Timestamp
-                                                            </Label>
-                                                            <div className="col-span-3">
-                                                                {format(
-                                                                    new Date(selectedLog.timestamp),
-                                                                    "yyyy-MM-dd HH:mm:ss"
-                                                                )}
+                                                <div className="space-y-8 py-4">
+                                                    <div className="grid grid-cols-2 gap-6">
+                                                        <div className="space-y-2">
+                                                            <h3 className="text-sm font-medium text-muted-foreground">Timestamp</h3>
+                                                            <div className="bg-muted p-4 rounded-lg">
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <CalendarIcon className="h-4 w-4 text-primary" />
+                                                                        <p className="font-medium">
+                                                                            {format(new Date(log.timestamp), "MMM dd, yyyy")}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Clock className="h-4 w-4 text-primary" />
+                                                                        <p className="font-medium">
+                                                                            {format(new Date(log.timestamp), "HH:mm:ss")}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div className="grid grid-cols-4 items-center gap-4">
-                                                            <Label className="text-right">Type</Label>
-                                                            <div className="col-span-3">
-                                                                <Badge
-                                                                    className={getTypeColor(
-                                                                        selectedLog.type
-                                                                    )}
-                                                                >
-                                                                    {selectedLog.type}
+                                                        <div className="space-y-2">
+                                                            <h3 className="text-sm font-medium text-muted-foreground">Type</h3>
+                                                            <div className="bg-muted p-4 rounded-lg">
+                                                                <Badge className={getTypeColor(log.type)}>
+                                                                    {log.type}
                                                                 </Badge>
                                                             </div>
                                                         </div>
-                                                        <div className="grid grid-cols-4 items-center gap-4">
-                                                            <Label className="text-right">User</Label>
-                                                            <div className="col-span-3">
-                                                                {selectedLog.userId.name}
-                                                            </div>
-                                                        </div>
-                                                        <div className="grid grid-cols-4 items-center gap-4">
-                                                            <Label className="text-right">Action</Label>
-                                                            <div className="col-span-3">
-                                                                {selectedLog.action}
-                                                            </div>
-                                                        </div>
-                                                        <div className="grid grid-cols-4 items-center gap-4">
-                                                            <Label className="text-right">
-                                                                Details
-                                                            </Label>
-                                                            <div className="col-span-3">
-                                                                {selectedLog.details}
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        <h3 className="text-sm font-medium text-muted-foreground">
+                                                            User Information
+                                                        </h3>
+                                                        <div className="bg-muted p-4 rounded-lg">
+                                                            <div className="flex items-center gap-2">
+                                                                <User className="h-4 w-4 text-primary" />
+                                                                <p className="font-medium">{log.userId.name}</p>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                )}
+                                                    <div className="space-y-2">
+                                                        <h3 className="text-sm font-medium text-muted-foreground">Action</h3>
+                                                        <div className="bg-muted p-4 rounded-lg">
+                                                            <div className="flex items-center gap-2">
+                                                                <FileText className="h-4 w-4 text-primary" />
+                                                                <p className="font-medium">{log.action}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <h3 className="text-sm font-medium text-muted-foreground">Details</h3>
+                                                        <div className="bg-muted p-4 rounded-lg">
+                                                            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                                                                {log.details}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </DialogContent>
                                         </Dialog>
                                     </TableCell>
