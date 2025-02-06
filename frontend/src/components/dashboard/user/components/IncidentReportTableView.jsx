@@ -1,14 +1,5 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -17,6 +8,15 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Eye } from "lucide-react";
 import { IncidentDetailsView } from "./IncidentDetailsView";
 
 export function IncidentReportTableView({ incidents, getStatusColor }) {

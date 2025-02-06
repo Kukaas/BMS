@@ -206,7 +206,7 @@ export function DocumentRequestSecretary() {
                                 />
                             </div>
                             <Select value={selectedType} onValueChange={setSelectedType}>
-                                <SelectTrigger className="w-[180px]">
+                                <SelectTrigger className="w-[200px] text-left">
                                     <SelectValue placeholder="Filter by type" />
                                 </SelectTrigger>
                                 <SelectContent>
