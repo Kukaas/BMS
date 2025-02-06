@@ -36,6 +36,7 @@ import SecretaryResidentsDashboardPage from "@/pages/SecretaryResidentsDashboard
 import { SecretaryBlotterDashboard } from "./secretary/BlotterReportsSecretary";
 import RegisterBarangayUserPage from "@/pages/RegisterBarangayUser";
 import { UserList } from "./secretary/UserList";
+import SuperAdminLogViewerPage from "@/pages/SuperAdminLogsPage";
 
 const componentMap = {
     overview: Overview,
@@ -50,6 +51,7 @@ const componentMap = {
     residents: SecretaryResidentsDashboardPage,
     blotterreports: SecretaryBlotterDashboard,
     register: RegisterBarangayUserPage,
+    logs: SuperAdminLogViewerPage,
     // settings: Settings,
     // help: Help,
 };
