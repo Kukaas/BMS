@@ -17,30 +17,33 @@ import blotterReportRoutes from "./routes/blotter.report.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import documentRequestRoutes from "./routes/document.request.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import logRoutes from "./routes/log.routes.js";
 
 const app = express();
 dotenv.config();
 
 // Configure CORS before other middleware
-app.use(cors({
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: [
-        "Content-Type",
-        "Authorization",
-        "withcredentials",
-        "Accept",
-        "Origin",
-        "X-Requested-With"
-    ],
-    exposedHeaders: ["Content-Range", "X-Content-Range"],
-    credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204
-}));
+app.use(
+    cors({
+        origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allowedHeaders: [
+            "Content-Type",
+            "Authorization",
+            "withcredentials",
+            "Accept",
+            "Origin",
+            "X-Requested-With",
+        ],
+        exposedHeaders: ["Content-Range", "X-Content-Range"],
+        credentials: true,
+        preflightContinue: false,
+        optionsSuccessStatus: 204,
+    })
+);
 
 // Add OPTIONS handling for preflight requests
-app.options('*', cors());
+app.options("*", cors());
 
 // Increase payload limits
 app.use(express.json({ limit: "50mb" }));
@@ -119,5 +122,6 @@ app.use("/api/blotter", blotterReportRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/document-requests", documentRequestRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/logs", logRoutes);
 
 export default app;

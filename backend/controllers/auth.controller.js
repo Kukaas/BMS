@@ -8,6 +8,7 @@ import UserVerification from "../models/user.verification.model.js";
 import { sendOTPVerificationEmail, sendVerificationEmail } from "../utils/emails.js";
 import { setToken } from "../utils/setToken.js";
 import jwt from "jsonwebtoken";
+import { createLog } from "./log.controller.js";
 
 dotenv.config();
 
@@ -121,11 +122,14 @@ export const login = async (req, res, next) => {
                 id: user._id,
                 email: user.email,
                 barangay: user.barangay,
-                role: user.role
+                role: user.role,
             },
             process.env.JWT_SECRET,
-            { expiresIn: '1d' }
+            { expiresIn: "1d" }
         );
+
+        // Log the login action
+        await createLog(user._id, "User logged in", "User Activity");
 
         res.status(200).json({
             success: true,

@@ -32,12 +32,12 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 export function Sidebar() {
+    const { currentUser } = useSelector((state) => state.user);
     const location = useLocation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
-    const { currentUser } = useSelector((state) => state.user);
     const currentTab = new URLSearchParams(location.search).get("tab");
 
     let sidebarItems = [];
@@ -98,21 +98,23 @@ export function Sidebar() {
     const handleLogout = async () => {
         try {
             setLoggingOut(true);
-            const res = await api.post("/auth/logout");
+            const res = await api.post(`/auth/logout/${currentUser._id}`);
 
             if (res.status === 200) {
+                console.log("Logout successful");
                 localStorage.removeItem("token");
                 dispatch(logout());
                 navigate("/sign-in");
                 toast.success("Logged out successfully");
             }
         } catch (error) {
-            console.error(error);
+            console.error("Logout error:", error);
             toast.error("An error occurred. Please try again later");
         } finally {
             setLoggingOut(false);
         }
     };
+
 
     return (
         <motion.div

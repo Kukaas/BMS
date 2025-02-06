@@ -45,7 +45,7 @@ export function LoginForm({ className }) {
             setLoading(true);
             dispatch(loginStart());
 
-            const response = await axios.post("http://localhost:5000/api/auth/login", values, {
+            const response = await api.post("/auth/login", values, {
                 headers: {
                     "Content-Type": "application/json",
                     withCredentials: true,
