@@ -1,6 +1,6 @@
 import Log from "../models/log.model.js";
 
-export const createLog = async (userId, action, type, details = "") => {
+export const createLog = async (userId, action, type, details) => {
     try {
         const log = new Log({
             userId,

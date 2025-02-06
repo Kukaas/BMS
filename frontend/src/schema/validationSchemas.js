@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const barangayClearanceSchema = z.object({
+    userId: z.string().min(1, "User ID is required"),
     name: z.string().min(1, "Full name is required"),
     email: z.string().email("Invalid email format"),
     barangay: z.string().min(1, "Barangay is required"),

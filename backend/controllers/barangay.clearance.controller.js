@@ -4,10 +4,11 @@ import {
     createNotification
 } from "../utils/notifications.js";
 import User from "../models/user.model.js";
+import { createLog } from "./log.controller.js";
 
 export const createBarangayClearance = async (req, res, next) => {
     try {
-        const { name, email, purpose, contactNumber } = req.body;
+        const { userId, name, email, purpose, contactNumber } = req.body;
         const userBarangay = req.user.barangay;
 
         if (!name || !email || !purpose || !contactNumber) {
@@ -18,12 +19,14 @@ export const createBarangayClearance = async (req, res, next) => {
         }
 
         const barangayClearance = new BarangayClearance({
+            userId,
             name,
             email,
             barangay: userBarangay,
             purpose,
             contactNumber,
         });
+        await createLog(userId, "Barangay Clearance Request", "Barangay Clearance", `${name} has requested a barangay clearance for ${purpose}`);
 
         await barangayClearance.save();
 

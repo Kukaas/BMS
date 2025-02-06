@@ -22,8 +22,12 @@ const logSchema = new mongoose.Schema({
         enum: [
             "User Activity",
             "Resident Record",
+            "Barangay Indigency",
             "Barangay Clearance",
+            "Business Clearance",
+            "Cedula",
             "Incident Report",
+            "Blotter Report",
             "Audit",
         ],
         required: true,

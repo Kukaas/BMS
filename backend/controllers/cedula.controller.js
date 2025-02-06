@@ -1,14 +1,22 @@
 import Cedula from "../models/cedula.model.js";
 import { createNotification } from "../utils/notifications.js";
 import User from "../models/user.model.js";
+import { createLog } from "./log.controller.js";
 
 export const createCedula = async (req, res, next) => {
     try {
         const newCedula = new Cedula({
             ...req.body,
             userId: req.user.id,
-            status: "Pending"
+            status: "Pending",
         });
+
+        await createLog(
+            req.user.id,
+            "Cedula Request",
+            "Cedula",
+            `${req.body.name} has requested a cedula`
+        );
 
         await newCedula.save();
 
@@ -32,13 +40,13 @@ export const createCedula = async (req, res, next) => {
         // Update user's notifications
         await User.findByIdAndUpdate(req.user.id, {
             $push: { notifications: userNotification },
-            $inc: { unreadNotifications: 1 }
+            $inc: { unreadNotifications: 1 },
         });
 
         // Notify barangay staff
         const barangayStaff = await User.find({
             barangay: req.user.barangay,
-            role: { $in: ["secretary", "chairman"] }
+            role: { $in: ["secretary", "chairman"] },
         });
 
         for (const staff of barangayStaff) {
