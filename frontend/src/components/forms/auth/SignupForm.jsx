@@ -45,9 +45,11 @@ const schema = z.object({
 });
 
 export function SignupForm({ className }) {
+    const [selectedUser, setSelectedUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [barangays, setBarangays] = useState([]);
     const navigate = useNavigate();
+
 
     const allowedBarangays = [
         'Antipolo',

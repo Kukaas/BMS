@@ -13,25 +13,36 @@ import verifyToken from "../utils/verifyToken.js";
 
 const router = express.Router();
 
-// Place specific routes before parameterized routes
-// GET /api/users/residents
+// Log when routes are being set up
+console.log('Setting up user routes...');
+
+// GET routes for specific paths (no parameters)
 router.get("/residents", verifyToken, getResidentsByBarangay);
-
-// GET /api/users/barangay
 router.get("/barangay", verifyToken, getUsersByBarangay);
-
-// Parameterized routes should come after specific routes
-// GET /api/users/:userId
-router.get("/:userId", verifyToken, getUserById);
-
-// GET /api/users/all
 router.get("/", verifyToken, getUsers);
 
-// PATCH routes
-router.patch("/:userId/verify", verifyToken, verifyUser);
-router.patch("/:userId/reject", verifyToken, rejectUser);
-router.patch("/:userId/deactivate", verifyToken, deactivateUser);
-router.patch("/:userId/activate", verifyToken, activateUser);
+// PATCH routes for specific actions
+router.patch("/:userId/verify", verifyToken, (req, res, next) => {
+    console.log('Verify route hit:', req.params);
+    verifyUser(req, res, next);
+});
 
+router.patch("/:userId/reject", verifyToken, (req, res, next) => {
+    console.log('Reject route hit:', req.params);
+    rejectUser(req, res, next);
+});
+
+router.patch("/:userId/deactivate", verifyToken, (req, res, next) => {
+    console.log('Deactivate route hit:', req.params);
+    deactivateUser(req, res, next);
+});
+
+router.patch("/:userId/activate", verifyToken, (req, res, next) => {
+    console.log('Activate route hit:', req.params);
+    activateUser(req, res, next);
+});
+
+// Generic parameterized route should be last
+router.get("/:userId", verifyToken, getUserById);
 
 export default router;
