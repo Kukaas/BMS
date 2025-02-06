@@ -35,8 +35,14 @@ import {
 //     PaginationPrevious,
 // } from "@/components/ui/pagination";
 import { mockUsers } from "../secretary/mockData";
+import api from "@/lib/axios";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import { CheckCircle2, XCircle, UserX, UserCheck } from "lucide-react";
+import { toast } from "sonner";
 
 export function UserManagementDashboard() {
+    const { currentUser } = useSelector((state) => state.user);
     const [users, setUsers] = useState(mockUsers);
     const [filteredUsers, setFilteredUsers] = useState(users);
     const [selectedUser, setSelectedUser] = useState(null);
@@ -47,17 +53,39 @@ export function UserManagementDashboard() {
         address: "",
         search: "",
     });
+    const [actionLoading, setActionLoading] = useState({
+        verifying: false,
+        rejecting: false,
+        deactivating: false,
+        activating: false,
+        userId: null,
+    });
 
     const roles = [...new Set(users.map((user) => user.role))];
-    const addresses = [...new Set(users.map((user) => user.address))];
+    const addresses = [...new Set(users.map((user) => user.barangay))];
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            const response = await axios.get("http://localhost:5000/api/users", {
+                headers: {
+                    "Content-Type": "application/json",
+                    withCredentials: true,
+                    Authorization: `Bearer ${currentUser.token}`,
+                },
+            });
+            setUsers(response.data);
+        };
+
+        fetchUsers();
+    }, []);
 
     useEffect(() => {
         let result = users;
-        if (filters.role) {
+        if (filters.role && filters.role !== "all") {
             result = result.filter((user) => user.role === filters.role);
         }
-        if (filters.address) {
-            result = result.filter((user) => user.address === filters.address);
+        if (filters.address && filters.address !== "all") {
+            result = result.filter((user) => user.barangay === filters.address);
         }
         if (filters.search) {
             result = result.filter(
@@ -78,16 +106,77 @@ export function UserManagementDashboard() {
 
     const getRoleBadgeColor = (role) => {
         switch (role) {
-            case "Admin":
-                return "bg-red-100 text-red-800";
-            case "Barangay Official":
-                return "bg-blue-100 text-blue-800";
-            case "Secretary":
-                return "bg-green-100 text-green-800";
-            case "Resident":
-                return "bg-yellow-100 text-yellow-800";
+            case "superAdmin":
+                return "bg-red-100 text-red-800 hover:bg-red-200";
+            case "secretary":
+                return "bg-green-100 text-green-800 hover:bg-green-200";
+            case "chairman":
+                return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+            case "user":
+                return "bg-purple-100 text-purple-800 hover:bg-purple-200";
+
             default:
                 return "bg-gray-100 text-gray-800";
+        }
+    };
+
+    const capitalize = (str) => {
+        return str.replace(/\b\w/g, (char) => char.toUpperCase());
+    };
+
+    const handleVerifyUser = async (userId) => {
+        try {
+            setActionLoading({ verifying: true, userId });
+            // API call to verify user
+            // ...
+            toast.success("User verified successfully");
+            fetchUsers();
+        } catch (error) {
+            toast.error("Failed to verify user");
+        } finally {
+            setActionLoading({ verifying: false, userId: null });
+        }
+    };
+
+    const handleRejectUser = async (userId) => {
+        try {
+            setActionLoading({ rejecting: true, userId });
+            // API call to reject user
+            // ...
+            toast.success("User rejected successfully");
+            fetchUsers();
+        } catch (error) {
+            toast.error("Failed to reject user");
+        } finally {
+            setActionLoading({ rejecting: false, userId: null });
+        }
+    };
+
+    const handleDeactivateUser = async (userId) => {
+        try {
+            setActionLoading({ deactivating: true, userId });
+            // API call to deactivate user
+            // ...
+            toast.success("User deactivated successfully");
+            fetchUsers();
+        } catch (error) {
+            toast.error("Failed to deactivate user");
+        } finally {
+            setActionLoading({ deactivating: false, userId: null });
+        }
+    };
+
+    const handleActivateUser = async (userId) => {
+        try {
+            setActionLoading({ activating: true, userId });
+            // API call to activate user
+            // ...
+            toast.success("User activated successfully");
+            fetchUsers();
+        } catch (error) {
+            toast.error("Failed to activate user");
+        } finally {
+            setActionLoading({ activating: false, userId: null });
         }
     };
 
@@ -127,10 +216,10 @@ export function UserManagementDashboard() {
                                 <SelectValue placeholder="Select address" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All Addresses</SelectItem>
-                                {addresses.map((address) => (
-                                    <SelectItem key={address} value={address}>
-                                        {address}
+                                <SelectItem value="all">All Barangays</SelectItem>
+                                {addresses.map((barangay) => (
+                                    <SelectItem key={barangay} value={barangay}>
+                                        {barangay}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -167,10 +256,10 @@ export function UserManagementDashboard() {
                                 <TableCell>{user.email}</TableCell>
                                 <TableCell>
                                     <Badge className={getRoleBadgeColor(user.role)}>
-                                        {user.role}
+                                        {capitalize(user.role)}
                                     </Badge>
                                 </TableCell>
-                                <TableCell>{user.address}</TableCell>
+                                <TableCell>{user.barangay}</TableCell>
                                 <TableCell>
                                     <Dialog>
                                         <DialogTrigger asChild>
@@ -208,16 +297,16 @@ export function UserManagementDashboard() {
                                                                     selectedUser.role
                                                                 )}
                                                             >
-                                                                {selectedUser.role}
+                                                                {capitalize(selectedUser.role)}
                                                             </Badge>
                                                         </div>
                                                     </div>
                                                     <div className="grid grid-cols-4 items-center gap-4">
                                                         <Label className="text-right">
-                                                            Address
+                                                            Barangay
                                                         </Label>
                                                         <div className="col-span-3">
-                                                            {selectedUser.address}
+                                                            {selectedUser.barangay}
                                                         </div>
                                                     </div>
                                                     <div className="grid grid-cols-4 items-center gap-4">
@@ -231,8 +320,60 @@ export function UserManagementDashboard() {
                                                             Registered
                                                         </Label>
                                                         <div className="col-span-3">
-                                                            {selectedUser.dateRegistered}
+                                                            {selectedUser.createdAt}
                                                         </div>
+                                                    </div>
+                                                    <div className="flex justify-end space-x-2 mt-4">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                handleVerifyUser(selectedUser.id)
+                                                            }
+                                                            disabled={actionLoading.verifying}
+                                                        >
+                                                            {actionLoading.verifying
+                                                                ? "Verifying..."
+                                                                : "Verify"}
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                handleRejectUser(selectedUser.id)
+                                                            }
+                                                            disabled={actionLoading.rejecting}
+                                                        >
+                                                            {actionLoading.rejecting
+                                                                ? "Rejecting..."
+                                                                : "Reject"}
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                handleDeactivateUser(
+                                                                    selectedUser.id
+                                                                )
+                                                            }
+                                                            disabled={actionLoading.deactivating}
+                                                        >
+                                                            {actionLoading.deactivating
+                                                                ? "Deactivating..."
+                                                                : "Deactivate"}
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                handleActivateUser(selectedUser.id)
+                                                            }
+                                                            disabled={actionLoading.activating}
+                                                        >
+                                                            {actionLoading.activating
+                                                                ? "Activating..."
+                                                                : "Activate"}
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             )}

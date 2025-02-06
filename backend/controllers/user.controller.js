@@ -78,7 +78,7 @@ export const verifyUser = async (req, res, next) => {
         const { role, barangay } = req.user;
 
         // Check if user has permission
-        if (role !== "secretary" && role !== "chairman") {
+        if (role !== "secretary" && role !== "chairman" && role !== "superAdmin") {
             return res.status(403).json({
                 success: false,
                 message: "Access denied. Not authorized.",
@@ -134,7 +134,7 @@ export const rejectUser = async (req, res, next) => {
         const { role, barangay } = req.user;
 
         // Check if user has permission
-        if (role !== "secretary" && role !== "chairman") {
+        if (role !== "secretary" && role !== "chairman" && role !== "superAdmin") {
             return res.status(403).json({
                 success: false,
                 message: "Access denied. Not authorized.",
@@ -182,7 +182,7 @@ export const deactivateUser = async (req, res, next) => {
         }
 
         // Check if user has permission
-        if (role !== "secretary" && role !== "chairman") {
+        if (role !== "secretary" && role !== "chairman" && role !== "superAdmin") {
             return res.status(403).json({
                 success: false,
                 message: "Access denied. Not authorized.",
@@ -202,7 +202,7 @@ export const deactivateUser = async (req, res, next) => {
         }
 
         // Don't allow deactivation of admin/chairman/secretary accounts
-        if (user.role === "admin" || user.role === "chairman" || user.role === "secretary") {
+        if (user.role === "superAdmin" || user.role === "chairman" || user.role === "secretary") {
             return res.status(403).json({
                 success: false,
                 message: "Cannot deactivate admin or staff accounts",
@@ -239,7 +239,7 @@ export const activateUser = async (req, res, next) => {
         const { role, barangay } = req.user;
 
         // Check if user has permission
-        if (role !== "secretary" && role !== "chairman") {
+        if (role !== "secretary" && role !== "chairman" && role !== "superAdmin") {
             return res.status(403).json({
                 success: false,
                 message: "Access denied. Not authorized.",
@@ -259,7 +259,7 @@ export const activateUser = async (req, res, next) => {
         }
 
         // Don't allow activation of admin/chairman/secretary accounts
-        if (user.role === "admin" || user.role === "chairman" || user.role === "secretary") {
+        if (user.role === "superAdmin" || user.role === "chairman" || user.role === "secretary") {
             return res.status(403).json({
                 success: false,
                 message: "Cannot modify admin or staff accounts",
@@ -296,10 +296,10 @@ export const getResidentsByBarangay = async (req, res, next) => {
         const { barangay, role } = req.user;
 
         // Check if user is authorized
-        if (role !== 'secretary' && role !== 'chairman') {
+        if (role !== "secretary" && role !== "chairman") {
             return res.status(403).json({
                 success: false,
-                message: "Not authorized to access resident information"
+                message: "Not authorized to access resident information",
             });
         }
 
@@ -312,16 +312,16 @@ export const getResidentsByBarangay = async (req, res, next) => {
             .sort({ createdAt: -1 });
 
         // Add verification status badges
-        const formattedResidents = residents.map(resident => ({
+        const formattedResidents = residents.map((resident) => ({
             ...resident.toObject(),
             status: getResidentStatus(resident),
-            statusVariant: getStatusVariant(resident)
+            statusVariant: getStatusVariant(resident),
         }));
 
         res.status(200).json({
             success: true,
             count: residents.length,
-            data: formattedResidents
+            data: formattedResidents,
         });
     } catch (error) {
         console.error("Error fetching residents:", error);
@@ -341,4 +341,13 @@ const getStatusVariant = (resident) => {
     if (!resident.isVerified) return "warning";
     if (!resident.isActive) return "destructive";
     return "success";
+};
+
+export const getUsers = async (req, res) => {
+    try {
+        const users = await User.find({}, "-password -notifications");
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
