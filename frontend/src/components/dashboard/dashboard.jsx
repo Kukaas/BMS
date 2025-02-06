@@ -32,10 +32,10 @@ import { toast } from "sonner";
 import { Header } from "./Header";
 import Overview from "./Overview";
 import { DocumentRequestSecretary } from "./secretary/DocumentRequestSecretary";
-import { UserList } from "./UserList";
 import SecretaryResidentsDashboardPage from "@/pages/SecretaryResidentsDashboard";
 import { SecretaryBlotterDashboard } from "./secretary/BlotterReportsSecretary";
 import RegisterBarangayUserPage from "@/pages/RegisterBarangayUser";
+import { UserList } from "./secretary/UserList";
 
 const componentMap = {
     overview: Overview,
