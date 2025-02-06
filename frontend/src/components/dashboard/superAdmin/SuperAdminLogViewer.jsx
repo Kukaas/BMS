@@ -116,7 +116,15 @@ export function SuperAdminLogViewer() {
                 return "bg-green-100 text-green-800";
             case "Barangay Clearance":
                 return "bg-purple-100 text-purple-800";
+            case "Barangay Indigency":
+                return "bg-purple-100 text-purple-800";
+            case "Business Clearance":
+                return "bg-purple-100 text-purple-800";
+            case "Cedula":
+                return "bg-purple-100 text-purple-800";
             case "Incident Report":
+                return "bg-red-100 text-red-800";
+            case "Blotter Report":
                 return "bg-red-100 text-red-800";
             case "Audit":
                 return "bg-yellow-100 text-yellow-800";
@@ -188,11 +196,20 @@ export function SuperAdminLogViewer() {
                                 <SelectItem value="Barangay Clearance">
                                     Barangay Clearance
                                 </SelectItem>
+                                <SelectItem value="Barangay Indigency">
+                                    Barangay Indigency
+                                </SelectItem>
+                                <SelectItem value="Business Clearance">
+                                    Business Clearance
+                                </SelectItem>
+                                <SelectItem value="Cedula">Cedula</SelectItem>
                                 <SelectItem value="Incident Report">Incident Report</SelectItem>
+                                <SelectItem value="Blotter Report">Blotter Report</SelectItem>
                                 <SelectItem value="Audit">Audit</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
+
                     <div className="flex-1 min-w-[200px]">
                         <Label htmlFor="user">User</Label>
                         <Input

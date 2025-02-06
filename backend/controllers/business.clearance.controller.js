@@ -1,6 +1,7 @@
 import BusinessClearance from "../models/business.clearance.model.js";
 import { createNotification } from "../utils/notifications.js";
 import User from "../models/user.model.js";
+import { createLog } from "./log.controller.js";
 
 export const createBusinessClearance = async (req, res, next) => {
     try {
@@ -61,6 +62,13 @@ export const createBusinessClearance = async (req, res, next) => {
             validId,
         });
 
+        await createLog(
+            req.user.id,
+            "Business Clearance Request",
+            "Business Clearance",
+            `${ownerName} has requested a business clearance for ${businessName}`
+        );
+
         await businessClearanceRequest.save();
 
         // Create notifications
@@ -83,13 +91,13 @@ export const createBusinessClearance = async (req, res, next) => {
         // Update user's notifications
         await User.findByIdAndUpdate(req.user.id, {
             $push: { notifications: userNotification },
-            $inc: { unreadNotifications: 1 }
+            $inc: { unreadNotifications: 1 },
         });
 
         // Notify barangay staff
         const barangayStaff = await User.find({
             barangay,
-            role: { $in: ["secretary", "chairman"] }
+            role: { $in: ["secretary", "chairman"] },
         });
 
         for (const staff of barangayStaff) {

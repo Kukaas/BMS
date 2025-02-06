@@ -1,6 +1,7 @@
 import IncidentReport from "../models/incident.report.model.js";
 import { createNotification } from "../utils/notifications.js";
 import User from "../models/user.model.js";
+import { createLog } from "./log.controller.js";
 
 export const createIncidentReport = async (req, res, next) => {
     try {
@@ -36,6 +37,13 @@ export const createIncidentReport = async (req, res, next) => {
                   }
                 : null,
         });
+
+        await createLog(
+            req.user.id,
+            "Incident Report",
+            "Incident Report",
+            `${reporterName} has submitted an incident report for ${category}`
+        );
 
         await incidentReport.save();
 

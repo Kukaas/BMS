@@ -1,6 +1,7 @@
 import BarangayIndigency from "../models/barangay.indigency.model.js";
 import { createNotification } from "../utils/notifications.js";
 import User from "../models/user.model.js";
+import { createLog } from "./log.controller.js";
 
 export const createBarangayIndigency = async (req, res, next) => {
     try {
@@ -24,6 +25,8 @@ export const createBarangayIndigency = async (req, res, next) => {
             purpose,
         });
 
+        await createLog(user.id, "Barangay Indigency Request", "Barangay Indigency", `${name} has requested a barangay indigency for ${purpose}`);
+
         await barangayIndigency.save();
 
         // Create notification for barangay staff
@@ -39,14 +42,14 @@ export const createBarangayIndigency = async (req, res, next) => {
         const barangayStaff = await User.find({
             barangay,
             role: { $in: ["secretary", "chairman"] },
-            isActive: true // Only notify active staff
+            isActive: true, // Only notify active staff
         });
 
         // Send notifications to all barangay staff
-        const notificationPromises = barangayStaff.map(staff =>
+        const notificationPromises = barangayStaff.map((staff) =>
             User.findByIdAndUpdate(staff._id, {
                 $push: { notifications: staffNotification },
-                $inc: { unreadNotifications: 1 }
+                $inc: { unreadNotifications: 1 },
             })
         );
 

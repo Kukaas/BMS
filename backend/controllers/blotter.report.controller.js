@@ -1,11 +1,12 @@
 import BlotterReport from "../models/blotter.report.model.js";
 import { createNotification } from "../utils/notifications.js";
 import User from "../models/user.model.js";
+import { createLog } from "./log.controller.js";
 
 // Create a new blotter report
 export const createBlotterReport = async (req, res, next) => {
     try {
-        const { evidenceFile, ...otherData } = req.body;
+        const { name, evidenceFile, actionRequested, ...otherData } = req.body;
 
         // Create report object with all required fields
         const blotterReport = new BlotterReport({
@@ -22,6 +23,13 @@ export const createBlotterReport = async (req, res, next) => {
             // Ensure date is properly formatted
             incidentDate: new Date(otherData.incidentDate),
         });
+
+        await createLog(
+            req.user.id,
+            "Blotter Report",
+            "Blotter Report",
+            `${name} has submitted a blotter report for ${actionRequested}`
+        );
 
         // Save the report
         const savedReport = await blotterReport.save();

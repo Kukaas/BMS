@@ -26,6 +26,7 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
     } = useForm({
         resolver: zodResolver(barangayClearanceSchema),
         defaultValues: {
+            userId: currentUser?._id || "",
             name: currentUser?.name || "",
             email: currentUser?.email || "",
             barangay: currentUser?.barangay || "",
