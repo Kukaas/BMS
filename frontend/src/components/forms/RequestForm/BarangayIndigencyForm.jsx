@@ -28,8 +28,9 @@ export default function BarangayIndigencyForm({ onSubmit, initialData, onDataCha
         defaultValues: {
             name: currentUser?.name || "",
             barangay: currentUser?.barangay || "",
-            contactNumber: initialData?.contactNumber || "",
+            contactNumber: currentUser?.contactNumber || "",
             purpose: initialData?.purpose || "",
+
         },
     });
 

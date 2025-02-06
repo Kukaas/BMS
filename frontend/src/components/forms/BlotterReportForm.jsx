@@ -38,7 +38,7 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
             complainantGender: "",
             complainantCivilStatus: "",
             complainantAge: "",
-            complainantContact: "",
+            complainantContact: currentUser?.contactNumber || "",
             respondentName: "",
             respondentAddress: "",
             respondentContact: "",
