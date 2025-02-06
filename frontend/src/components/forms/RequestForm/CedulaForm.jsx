@@ -28,7 +28,7 @@ export default function CedulaForm({ onSubmit, initialData, onDataChange }) {
         defaultValues: {
             name: currentUser?.name || "",
             barangay: currentUser?.barangay || "",
-            dateOfBirth: initialData?.dateOfBirth || "",
+            dateOfBirth: currentUser?.dateOfBirth ? new Date(currentUser.dateOfBirth).toISOString().split('T')[0] : "",
             placeOfBirth: initialData?.placeOfBirth || "",
             civilStatus: initialData?.civilStatus || "",
             occupation: initialData?.occupation || "",
@@ -49,6 +49,9 @@ export default function CedulaForm({ onSubmit, initialData, onDataChange }) {
         if (currentUser) {
             setValue("name", currentUser.name || "");
             setValue("barangay", currentUser.barangay || "");
+            if (currentUser.dateOfBirth) {
+                setValue("dateOfBirth", new Date(currentUser.dateOfBirth).toISOString().split('T')[0]);
+            }
         }
     }, [currentUser, setValue]);
 

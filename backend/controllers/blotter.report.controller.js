@@ -6,7 +6,7 @@ import { createLog } from "./log.controller.js";
 // Create a new blotter report
 export const createBlotterReport = async (req, res, next) => {
     try {
-        const { name, evidenceFile, actionRequested, ...otherData } = req.body;
+        const { name, evidenceFile, ...otherData } = req.body;
 
         // Create report object with all required fields
         const blotterReport = new BlotterReport({
@@ -14,21 +14,23 @@ export const createBlotterReport = async (req, res, next) => {
             // Store the evidence file directly
             evidenceFile: evidenceFile
                 ? {
-                      filename: evidenceFile.filename,
-                      contentType: evidenceFile.contentType,
-                      data: evidenceFile.data,
-                  }
+                    filename: evidenceFile.filename,
+                    contentType: evidenceFile.contentType,
+                    data: evidenceFile.data,
+                }
                 : null,
             userId: req.user.id,
             // Ensure date is properly formatted
             incidentDate: new Date(otherData.incidentDate),
+            // Set default actionRequested if not provided
+            actionRequested: otherData.actionRequested || "Mediation"
         });
 
         await createLog(
             req.user.id,
             "Blotter Report",
             "Blotter Report",
-            `${name} has submitted a blotter report for ${actionRequested}`
+            `${name} has submitted a blotter report for ${blotterReport.actionRequested}`
         );
 
         // Save the report
@@ -62,9 +64,9 @@ export const createBlotterReport = async (req, res, next) => {
             error: error.message,
             details: error.errors
                 ? Object.keys(error.errors).map((key) => ({
-                      field: key,
-                      message: error.errors[key].message,
-                  }))
+                    field: key,
+                    message: error.errors[key].message,
+                }))
                 : null,
         });
     }
