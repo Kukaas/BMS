@@ -128,8 +128,19 @@ export const login = async (req, res, next) => {
             { expiresIn: "1d" }
         );
 
-        // Log the login action
-        await createLog(user._id, "User logged in", "User Activity", `${user.name} has logged in`);
+        // Modified logging section - handle different user roles
+        if (user.role !== 'superAdmin') {
+            const logMessage = user.role === 'user'
+                ? `Resident ${user.name} from ${user.barangay} has logged in`
+                : `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} ${user.name} from ${user.barangay} has logged in`;
+
+            await createLog(
+                user._id,
+                "User logged in",
+                "User Activity",
+                logMessage
+            );
+        }
 
         res.status(200).json({
             success: true,
