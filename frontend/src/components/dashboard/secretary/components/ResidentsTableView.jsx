@@ -1,3 +1,13 @@
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import {
     Table,
     TableBody,
@@ -6,25 +16,28 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
 
 export function ResidentsTableView({ currentResidents, setSelectedResident, selectedResident }) {
     if (!currentResidents.length) {
         return <div className="text-center py-8 text-gray-500">No residents found</div>;
     }
 
+    const getStatusColor = (status) => {
+        return status === "Active"
+            ? "bg-green-200 text-green-800"
+            : status === "Inactive"
+              ? "bg-red-200 text-red-800"
+              : "bg-gray-200 text-gray-800";
+    };
+
+    const getVerificationColor = (isVerified) => {
+        return isVerified
+            ? "bg-green-200 text-green-800"
+            : "bg-yellow-200 text-yellow-800";
+    };
+
     return (
-        <div className="rounded-md border">
+        <div>
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -57,10 +70,18 @@ export function ResidentsTableView({ currentResidents, setSelectedResident, sele
                                 {new Date(resident.createdAt).toLocaleDateString()}
                             </TableCell>
                             <TableCell>
-                                <Badge variant={resident.statusVariant}>{resident.status}</Badge>
+                                <Badge
+                                    className={getStatusColor(resident.status)}
+                                    variant={resident.statusVariant}
+                                >
+                                    {resident.status}
+                                </Badge>
                             </TableCell>
                             <TableCell>
-                                <Badge variant={resident.isVerified ? "success" : "warning"}>
+                                <Badge
+                                    className={getVerificationColor(resident.isVerified)}
+                                    variant={resident.isVerified ? "success" : "warning"}
+                                >
                                     {resident.isVerified ? "Verified" : "Pending"}
                                 </Badge>
                             </TableCell>

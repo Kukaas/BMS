@@ -1,14 +1,7 @@
-import { useState, useEffect, Fragment } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Dialog,
     DialogContent,
@@ -16,12 +9,19 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Search, Grid, List, Loader2 } from "lucide-react";
-import { ResidentsTableView } from "./components/ResidentsTableView";
+import { Input } from "@/components/ui/input";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import api from "@/lib/axios";
+import { Grid, List, Loader2, Search } from "lucide-react";
+import { Fragment, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ResidentsTableView } from "./components/ResidentsTableView";
 
 export function SecretaryResidentsDashboard() {
     const [residents, setResidents] = useState([]);
@@ -102,10 +102,24 @@ export function SecretaryResidentsDashboard() {
         );
     }
 
+    const getStatusColor = (status) => {
+        return status === "Active"
+            ? "bg-green-200 text-green-800"
+            : status === "Inactive"
+              ? "bg-red-200 text-red-800"
+              : "bg-gray-200 text-gray-800";
+    };
+
+    const getVerificationColor = (isVerified) => {
+        return isVerified
+            ? "bg-green-200 text-green-800"
+            : "bg-yellow-200 text-yellow-800";
+    };
+
     return (
         <Card className="w-full">
             <CardHeader>
-                <CardTitle>Residents Information</CardTitle>
+                <CardTitle className="mb-2">Residents Information</CardTitle>
                 <div className="flex items-center justify-between mt-4">
                     <div className="relative flex-1 max-w-sm">
                         <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -194,7 +208,10 @@ export function SecretaryResidentsDashboard() {
                                                 <span className="text-muted-foreground">
                                                     Status:
                                                 </span>
-                                                <Badge variant={resident.statusVariant}>
+                                                <Badge
+                                                    className={getStatusColor(resident.status)}
+                                                    variant={resident.statusVariant}
+                                                >
                                                     {resident.status}
                                                 </Badge>
                                             </div>
@@ -204,6 +221,9 @@ export function SecretaryResidentsDashboard() {
                                                     Verification:
                                                 </span>
                                                 <Badge
+                                                    className={getVerificationColor(
+                                                        resident.isVerified
+                                                    )}
                                                     variant={
                                                         resident.isVerified ? "success" : "warning"
                                                     }
