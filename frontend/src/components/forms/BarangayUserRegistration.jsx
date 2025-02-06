@@ -28,6 +28,10 @@ const schema = z.object({
     name: z.string().min(2, {
         message: "Name must be at least 2 characters.",
     }),
+    contactNumber: z.string().min(10, {
+        message: "Contact number must be at least 10 characters.",
+    }),
+    dateOfBirth: z.string(),
     email: z.string().email("Invalid email address."),
     role: z.string().nonempty("Role is required."),
     barangay: z.string().min(2, {
@@ -59,6 +63,8 @@ export function BarangayUserRegistration({ className }) {
         resolver: zodResolver(schema),
         defaultValues: {
             name: "",
+            contactNumber: "",
+            dateOfBirth: "",
             email: "",
             role: "",
             barangay: "",
@@ -68,9 +74,9 @@ export function BarangayUserRegistration({ className }) {
     const handleRegister = async (values) => {
         console.log(values);
         try {
-            const { name, email, role, barangay } = values;
+            const { name, contactNumber, dateOfBirth, email, role, barangay } = values;
 
-            if (!name || !email || !role || !barangay) {
+            if (!name || !contactNumber || !dateOfBirth || !email || !role || !barangay) {
                 toast.error("All fields are required.");
                 return;
             }
@@ -81,32 +87,40 @@ export function BarangayUserRegistration({ className }) {
             if (role === "secretary") {
                 res = await axios.post("http://localhost:5000/api/admin/create-secretary-account", {
                     name,
+                    contactNumber,
+                    dateOfBirth,
                     email,
                     barangay,
                     password: "secretary",
+
                 });
             } else if (role === "superAdmin") {
                 res = await axios.post(
                     "http://localhost:5000/api/admin/create-super-admin-account",
                     {
                         name,
+                        contactNumber,
+                        dateOfBirth,
                         email,
                         barangay,
                         password: "superAdmin",
                     }
+
                 );
             } else {
                 res = await axios.post("http://localhost:5000/api/admin/create-chairman-account", {
                     name,
+                    contactNumber,
+                    dateOfBirth,
                     email,
                     barangay,
                     password: "chairman",
                 });
+
             }
 
             if (res.status === 201) {
                 setLoading(false);
-                navigate("/sign-in");
                 toast.success("User registered successfully.", {
                     description: "Please verify your email to login.",
                 });
@@ -151,19 +165,38 @@ export function BarangayUserRegistration({ className }) {
             <CardContent>
                 <Form {...form}>
                     <form
-                        className={cn("flex flex-col gap-6", className)}
+                        className={cn("space-y-6", className)}
                         onSubmit={form.handleSubmit(handleRegister)}
                     >
-                        <div className="grid gap-2">
-                            <div className="grid gap-2">
+                        <div className="space-y-4">
+                            {/* Name and Contact Number side by side */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}
                                     name="name"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Fullname</FormLabel>
+                                            <FormLabel className="text-sm font-medium text-gray-700">
+                                                Full Name
+                                            </FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="John Doe" />
+                                                <Input {...field} placeholder="John Doe" className="h-11" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="contactNumber"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-sm font-medium text-gray-700">
+                                                Contact Number
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input {...field} placeholder="09123456789" className="h-11" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -171,98 +204,118 @@ export function BarangayUserRegistration({ className }) {
                                 />
                             </div>
 
-                            <div className="grid gap-2">
-                                <FormField
-                                    control={form.control}
-                                    name="email"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Email</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} placeholder="m@example.com" />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                            <div className="grid gap-2">
+                            {/* Date of Birth - Full width */}
+                            <FormField
+                                control={form.control}
+                                name="dateOfBirth"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-sm font-medium text-gray-700">Date of Birth</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="date"
+                                                {...field}
+                                                className="h-11"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* Email - Full width */}
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-sm font-medium text-gray-700">
+                                            Email
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input {...field} placeholder="m@example.com" className="h-11" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* Role and Barangay side by side */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}
                                     name="role"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Role</FormLabel>
-                                            <FormControl>
-                                                <Select
-                                                    value={field.value}
-                                                    onValueChange={(value) => {
-                                                        field.onChange(value);
-                                                    }}
-                                                >
-                                                    <SelectTrigger className="w-full">
+                                            <FormLabel className="text-sm font-medium text-gray-700">Role</FormLabel>
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger className="h-11">
                                                         <SelectValue placeholder="Select Role" />
                                                     </SelectTrigger>
-                                                    <SelectContent className="w-full">
-                                                        <SelectItem value="chairman">
-                                                            Chairman
-                                                        </SelectItem>
-                                                        <SelectItem value="secretary">
-                                                            Secretary
-                                                        </SelectItem>
-                                                        <SelectItem value="superAdmin">
-                                                            Super Admin
-                                                        </SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </FormControl>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="chairman">Chairman</SelectItem>
+                                                    <SelectItem value="secretary">Secretary</SelectItem>
+                                                    <SelectItem value="superAdmin">Super Admin</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
-                            </div>
-                            <div className="grid gap-2">
+
                                 <FormField
                                     control={form.control}
                                     name="barangay"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Barangay</FormLabel>
-                                            <FormControl>
-                                                <Select
-                                                    value={field.value} // Bind the value
-                                                    onValueChange={(value) => {
-                                                        field.onChange(value); // Update the field value in react-hook-form
-                                                    }}
-                                                >
-                                                    <SelectTrigger className="w-full">
+                                            <FormLabel className="text-sm font-medium text-gray-700">
+                                                Barangay
+                                            </FormLabel>
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger className="h-11">
                                                         <SelectValue placeholder="Select Barangay" />
                                                     </SelectTrigger>
-                                                    <SelectContent className="w-full">
-                                                        {barangays && barangays.length > 0 ? (
-                                                            barangays.map((barangay) => (
-                                                                <SelectItem
-                                                                    key={barangay.code}
-                                                                    value={barangay.name}
-                                                                >
-                                                                    {barangay.name}
-                                                                </SelectItem>
-                                                            ))
-                                                        ) : (
-                                                            <p>No barangays available</p>
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                            </FormControl>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {barangays.map((barangay) => (
+                                                        <SelectItem
+                                                            key={barangay.code}
+                                                            value={barangay.name}
+                                                        >
+                                                            {barangay.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
                             </div>
-                            <Button type="submit" className="w-full" disabled={loading}>
-                                {loading ? "Registering..." : "Register User"}
-                            </Button>
                         </div>
+
+                        <Button
+                            type="submit"
+                            className="w-full h-11 bg-green-600 hover:bg-green-700 text-white"
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <div className="flex items-center gap-2">
+                                    <span className="animate-spin">⏳</span> Registering...
+                                </div>
+                            ) : (
+                                "Register User"
+                            )}
+                        </Button>
                     </form>
                 </Form>
             </CardContent>

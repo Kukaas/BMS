@@ -4,14 +4,15 @@ import { sendVerificationEmail } from "../utils/emails.js";
 
 export const createSecretaryAccount = async (req, res, next) => {
     try {
-        const { name, email, password, barangay } = req.body;
+        const { name, contactNumber, dateOfBirth, email, password, barangay } = req.body;
 
-        if (!name || !email || !password || !barangay) {
+        if (!name || !contactNumber || !dateOfBirth || !email || !password || !barangay) {
             return res.status(400).json({
                 success: false,
                 message: "Please fill in all fields!",
             });
         }
+
 
         // Check if user email already exists
         const emailExist = await User.findOne({
@@ -42,10 +43,13 @@ export const createSecretaryAccount = async (req, res, next) => {
 
         const newUser = new User({
             name,
+            contactNumber,
+            dateOfBirth,
             email,
             barangay,
             password: hashedPassword,
             role: "secretary",
+
         });
 
         await newUser.save().then((result) => {
@@ -58,14 +62,15 @@ export const createSecretaryAccount = async (req, res, next) => {
 
 export const createCaptainAccount = async (req, res, next) => {
     try {
-        const { name, email, password, barangay } = req.body;
+        const { name, contactNumber, dateOfBirth, email, password, barangay } = req.body;
 
-        if (!name || !email || !password || !barangay) {
+        if (!name || !contactNumber || !dateOfBirth || !email || !password || !barangay) {
             return res.status(400).json({
                 success: false,
                 message: "Please fill in all fields!",
             });
         }
+
 
         // Check if user email already exists
         const emailExist = await User.findOne({
@@ -96,10 +101,14 @@ export const createCaptainAccount = async (req, res, next) => {
 
         const newUser = new User({
             name,
+            contactNumber,
+            dateOfBirth,
             email,
             barangay,
             password: hashedPassword,
             role: "chairman",
+
+
         });
 
         await newUser.save().then((result) => {
@@ -112,14 +121,16 @@ export const createCaptainAccount = async (req, res, next) => {
 
 export const createSuperAdminAccount = async (req, res, next) => {
     try {
-        const { name, email, password, barangay } = req.body;
+        const { name, contactNumber, dateOfBirth, email, password, barangay } = req.body;
 
-        if (!name || !email || !password || !barangay) {
+        if (!name || !contactNumber || !dateOfBirth || !email || !password || !barangay) {
             return res.status(400).json({
                 success: false,
                 message: "Please fill in all fields!",
             });
         }
+
+
 
         const emailExist = await User.findOne({
             email,
@@ -148,11 +159,15 @@ export const createSuperAdminAccount = async (req, res, next) => {
 
         const newUser = new User({
             name,
+            contactNumber,
+            dateOfBirth,
             email,
             barangay,
             password: hashedPassword,
             role: "superAdmin",
+
         });
+
 
         await newUser.save().then((result) => {
             sendVerificationEmail(result, res);
