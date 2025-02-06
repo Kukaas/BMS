@@ -26,19 +26,9 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-// import {
-//     Pagination,
-//     PaginationContent,
-//     PaginationItem,
-//     PaginationLink,
-//     PaginationNext,
-//     PaginationPrevious,
-// } from "@/components/ui/pagination";
 import { mockUsers } from "../secretary/mockData";
-import api from "@/lib/axios";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import { CheckCircle2, XCircle, UserX, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export function UserManagementDashboard() {
@@ -47,7 +37,7 @@ export function UserManagementDashboard() {
     const [filteredUsers, setFilteredUsers] = useState(users);
     const [selectedUser, setSelectedUser] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const [usersPerPage] = useState(10);
+    const [pageSize, setPageSize] = useState(10);
     const [filters, setFilters] = useState({
         role: "",
         address: "",
@@ -64,18 +54,18 @@ export function UserManagementDashboard() {
     const roles = [...new Set(users.map((user) => user.role))];
     const addresses = [...new Set(users.map((user) => user.barangay))];
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-            const response = await axios.get("http://localhost:5000/api/users", {
-                headers: {
-                    "Content-Type": "application/json",
-                    withCredentials: true,
-                    Authorization: `Bearer ${currentUser.token}`,
-                },
-            });
-            setUsers(response.data);
-        };
+    const fetchUsers = async () => {
+        const response = await axios.get("http://localhost:5000/api/users", {
+            headers: {
+                "Content-Type": "application/json",
+                withCredentials: true,
+                Authorization: `Bearer ${currentUser.token}`,
+            },
+        });
+        setUsers(response.data);
+    };
 
+    useEffect(() => {
         fetchUsers();
     }, []);
 
@@ -98,11 +88,17 @@ export function UserManagementDashboard() {
         setCurrentPage(1);
     }, [users, filters]);
 
-    const indexOfLastUser = currentPage * usersPerPage;
-    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const indexOfLastUser = currentPage * pageSize;
+    const indexOfFirstUser = indexOfLastUser - pageSize;
     const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+    const totalPages = Math.ceil(filteredUsers.length / pageSize);
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+    const handlePageSizeChange = (value) => {
+        setPageSize(Number(value));
+        setCurrentPage(1);
+    };
 
     const getRoleBadgeColor = (role) => {
         switch (role) {
@@ -124,61 +120,6 @@ export function UserManagementDashboard() {
         return str.replace(/\b\w/g, (char) => char.toUpperCase());
     };
 
-    const handleVerifyUser = async (userId) => {
-        try {
-            setActionLoading({ verifying: true, userId });
-            // API call to verify user
-            // ...
-            toast.success("User verified successfully");
-            fetchUsers();
-        } catch (error) {
-            toast.error("Failed to verify user");
-        } finally {
-            setActionLoading({ verifying: false, userId: null });
-        }
-    };
-
-    const handleRejectUser = async (userId) => {
-        try {
-            setActionLoading({ rejecting: true, userId });
-            // API call to reject user
-            // ...
-            toast.success("User rejected successfully");
-            fetchUsers();
-        } catch (error) {
-            toast.error("Failed to reject user");
-        } finally {
-            setActionLoading({ rejecting: false, userId: null });
-        }
-    };
-
-    const handleDeactivateUser = async (userId) => {
-        try {
-            setActionLoading({ deactivating: true, userId });
-            // API call to deactivate user
-            // ...
-            toast.success("User deactivated successfully");
-            fetchUsers();
-        } catch (error) {
-            toast.error("Failed to deactivate user");
-        } finally {
-            setActionLoading({ deactivating: false, userId: null });
-        }
-    };
-
-    const handleActivateUser = async (userId) => {
-        try {
-            setActionLoading({ activating: true, userId });
-            // API call to activate user
-            // ...
-            toast.success("User activated successfully");
-            fetchUsers();
-        } catch (error) {
-            toast.error("Failed to activate user");
-        } finally {
-            setActionLoading({ activating: false, userId: null });
-        }
-    };
 
     return (
         <Card>
@@ -239,181 +180,126 @@ export function UserManagementDashboard() {
                 </div>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Address</TableHead>
-                            <TableHead>Action</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {currentUsers.map((user) => (
-                            <TableRow key={user.id}>
-                                <TableCell>{user.name}</TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>
-                                    <Badge className={getRoleBadgeColor(user.role)}>
-                                        {capitalize(user.role)}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>{user.barangay}</TableCell>
-                                <TableCell>
-                                    <Dialog>
-                                        <DialogTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setSelectedUser(user)}
-                                            >
-                                                View Details
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent className="sm:max-w-[425px]">
-                                            <DialogHeader>
-                                                <DialogTitle>User Details</DialogTitle>
-                                            </DialogHeader>
-                                            {selectedUser && (
-                                                <div className="grid gap-4 py-4">
-                                                    <div className="grid grid-cols-4 items-center gap-4">
-                                                        <Label className="text-right">Name</Label>
-                                                        <div className="col-span-3">
-                                                            {selectedUser.name}
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-4 items-center gap-4">
-                                                        <Label className="text-right">Email</Label>
-                                                        <div className="col-span-3">
-                                                            {selectedUser.email}
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-4 items-center gap-4">
-                                                        <Label className="text-right">Role</Label>
-                                                        <div className="col-span-3">
-                                                            <Badge
-                                                                className={getRoleBadgeColor(
-                                                                    selectedUser.role
-                                                                )}
-                                                            >
-                                                                {capitalize(selectedUser.role)}
-                                                            </Badge>
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-4 items-center gap-4">
-                                                        <Label className="text-right">
-                                                            Barangay
-                                                        </Label>
-                                                        <div className="col-span-3">
-                                                            {selectedUser.barangay}
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-4 items-center gap-4">
-                                                        <Label className="text-right">Phone</Label>
-                                                        <div className="col-span-3">
-                                                            {selectedUser.phoneNumber}
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-4 items-center gap-4">
-                                                        <Label className="text-right">
-                                                            Registered
-                                                        </Label>
-                                                        <div className="col-span-3">
-                                                            {selectedUser.createdAt}
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex justify-end space-x-2 mt-4">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleVerifyUser(selectedUser.id)
-                                                            }
-                                                            disabled={actionLoading.verifying}
-                                                        >
-                                                            {actionLoading.verifying
-                                                                ? "Verifying..."
-                                                                : "Verify"}
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleRejectUser(selectedUser.id)
-                                                            }
-                                                            disabled={actionLoading.rejecting}
-                                                        >
-                                                            {actionLoading.rejecting
-                                                                ? "Rejecting..."
-                                                                : "Reject"}
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleDeactivateUser(
-                                                                    selectedUser.id
-                                                                )
-                                                            }
-                                                            disabled={actionLoading.deactivating}
-                                                        >
-                                                            {actionLoading.deactivating
-                                                                ? "Deactivating..."
-                                                                : "Deactivate"}
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleActivateUser(selectedUser.id)
-                                                            }
-                                                            disabled={actionLoading.activating}
-                                                        >
-                                                            {actionLoading.activating
-                                                                ? "Activating..."
-                                                                : "Activate"}
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </DialogContent>
-                                    </Dialog>
-                                </TableCell>
+
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Role</TableHead>
+                                <TableHead>Address</TableHead>
+                                <TableHead>Action</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-                {/* <Pagination className="mt-4">
-                    <PaginationContent>
-                        <PaginationItem>
-                            <PaginationPrevious
-                                onClick={() => paginate(currentPage - 1)}
-                                disabled={currentPage === 1}
-                            />
-                        </PaginationItem>
-                        {Array.from({ length: Math.ceil(filteredUsers.length / usersPerPage) }).map(
-                            (_, index) => (
-                                <PaginationItem key={index}>
-                                    <PaginationLink
-                                        onClick={() => paginate(index + 1)}
-                                        isActive={currentPage === index + 1}
-                                    >
-                                        {index + 1}
-                                    </PaginationLink>
-                                </PaginationItem>
-                            )
-                        )}
-                        <PaginationItem>
-                            <PaginationNext
-                                onClick={() => paginate(currentPage + 1)}
-                                disabled={
-                                    currentPage === Math.ceil(filteredUsers.length / usersPerPage)
-                                }
-                            />
-                        </PaginationItem>
-                    </PaginationContent>
-                </Pagination> */}
+                        </TableHeader>
+                        <TableBody>
+                            {currentUsers.map((user) => (
+                                <TableRow key={user.id}>
+                                    <TableCell>{user.name}</TableCell>
+                                    <TableCell>{user.email}</TableCell>
+                                    <TableCell>
+                                        <Badge className={getRoleBadgeColor(user.role)}>
+                                            {capitalize(user.role)}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>{user.barangay}</TableCell>
+                                    <TableCell>
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setSelectedUser(user)}
+                                                >
+                                                    View Details
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="sm:max-w-[425px]">
+                                                <DialogHeader>
+                                                    <DialogTitle>User Details</DialogTitle>
+                                                </DialogHeader>
+                                                {selectedUser && (
+                                                    <div className="grid gap-4 py-4">
+                                                        <div className="grid grid-cols-4 items-center gap-4">
+                                                            <Label className="text-right">Name</Label>
+                                                            <div className="col-span-3">
+                                                                {selectedUser.name}
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-4 items-center gap-4">
+                                                            <Label className="text-right">Email</Label>
+                                                            <div className="col-span-3">
+                                                                {selectedUser.email}
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-4 items-center gap-4">
+                                                            <Label className="text-right">Role</Label>
+                                                            <div className="col-span-3">
+                                                                <Badge
+                                                                    className={getRoleBadgeColor(
+                                                                        selectedUser.role
+                                                                    )}
+                                                                >
+                                                                    {capitalize(selectedUser.role)}
+                                                                </Badge>
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-4 items-center gap-4">
+                                                            <Label className="text-right">
+                                                                Barangay
+                                                            </Label>
+                                                            <div className="col-span-3">
+                                                                {selectedUser.barangay}
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-4 items-center gap-4">
+                                                            <Label className="text-right">Phone</Label>
+                                                            <div className="col-span-3">
+                                                                {selectedUser.phoneNumber}
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-4 items-center gap-4">
+                                                            <Label className="text-right">
+                                                                Registered
+                                                            </Label>
+                                                            <div className="col-span-3">
+                                                                {selectedUser.createdAt}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </DialogContent>
+                                        </Dialog>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                <div className="flex items-center justify-between mt-4">
+                    <p className="text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                    </p>
+                    <div className="flex items-center space-x-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => paginate(currentPage - 1)}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => paginate(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
             </CardContent>
         </Card>
     );
