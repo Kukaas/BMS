@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { barangayClearanceSchema } from "../../../schema/validationSchemas";
@@ -31,8 +31,8 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
             email: currentUser?.email || "",
             barangay: currentUser?.barangay || "",
             purpose: initialData?.purpose || "",
-            contactNumber: initialData?.contactNumber || "",
-            dateOfBirth: initialData?.dateOfBirth || "",
+            contactNumber: currentUser?.contactNumber || "",
+            dateOfBirth: currentUser?.dateOfBirth?.split('T')[0] || "",
         },
     });
 
@@ -48,6 +48,8 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
             setValue("name", currentUser.name || "");
             setValue("email", currentUser.email || "");
             setValue("barangay", currentUser.barangay || "");
+            setValue("contactNumber", currentUser.contactNumber || "");
+            setValue("dateOfBirth", currentUser.dateOfBirth?.split('T')[0] || "");
         }
     }, [currentUser, setValue]);
 
@@ -134,7 +136,14 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                    <Input id="dateOfBirth" type="date" {...register("dateOfBirth")} />
+                    <Input
+                        id="dateOfBirth"
+                        type="date"
+                        {...register("dateOfBirth")}
+                        defaultValue={currentUser?.dateOfBirth?.split('T')[0] || ""}
+                        readOnly
+                        className="h-11 bg-gray-50"
+                    />
                     {errors.dateOfBirth && (
                         <p className="text-red-500 text-sm">{errors.dateOfBirth.message}</p>
                     )}
