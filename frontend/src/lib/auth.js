@@ -12,17 +12,19 @@ export const isTokenExpired = (token) => {
   }
 };
 
-export const getRedirectPath = (userRole) => {
-  switch (userRole) {
-    case 'chairman':
-    case 'secretary':
-      return '/dashboard?tab=overview';
-    case 'user':
-      return '/dashboard?tab=requests';
-    default:
-      return '/sign-in';
-  }
-};
+export function getRedirectPath(role) {
+    switch (role) {
+        case "superAdmin":
+            return "/dashboard?tab=overview";
+        case "chairman":
+        case "secretary":
+            return "/dashboard?tab=overview";
+        case "user":
+            return "/dashboard?tab=overview";
+        default:
+            return "/sign-in";
+    }
+}
 
 export const isAdminRole = (role) => {
   return role === 'chairman' || role === 'secretary';

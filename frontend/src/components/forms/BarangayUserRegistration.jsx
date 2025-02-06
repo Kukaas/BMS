@@ -70,6 +70,16 @@ export function BarangayUserRegistration({ className }) {
                     barangay,
                     password: "secretary",
                 });
+            } else if (role === "superAdmin") {
+                res = await axios.post(
+                    "http://localhost:5000/api/admin/create-super-admin-account",
+                    {
+                        name,
+                        email,
+                        barangay,
+                        password: "superAdmin",
+                    }
+                );
             } else {
                 res = await axios.post("http://localhost:5000/api/admin/create-chairman-account", {
                     name,
@@ -180,6 +190,9 @@ export function BarangayUserRegistration({ className }) {
                                                         </SelectItem>
                                                         <SelectItem value="secretary">
                                                             Secretary
+                                                        </SelectItem>
+                                                        <SelectItem value="superAdmin">
+                                                            Super Admin
                                                         </SelectItem>
                                                     </SelectContent>
                                                 </Select>

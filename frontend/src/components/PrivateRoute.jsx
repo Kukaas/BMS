@@ -31,19 +31,22 @@ const PrivateRoute = () => {
         "residents",
         "blotterreports",
     ];
+    const superAdminTabs = ["overview", "register", "allusers", "logs"];
     const userTabs = ["overview", "requests", "reports", "blotter", "settings"];
 
     // Check if current tab is valid for user's role
     const isValidTab = () => {
         const isAdmin = currentUser?.role === "chairman" || currentUser?.role === "secretary";
-        const validTabs = isAdmin ? adminTabs : userTabs;
+        const isSuperAdmin = currentUser?.role === "superAdmin";
+        const validTabs = isSuperAdmin ? superAdminTabs : isAdmin ? adminTabs : userTabs;
         return validTabs.includes(tab);
     };
 
     // Get default redirect path based on role
     const getDefaultPath = () => {
         const isAdmin = currentUser?.role === "chairman" || currentUser?.role === "secretary";
-        return isAdmin ? "/dashboard?tab=overview" : "/dashboard?tab=overview";
+        const isSuperAdmin = currentUser?.role === "superAdmin";
+        return isSuperAdmin || isAdmin ? "/dashboard?tab=overview" : "/dashboard?tab=overview";
     };
 
     const handleSessionExpired = () => {

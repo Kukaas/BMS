@@ -10,8 +10,10 @@ export default function SignIn() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const redirectPath = getRedirectPath(currentUser?.role);
-        navigate(redirectPath);
+        if (currentUser) {
+            const redirectPath = getRedirectPath(currentUser.role);
+            navigate(redirectPath);
+        }
     }, [currentUser, navigate]);
 
     return (

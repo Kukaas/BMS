@@ -32,9 +32,19 @@ const DashboardWrapper = () => {
         "blotterreports",
     ];
 
+    const superAdminTabs = ["overview", "register", "allusers", "logs"];
+
     const userTabs = ["overview", "requests", "reports", "blotter", "settings"];
 
-    const validTabs = isAdminRole(currentUser?.role) ? adminTabs : userTabs;
+    // Determine valid tabs based on user role
+    let validTabs;
+    if (currentUser?.role === "superAdmin") {
+        validTabs = superAdminTabs;
+    } else if (isAdminRole(currentUser?.role)) {
+        validTabs = adminTabs;
+    } else {
+        validTabs = userTabs;
+    }
 
     return validTabs.includes(tab) ? <Dashboard tab={tab} /> : <PageNotFound />;
 };

@@ -24,7 +24,7 @@ import IncidentReportSecretaryPage from "@/pages/IncidentReport.jsx";
 import IncidentReportsPage from "@/pages/IncidentReportsPage";
 import { logout } from "@/redux/user/userSlice";
 import axios from "axios";
-import { FileText, LayoutDashboard, LogOut, Mail, Settings, Users } from "lucide-react";
+import { FileText, LayoutDashboard, LogOut, Mail, Settings, Users, User2Icon } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
@@ -35,10 +35,12 @@ import { DocumentRequestSecretary } from "./secretary/DocumentRequestSecretary";
 import { UserList } from "./UserList";
 import SecretaryResidentsDashboardPage from "@/pages/SecretaryResidentsDashboard";
 import { SecretaryBlotterDashboard } from "./secretary/BlotterReportsSecretary";
+import RegisterBarangayUserPage from "@/pages/RegisterBarangayUser";
 
 const componentMap = {
     overview: Overview,
     users: UserList,
+    allusers: UserList,
     home: Overview,
     requests: Requests,
     reports: IncidentReportsPage,
@@ -47,6 +49,7 @@ const componentMap = {
     requestdocs: DocumentRequestSecretary,
     residents: SecretaryResidentsDashboardPage,
     blotterreports: SecretaryBlotterDashboard,
+    register: RegisterBarangayUserPage,
     // settings: Settings,
     // help: Help,
 };
@@ -78,7 +81,7 @@ function Dashboard({ tab }) {
     };
 
     const sidebarItems =
-        currentUser?.role === "user"
+        currentUser?.role === "superAdmin"
             ? [
                   {
                       icon: LayoutDashboard,
@@ -86,58 +89,81 @@ function Dashboard({ tab }) {
                       href: "/dashboard?tab=overview",
                   },
                   {
-                      icon: Mail,
-                      label: "Requests",
-                      href: "/dashboard?tab=requests",
+                      icon: User2Icon,
+                      label: "Register",
+                      href: "/dashboard?tab=register",
+                  },
+                  {
+                      icon: Users,
+                      label: "All Users",
+                      href: "/dashboard?tab=allusers",
                   },
                   {
                       icon: FileText,
-                      label: "Incident reports",
-                      href: "/dashboard?tab=reports",
-                  },
-                  {
-                      icon: FileText,
-                      label: "Blotter Report",
-                      href: "/dashboard?tab=blotter",
-                  },
-                  {
-                      icon: Settings,
-                      label: "Settings",
-                      href: "/dashboard?tab=settings",
+                      label: "Logs",
+                      href: "/dashboard?tab=logs",
                   },
               ]
-            : [
-                  {
-                      icon: LayoutDashboard,
-                      label: "Overview",
-                      href: "/dashboard?tab=overview",
-                  },
-                  {
-                      icon: Users,
-                      label: "Users",
-                      href: "/dashboard?tab=users",
-                  },
-                  {
-                      icon: Mail,
-                      label: "Request",
-                      href: "/dashboard?tab=requestdocs",
-                  },
-                  {
-                      icon: FileText,
-                      label: "Incident Report",
-                      href: "/dashboard?tab=incidents",
-                  },
-                  {
-                      icon: FileText,
-                      label: "Blotter Report",
-                      href: "/dashboard?tab=blotterreports",
-                  },
-                  {
-                      icon: Users,
-                      label: "Residents",
-                      href: "/dashboard?tab=residents",
-                  },
-              ];
+            : currentUser?.role === "user"
+              ? [
+                    {
+                        icon: LayoutDashboard,
+                        label: "Overview",
+                        href: "/dashboard?tab=overview",
+                    },
+                    {
+                        icon: Mail,
+                        label: "Requests",
+                        href: "/dashboard?tab=requests",
+                    },
+                    {
+                        icon: FileText,
+                        label: "Incident reports",
+                        href: "/dashboard?tab=reports",
+                    },
+                    {
+                        icon: FileText,
+                        label: "Blotter Report",
+                        href: "/dashboard?tab=blotter",
+                    },
+                    {
+                        icon: Settings,
+                        label: "Settings",
+                        href: "/dashboard?tab=settings",
+                    },
+                ]
+              : [
+                    {
+                        icon: LayoutDashboard,
+                        label: "Overview",
+                        href: "/dashboard?tab=overview",
+                    },
+                    {
+                        icon: Users,
+                        label: "Users",
+                        href: "/dashboard?tab=users",
+                    },
+                    {
+                        icon: Mail,
+                        label: "Request",
+                        href: "/dashboard?tab=requestdocs",
+                    },
+                    {
+                        icon: FileText,
+                        label: "Incident Report",
+                        href: "/dashboard?tab=incidents",
+                    },
+                    {
+                        icon: FileText,
+                        label: "Blotter Report",
+                        href: "/dashboard?tab=blotterreports",
+                    },
+                    {
+                        icon: Users,
+                        label: "Residents",
+                        href: "/dashboard?tab=residents",
+                    },
+                ];
 
     return (
         <SidebarProvider defaultOpen={true}>
