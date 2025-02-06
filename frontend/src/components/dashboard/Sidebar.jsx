@@ -42,7 +42,18 @@ export function Sidebar() {
 
     let sidebarItems = [];
 
-    if (currentUser?.role === "user") {
+    if (currentUser?.role === "superAdmin") {
+        sidebarItems = [
+            {
+                icon: LayoutDashboard,
+                label: "Overview",
+                href: "/dashboard?tab=overview",
+            },
+            { icon: User2Icon, label: "Register", href: "/dashboard?tab=register" },
+            { icon: Users, label: "All Users", href: "/dashboard?tab=allusers" },
+            { icon: FileText, label: "Logs", href: "/dashboard?tab=logs" },
+        ];
+    } else if (currentUser?.role === "user") {
         sidebarItems = [
             {
                 icon: LayoutDashboard,
