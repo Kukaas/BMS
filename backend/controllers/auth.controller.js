@@ -129,7 +129,7 @@ export const login = async (req, res, next) => {
         );
 
         // Log the login action
-        await createLog(user._id, "User logged in", "User Activity");
+        await createLog(user._id, "User logged in", "User Activity", `${user.name} has logged in`);
 
         res.status(200).json({
             success: true,
