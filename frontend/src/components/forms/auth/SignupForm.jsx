@@ -34,6 +34,10 @@ const schema = z.object({
     name: z.string().min(2, {
         message: "Name must be at least 2 characters.",
     }),
+    contactNumber: z.string().min(10, {
+        message: "Contact number must be at least 10 characters.",
+    }),
+    dateOfBirth: z.string(),
     barangay: z.string().min(2, {
         message: "Address must be at least 2 characters.",
     }),
@@ -45,7 +49,6 @@ const schema = z.object({
 });
 
 export function SignupForm({ className }) {
-    const [selectedUser, setSelectedUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [barangays, setBarangays] = useState([]);
     const navigate = useNavigate();
@@ -87,16 +90,19 @@ export function SignupForm({ className }) {
         resolver: zodResolver(schema),
         defaultValues: {
             name: "",
+            contactNumber: "",
+            dateOfBirth: "",
             barangay: "",
             email: "",
             password: "",
             confirmPassword: "",
+
         },
     });
 
     const handleRegister = async (values) => {
         try {
-            const { name, barangay, email, password, confirmPassword } = values;
+            const { name, contactNumber, dateOfBirth, barangay, email, password, confirmPassword } = values;
 
             if (password !== confirmPassword) {
                 toast.error("Passwords do not match.");
@@ -112,10 +118,14 @@ export function SignupForm({ className }) {
 
             const res = await axios.post(`http://localhost:5000/api/auth/signup`, {
                 name,
+                contactNumber,
+                dateOfBirth,
                 barangay,
                 email,
                 password,
+
             });
+
 
             if (res.status === 201) {
                 setLoading(false);
@@ -155,22 +165,61 @@ export function SignupForm({ className }) {
                 </div>
 
                 <div className="space-y-4">
+                    {/* Name and Contact Number side by side */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-sm font-medium text-gray-700">
+                                        Full Name
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Input {...field} placeholder="John Doe" className="h-11" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="contactNumber"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-sm font-medium text-gray-700">
+                                        Contact Number
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Input {...field} placeholder="09123456789" className="h-11" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
+                    {/* Date of Birth - Full width */}
                     <FormField
                         control={form.control}
-                        name="name"
+                        name="dateOfBirth"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-sm font-medium text-gray-700">
-                                    Full Name
-                                </FormLabel>
+                                <FormLabel className="text-sm font-medium text-gray-700">Date of Birth</FormLabel>
                                 <FormControl>
-                                    <Input {...field} placeholder="John Doe" className="h-11" />
+                                    <Input
+                                        type="date"
+                                        {...field}
+                                        className="h-11"
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
 
+                    {/* Barangay - Full width */}
                     <FormField
                         control={form.control}
                         name="barangay"
@@ -182,7 +231,7 @@ export function SignupForm({ className }) {
                                 <Select value={field.value} onValueChange={field.onChange}>
                                     <FormControl>
                                         <SelectTrigger className="h-11">
-                                            <SelectValue placeholder="Select your barangay" />
+                                            <SelectValue placeholder="Select barangay" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -198,72 +247,78 @@ export function SignupForm({ className }) {
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-sm font-medium text-gray-700">
-                                    Email
-                                </FormLabel>
-                                <FormControl>
-                                    <Input
-                                        {...field}
-                                        placeholder="m@example.com"
-                                        className="h-11"
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    {/* Email */}
+                    <div className="grid grid-cols-1 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-sm font-medium text-gray-700">
+                                        Email
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            {...field}
+                                            placeholder="m@example.com"
+                                            className="h-11"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
 
-                    <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-sm font-medium text-gray-700">
-                                    Password
-                                </FormLabel>
-                                <FormControl>
-                                    <Input {...field} type="password" className="h-11" />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    {/* Password Fields */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-sm font-medium text-gray-700">
+                                        Password
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Input {...field} type="password" className="h-11" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
 
-                    <FormField
-                        control={form.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-sm font-medium text-gray-700">
-                                    Confirm Password
-                                </FormLabel>
-                                <FormControl>
-                                    <Input {...field} type="password" className="h-11" />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <Button
-                        type="submit"
-                        className="w-full h-11 bg-green-600 hover:bg-green-700 text-white"
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <div className="flex items-center gap-2">
-                                <span className="animate-spin">⏳</span> Creating account...
-                            </div>
-                        ) : (
-                            "Create account"
-                        )}
-                    </Button>
+                        <FormField
+                            control={form.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-sm font-medium text-gray-700">
+                                        Confirm Password
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Input {...field} type="password" className="h-11" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
                 </div>
+
+                <Button
+                    type="submit"
+                    className="w-full h-11 bg-green-600 hover:bg-green-700 text-white"
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <div className="flex items-center gap-2">
+                            <span className="animate-spin">⏳</span> Creating account...
+                        </div>
+                    ) : (
+                        "Create account"
+                    )}
+                </Button>
 
                 <div className="text-center text-sm text-gray-600">
                     Already have an account?{" "}
