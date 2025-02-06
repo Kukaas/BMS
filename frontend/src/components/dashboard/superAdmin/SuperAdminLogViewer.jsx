@@ -1,6 +1,5 @@
-"use client";
-
 import { useState, useEffect } from "react";
+import api from "@/lib/axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Table,
@@ -41,11 +40,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Search } from "lucide-react";
 import { format, isWithinInterval } from "date-fns";
 import { cn } from "@/lib/utils";
-import { mockLogs } from "../secretary/mockData";
 
 export function SuperAdminLogViewer() {
-    const [logs, setLogs] = useState(mockLogs);
-    const [filteredLogs, setFilteredLogs] = useState(logs);
+    const [logs, setLogs] = useState([]);
+    const [filteredLogs, setFilteredLogs] = useState([]);
     const [selectedLog, setSelectedLog] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [logsPerPage] = useState(10);
@@ -58,6 +56,21 @@ export function SuperAdminLogViewer() {
         user: "",
         search: "",
     });
+
+    useEffect(() => {
+        // Fetch logs from the backend
+        const fetchLogs = async () => {
+            try {
+                const response = await api.get("/logs");
+                setLogs(response.data.data);
+                setFilteredLogs(response.data.data);
+            } catch (error) {
+                console.error("Error fetching logs:", error);
+            }
+        };
+
+        fetchLogs();
+    }, []);
 
     useEffect(() => {
         // Apply filters
@@ -75,7 +88,7 @@ export function SuperAdminLogViewer() {
         }
         if (filters.user) {
             result = result.filter((log) =>
-                log.user.toLowerCase().includes(filters.user.toLowerCase())
+                log.userId.name.toLowerCase().includes(filters.user.toLowerCase())
             );
         }
         if (filters.search) {
@@ -221,14 +234,14 @@ export function SuperAdminLogViewer() {
                     </TableHeader>
                     <TableBody>
                         {currentLogs.map((log) => (
-                            <TableRow key={log.id}>
+                            <TableRow key={log._id}>
                                 <TableCell>
                                     {format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss")}
                                 </TableCell>
                                 <TableCell>
                                     <Badge className={getTypeColor(log.type)}>{log.type}</Badge>
                                 </TableCell>
-                                <TableCell>{log.user}</TableCell>
+                                <TableCell>{log.userId.name}</TableCell>
                                 <TableCell>{log.action}</TableCell>
                                 <TableCell>
                                     <Dialog>
@@ -272,7 +285,7 @@ export function SuperAdminLogViewer() {
                                                     <div className="grid grid-cols-4 items-center gap-4">
                                                         <Label className="text-right">User</Label>
                                                         <div className="col-span-3">
-                                                            {selectedLog.user}
+                                                            {selectedLog.userId.name}
                                                         </div>
                                                     </div>
                                                     <div className="grid grid-cols-4 items-center gap-4">

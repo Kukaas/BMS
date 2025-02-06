@@ -1,15 +1,16 @@
 import axios from "axios";
 
-const axiosInstance = axios.create({
+const api = axios.create({
     baseURL: "http://localhost:5000/api",
     headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json"
-    }
+        Accept: "application/json",
+    },
+    withCredentials: true,
 });
 
 // Add request interceptor
-axiosInstance.interceptors.request.use(
+api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem("token");
         if (token) {
@@ -23,7 +24,7 @@ axiosInstance.interceptors.request.use(
 );
 
 // Add response interceptor for error handling
-axiosInstance.interceptors.response.use(
+api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
@@ -35,4 +36,4 @@ axiosInstance.interceptors.response.use(
     }
 );
 
-export default axiosInstance;
+export default api;

@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { logout } from "@/redux/user/userSlice";
-import axios from "axios";
+import api from "@/lib/axios";
 import { Bell, Menu, Search, User } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -25,7 +25,9 @@ export function Header() {
 
     const handleLogout = async () => {
         try {
-            const res = await axios.post("http://localhost:5000/api/auth/logout");
+            const res = await api.post("/auth/logout", {
+                id: currentUser._id,
+            });
 
             if (res.status === 200) {
                 localStorage.removeItem("token");
