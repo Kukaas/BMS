@@ -273,3 +273,51 @@ export const mockLogs = [
     },
     // Add more mock data as needed
 ];
+
+export const mockUsers = [
+    {
+        id: 1,
+        name: "John Doe",
+        email: "john.doe@example.com",
+        role: "Resident",
+        address: "123 Main St, Barangay Centro",
+        phoneNumber: "+63 912 345 6789",
+        dateRegistered: "2023-01-15",
+    },
+    {
+        id: 2,
+        name: "Jane Smith",
+        email: "jane.smith@example.com",
+        role: "Barangay Official",
+        address: "456 Elm St, Barangay Norte",
+        phoneNumber: "+63 923 456 7890",
+        dateRegistered: "2023-02-20",
+    },
+    {
+        id: 3,
+        name: "Mike Johnson",
+        email: "mike.johnson@example.com",
+        role: "Secretary",
+        address: "789 Oak Ave, Barangay Sur",
+        phoneNumber: "+63 934 567 8901",
+        dateRegistered: "2023-03-10",
+    },
+    {
+        id: 4,
+        name: "Sarah Lee",
+        email: "sarah.lee@example.com",
+        role: "Resident",
+        address: "101 Pine Rd, Barangay Este",
+        phoneNumber: "+63 945 678 9012",
+        dateRegistered: "2023-04-05",
+    },
+    {
+        id: 5,
+        name: "David Chen",
+        email: "david.chen@example.com",
+        role: "Admin",
+        address: "202 Cedar Ln, Barangay Oeste",
+        phoneNumber: "+63 956 789 0123",
+        dateRegistered: "2023-05-01",
+    },
+];

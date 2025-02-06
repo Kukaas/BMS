@@ -37,11 +37,12 @@ import { SecretaryBlotterDashboard } from "./secretary/BlotterReportsSecretary";
 import RegisterBarangayUserPage from "@/pages/RegisterBarangayUser";
 import { UserList } from "./secretary/UserList";
 import SuperAdminLogViewerPage from "@/pages/SuperAdminLogsPage";
+import { UserManagementDashboard } from "./superAdmin/AllUsers";
 
 const componentMap = {
     overview: Overview,
     users: UserList,
-    allusers: UserList,
+    allusers: UserManagementDashboard,
     home: Overview,
     requests: Requests,
     reports: IncidentReportsPage,
