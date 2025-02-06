@@ -37,7 +37,7 @@ import {
 // } from "@/components/ui/pagination";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Search } from "lucide-react";
+import { CalendarIcon, Search, User } from "lucide-react";
 import { format, isWithinInterval } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -143,122 +143,107 @@ export function SuperAdminLogViewer() {
         <Card>
             <CardHeader>
                 <CardTitle>System Logs</CardTitle>
-                <div className="flex flex-wrap gap-4 mt-4">
-                    <div className="flex-1 min-w-[200px]">
-                        <Label>Date Range</Label>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    id="date"
-                                    variant={"outline"}
-                                    className={cn(
-                                        "w-full justify-start text-left font-normal",
-                                        !filters.dateRange && "text-muted-foreground"
-                                    )}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {filters.dateRange?.from ? (
-                                        filters.dateRange.to ? (
-                                            <>
-                                                {format(filters.dateRange.from, "LLL dd, y")} -{" "}
-                                                {format(filters.dateRange.to, "LLL dd, y")}
-                                            </>
-                                        ) : (
-                                            format(filters.dateRange.from, "LLL dd, y")
-                                        )
-                                    ) : (
-                                        <span>Pick a date range</span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    initialFocus
-                                    mode="range"
-                                    defaultMonth={filters.dateRange?.from}
-                                    selected={filters.dateRange}
-                                    onSelect={(range) =>
-                                        setFilters((prev) => ({ ...prev, dateRange: range }))
+                <div className="flex flex-col space-y-4">
+                    <div className="flex items-center gap-4">
+                        <div className="flex gap-4 flex-[2]">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search in action or details"
+                                    value={filters.search}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({ ...prev, search: e.target.value }))
                                     }
-                                    numberOfMonths={2}
+                                    className="pl-8"
                                 />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                    <div className="flex-1 min-w-[200px]">
-                        <Label htmlFor="type">Log Type</Label>
-                        <Select
-                            onValueChange={(value) =>
-                                setFilters((prev) => ({ ...prev, type: value }))
-                            }
-                        >
-                            <SelectTrigger id="type">
-                                <SelectValue placeholder="Select log type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Types</SelectItem>
-                                <SelectItem value="User Activity">User Activity</SelectItem>
-                                <SelectItem value="Resident Record">Resident Record</SelectItem>
-                                <SelectItem value="Barangay Clearance">
-                                    Barangay Clearance
-                                </SelectItem>
-                                <SelectItem value="Barangay Indigency">
-                                    Barangay Indigency
-                                </SelectItem>
-                                <SelectItem value="Business Clearance">
-                                    Business Clearance
-                                </SelectItem>
-                                <SelectItem value="Cedula">Cedula</SelectItem>
-                                <SelectItem value="Incident Report">Incident Report</SelectItem>
-                                <SelectItem value="Blotter Report">Blotter Report</SelectItem>
-                                <SelectItem value="Audit">Audit</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="flex-1 min-w-[200px]">
-                        <Label htmlFor="user">User</Label>
-                        <Input
-                            id="user"
-                            placeholder="Filter by user"
-                            value={filters.user}
-                            onChange={(e) =>
-                                setFilters((prev) => ({ ...prev, user: e.target.value }))
-                            }
-                        />
-                    </div>
-                    <div className="flex-1 min-w-[200px]">
-                        <Label htmlFor="search">Search</Label>
-                        <div className="relative">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                id="search"
-                                placeholder="Search in action or details"
-                                value={filters.search}
-                                onChange={(e) =>
-                                    setFilters((prev) => ({ ...prev, search: e.target.value }))
+                            </div>
+                            <div className="relative flex-1">
+                                <User className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    id="user"
+                                    placeholder="Filter by user"
+                                    value={filters.user}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({ ...prev, user: e.target.value }))
+                                    }
+                                    className="pl-8"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex-1">
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        id="date"
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full justify-start text-left font-normal",
+                                            !filters.dateRange && "text-muted-foreground"
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {filters.dateRange?.from ? (
+                                            filters.dateRange.to ? (
+                                                <>
+                                                    {format(filters.dateRange.from, "LLL dd, y")} -{" "}
+                                                    {format(filters.dateRange.to, "LLL dd, y")}
+                                                </>
+                                            ) : (
+                                                format(filters.dateRange.from, "LLL dd, y")
+                                            )
+                                        ) : (
+                                            <span>Pick a date range</span>
+                                        )}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        initialFocus
+                                        mode="range"
+                                        defaultMonth={filters.dateRange?.from}
+                                        selected={filters.dateRange}
+                                        onSelect={(range) =>
+                                            setFilters((prev) => ({ ...prev, dateRange: range }))
+                                        }
+                                        numberOfMonths={2}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                        <div className="flex-1">
+                            <Select
+                                onValueChange={(value) =>
+                                    setFilters((prev) => ({ ...prev, type: value }))
                                 }
-                                className="pl-8"
-                            />
+                            >
+                                <SelectTrigger id="type" className="w-full">
+                                    <SelectValue placeholder="Select log type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Types</SelectItem>
+                                    <SelectItem value="User Activity">User Activity</SelectItem>
+                                    <SelectItem value="Resident Record">Resident Record</SelectItem>
+                                    <SelectItem value="Barangay Clearance">
+                                        Barangay Clearance
+                                    </SelectItem>
+                                    <SelectItem value="Barangay Indigency">
+                                        Barangay Indigency
+                                    </SelectItem>
+                                    <SelectItem value="Business Clearance">
+                                        Business Clearance
+                                    </SelectItem>
+                                    <SelectItem value="Cedula">Cedula</SelectItem>
+                                    <SelectItem value="Incident Report">Incident Report</SelectItem>
+                                    <SelectItem value="Blotter Report">Blotter Report</SelectItem>
+                                    <SelectItem value="Audit">Audit</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-2">
-                        <div className="relative">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search in action or details"
-                                value={filters.search}
-                                onChange={(e) =>
-                                    setFilters((prev) => ({ ...prev, search: e.target.value }))
-                                }
-                                className="w-[300px] pl-8"
-                            />
-                        </div>
-                    </div>
+                <div className="flex justify-end mb-4">
                     <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
                         <SelectTrigger className="w-[130px]">
                             <SelectValue />

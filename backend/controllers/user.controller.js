@@ -75,7 +75,9 @@ export const getUserById = async (req, res, next) => {
 export const verifyUser = async (req, res, next) => {
     try {
         const { userId } = req.params;
-        const { role, barangay } = req.user;
+        const { role } = req.user;
+
+        console.log('Verifying user:', userId);
 
         // Check if user has permission
         if (role !== "secretary" && role !== "chairman" && role !== "superAdmin") {
@@ -85,32 +87,13 @@ export const verifyUser = async (req, res, next) => {
             });
         }
 
-        const user = await User.findOne({
-            _id: userId,
-            barangay,
-        });
+        const user = await User.findById(userId);
 
         if (!user) {
+            console.log('User not found:', userId);
             return res.status(404).json({
                 success: false,
                 message: "User not found",
-            });
-        }
-
-        // Always send verification email when requested
-        try {
-            const emailSent = await sendVerificationConfirmationEmail(user);
-
-            if (!emailSent) {
-                return res.status(500).json({
-                    success: false,
-                    message: "Failed to send verification email",
-                });
-            }
-        } catch (emailError) {
-            return res.status(500).json({
-                success: false,
-                message: "Error sending verification email",
             });
         }
 
@@ -118,12 +101,23 @@ export const verifyUser = async (req, res, next) => {
         user.isVerified = true;
         await user.save();
 
+        // Send verification email
+        try {
+            const emailSent = await sendVerificationConfirmationEmail(user);
+            if (!emailSent) {
+                console.log("Failed to send verification email");
+            }
+        } catch (emailError) {
+            console.log("Error sending verification email:", emailError);
+        }
+
         res.status(200).json({
             success: true,
             message: "User verified successfully",
             data: user,
         });
     } catch (error) {
+        console.error('Verification error:', error);
         next(error);
     }
 };
@@ -131,7 +125,9 @@ export const verifyUser = async (req, res, next) => {
 export const rejectUser = async (req, res, next) => {
     try {
         const { userId } = req.params;
-        const { role, barangay } = req.user;
+        const { role } = req.user;
+
+        console.log('Rejecting user:', userId);
 
         // Check if user has permission
         if (role !== "secretary" && role !== "chairman" && role !== "superAdmin") {
@@ -141,12 +137,10 @@ export const rejectUser = async (req, res, next) => {
             });
         }
 
-        const user = await User.findOne({
-            _id: userId,
-            barangay,
-        });
+        const user = await User.findById(userId);
 
         if (!user) {
+            console.log('User not found:', userId);
             return res.status(404).json({
                 success: false,
                 message: "User not found",
@@ -157,12 +151,21 @@ export const rejectUser = async (req, res, next) => {
         user.isVerified = false;
         await user.save();
 
+        // Add email notification if needed
+        try {
+            // You can add rejection email notification here if needed
+            console.log('User rejected:', user.email);
+        } catch (emailError) {
+            console.log('Error sending rejection email:', emailError);
+        }
+
         res.status(200).json({
             success: true,
             message: "User rejected successfully",
             data: user,
         });
     } catch (error) {
+        console.error('Rejection error:', error);
         next(error);
     }
 };
@@ -171,8 +174,10 @@ export const rejectUser = async (req, res, next) => {
 export const deactivateUser = async (req, res, next) => {
     try {
         const { userId } = req.params;
-        const { reason } = req.body; // Get reason from request body
-        const { role, barangay } = req.user;
+        const { reason } = req.body;
+        const { role } = req.user;
+
+        console.log('Deactivating user:', userId); // Add logging
 
         if (!reason) {
             return res.status(400).json({
@@ -189,12 +194,10 @@ export const deactivateUser = async (req, res, next) => {
             });
         }
 
-        const user = await User.findOne({
-            _id: userId,
-            barangay,
-        });
+        const user = await User.findById(userId);
 
         if (!user) {
+            console.log('User not found:', userId);
             return res.status(404).json({
                 success: false,
                 message: "User not found",
@@ -229,6 +232,7 @@ export const deactivateUser = async (req, res, next) => {
             data: user,
         });
     } catch (error) {
+        console.error('Deactivation error:', error);
         next(error);
     }
 };
@@ -236,49 +240,22 @@ export const deactivateUser = async (req, res, next) => {
 export const activateUser = async (req, res, next) => {
     try {
         const { userId } = req.params;
-        const { role, barangay } = req.user;
 
-        // Check if user has permission
-        if (role !== "secretary" && role !== "chairman" && role !== "superAdmin") {
-            return res.status(403).json({
-                success: false,
-                message: "Access denied. Not authorized.",
-            });
-        }
+        // Add some logging
+        console.log('Activating user:', userId);
 
-        const user = await User.findOne({
-            _id: userId,
-            barangay,
-        });
+        const user = await User.findById(userId);
 
         if (!user) {
+            console.log('User not found:', userId);
             return res.status(404).json({
                 success: false,
                 message: "User not found",
             });
         }
 
-        // Don't allow activation of admin/chairman/secretary accounts
-        if (user.role === "superAdmin" || user.role === "chairman" || user.role === "secretary") {
-            return res.status(403).json({
-                success: false,
-                message: "Cannot modify admin or staff accounts",
-            });
-        }
-
-        // Set user as active
         user.isActive = true;
         await user.save();
-
-        // Send activation email
-        try {
-            const emailSent = await sendActivationEmail(user);
-            if (!emailSent) {
-                console.log("Failed to send activation email");
-            }
-        } catch (emailError) {
-            console.log("Error sending activation email:", emailError);
-        }
 
         res.status(200).json({
             success: true,
@@ -286,6 +263,7 @@ export const activateUser = async (req, res, next) => {
             data: user,
         });
     } catch (error) {
+        console.error('Activation error:', error);
         next(error);
     }
 };
