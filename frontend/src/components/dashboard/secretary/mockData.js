@@ -229,3 +229,47 @@ export const mockBlotterReports = [
         dateReported: "2024-03-13",
     },
 ];
+
+export const mockLogs = [
+    {
+        id: 1,
+        timestamp: "2023-06-25T10:30:00Z",
+        type: "User Activity",
+        user: "john.doe",
+        action: "Login",
+        details: "User logged in successfully",
+    },
+    {
+        id: 2,
+        timestamp: "2023-06-25T11:15:00Z",
+        type: "Resident Record",
+        user: "jane.smith",
+        action: "Update",
+        details: "Updated address for resident ID: 12345",
+    },
+    {
+        id: 3,
+        timestamp: "2023-06-25T12:00:00Z",
+        type: "Barangay Clearance",
+        user: "admin.user",
+        action: "Issue",
+        details: "Issued clearance for resident ID: 67890",
+    },
+    {
+        id: 4,
+        timestamp: "2023-06-25T13:30:00Z",
+        type: "Incident Report",
+        user: "officer.johnson",
+        action: "Create",
+        details: "Created new incident report: Noise complaint",
+    },
+    {
+        id: 5,
+        timestamp: "2023-06-25T14:45:00Z",
+        type: "Audit",
+        user: "system",
+        action: "Backup",
+        details: "System backup completed successfully",
+    },
+    // Add more mock data as needed
+];
