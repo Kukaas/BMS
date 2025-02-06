@@ -46,7 +46,7 @@ export function SuperAdminLogViewer() {
     const [filteredLogs, setFilteredLogs] = useState([]);
     const [selectedLog, setSelectedLog] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const [logsPerPage] = useState(10);
+    const [pageSize, setPageSize] = useState(10);
     const [filters, setFilters] = useState({
         dateRange: {
             from: undefined,
@@ -102,11 +102,17 @@ export function SuperAdminLogViewer() {
         setCurrentPage(1);
     }, [logs, filters]);
 
-    const indexOfLastLog = currentPage * logsPerPage;
-    const indexOfFirstLog = indexOfLastLog - logsPerPage;
+    const indexOfLastLog = currentPage * pageSize;
+    const indexOfFirstLog = indexOfLastLog - pageSize;
     const currentLogs = filteredLogs.slice(indexOfFirstLog, indexOfLastLog);
+    const totalPages = Math.ceil(filteredLogs.length / pageSize);
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+    const handlePageSizeChange = (value) => {
+        setPageSize(Number(value));
+        setCurrentPage(1);
+    };
 
     const getTypeColor = (type) => {
         switch (type) {
@@ -132,7 +138,6 @@ export function SuperAdminLogViewer() {
                 return "bg-gray-200 text-gray-900 hover:bg-gray-300";
         }
     };
-
 
     return (
         <Card>
@@ -240,125 +245,147 @@ export function SuperAdminLogViewer() {
                 </div>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Timestamp</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>User</TableHead>
-                            <TableHead>Action</TableHead>
-                            <TableHead>Details</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {currentLogs.map((log) => (
-                            <TableRow key={log._id}>
-                                <TableCell>
-                                    {format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss")}
-                                </TableCell>
-                                <TableCell>
-                                    <Badge className={getTypeColor(log.type)}>{log.type}</Badge>
-                                </TableCell>
-                                <TableCell>{log.userId.name}</TableCell>
-                                <TableCell>{log.action}</TableCell>
-                                <TableCell>
-                                    <Dialog>
-                                        <DialogTrigger asChild>
-                                            <Button
-                                                variant="link"
-                                                onClick={() => setSelectedLog(log)}
-                                            >
-                                                View Details
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent className="sm:max-w-[425px]">
-                                            <DialogHeader>
-                                                <DialogTitle>Log Details</DialogTitle>
-                                            </DialogHeader>
-                                            {selectedLog && (
-                                                <div className="grid gap-4 py-4">
-                                                    <div className="grid grid-cols-4 items-center gap-4">
-                                                        <Label className="text-right">
-                                                            Timestamp
-                                                        </Label>
-                                                        <div className="col-span-3">
-                                                            {format(
-                                                                new Date(selectedLog.timestamp),
-                                                                "yyyy-MM-dd HH:mm:ss"
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-4 items-center gap-4">
-                                                        <Label className="text-right">Type</Label>
-                                                        <div className="col-span-3">
-                                                            <Badge
-                                                                className={getTypeColor(
-                                                                    selectedLog.type
-                                                                )}
-                                                            >
-                                                                {selectedLog.type}
-                                                            </Badge>
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-4 items-center gap-4">
-                                                        <Label className="text-right">User</Label>
-                                                        <div className="col-span-3">
-                                                            {selectedLog.userId.name}
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-4 items-center gap-4">
-                                                        <Label className="text-right">Action</Label>
-                                                        <div className="col-span-3">
-                                                            {selectedLog.action}
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-4 items-center gap-4">
-                                                        <Label className="text-right">
-                                                            Details
-                                                        </Label>
-                                                        <div className="col-span-3">
-                                                            {selectedLog.details}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </DialogContent>
-                                    </Dialog>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-                {/* <Pagination className="mt-4">
-                    <PaginationContent>
-                        <PaginationItem>
-                            <PaginationPrevious
-                                onClick={() => paginate(currentPage - 1)}
-                                disabled={currentPage === 1}
-                            />
-                        </PaginationItem>
-                        {Array.from({ length: Math.ceil(filteredLogs.length / logsPerPage) }).map(
-                            (_, index) => (
-                                <PaginationItem key={index}>
-                                    <PaginationLink
-                                        onClick={() => paginate(index + 1)}
-                                        isActive={currentPage === index + 1}
-                                    >
-                                        {index + 1}
-                                    </PaginationLink>
-                                </PaginationItem>
-                            )
-                        )}
-                        <PaginationItem>
-                            <PaginationNext
-                                onClick={() => paginate(currentPage + 1)}
-                                disabled={
-                                    currentPage === Math.ceil(filteredLogs.length / logsPerPage)
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-2">
+                        <div className="relative">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search in action or details"
+                                value={filters.search}
+                                onChange={(e) =>
+                                    setFilters((prev) => ({ ...prev, search: e.target.value }))
                                 }
+                                className="w-[300px] pl-8"
                             />
-                        </PaginationItem>
-                    </PaginationContent>
-                </Pagination> */}
+                        </div>
+                    </div>
+                    <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
+                        <SelectTrigger className="w-[130px]">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {[5, 10, 20, 30, 40, 50].map((size) => (
+                                <SelectItem key={size} value={size.toString()}>
+                                    {size} per page
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Timestamp</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead>User</TableHead>
+                                <TableHead>Action</TableHead>
+                                <TableHead>Details</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {currentLogs.map((log) => (
+                                <TableRow key={log._id}>
+                                    <TableCell>
+                                        {format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss")}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge className={getTypeColor(log.type)}>{log.type}</Badge>
+                                    </TableCell>
+                                    <TableCell>{log.userId.name}</TableCell>
+                                    <TableCell>{log.action}</TableCell>
+                                    <TableCell>
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button
+                                                    variant="link"
+                                                    onClick={() => setSelectedLog(log)}
+                                                >
+                                                    View Details
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="sm:max-w-[425px]">
+                                                <DialogHeader>
+                                                    <DialogTitle>Log Details</DialogTitle>
+                                                </DialogHeader>
+                                                {selectedLog && (
+                                                    <div className="grid gap-4 py-4">
+                                                        <div className="grid grid-cols-4 items-center gap-4">
+                                                            <Label className="text-right">
+                                                                Timestamp
+                                                            </Label>
+                                                            <div className="col-span-3">
+                                                                {format(
+                                                                    new Date(selectedLog.timestamp),
+                                                                    "yyyy-MM-dd HH:mm:ss"
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-4 items-center gap-4">
+                                                            <Label className="text-right">Type</Label>
+                                                            <div className="col-span-3">
+                                                                <Badge
+                                                                    className={getTypeColor(
+                                                                        selectedLog.type
+                                                                    )}
+                                                                >
+                                                                    {selectedLog.type}
+                                                                </Badge>
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-4 items-center gap-4">
+                                                            <Label className="text-right">User</Label>
+                                                            <div className="col-span-3">
+                                                                {selectedLog.userId.name}
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-4 items-center gap-4">
+                                                            <Label className="text-right">Action</Label>
+                                                            <div className="col-span-3">
+                                                                {selectedLog.action}
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-4 items-center gap-4">
+                                                            <Label className="text-right">
+                                                                Details
+                                                            </Label>
+                                                            <div className="col-span-3">
+                                                                {selectedLog.details}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </DialogContent>
+                                        </Dialog>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+                <div className="flex items-center justify-between mt-4">
+                    <p className="text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                    </p>
+                    <div className="flex items-center space-x-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => paginate(currentPage - 1)}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => paginate(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
             </CardContent>
         </Card>
     );
