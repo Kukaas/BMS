@@ -111,27 +111,28 @@ export function SuperAdminLogViewer() {
     const getTypeColor = (type) => {
         switch (type) {
             case "User Activity":
-                return "bg-blue-100 text-blue-800";
+                return "bg-blue-200 text-blue-900 hover:bg-blue-300";
             case "Resident Record":
-                return "bg-green-100 text-green-800";
+                return "bg-green-200 text-green-900 hover:bg-green-300";
             case "Barangay Clearance":
-                return "bg-purple-100 text-purple-800";
+                return "bg-purple-200 text-purple-900 hover:bg-purple-300";
             case "Barangay Indigency":
-                return "bg-purple-100 text-purple-800";
+                return "bg-purple-200 text-purple-900 hover:bg-purple-300";
             case "Business Clearance":
-                return "bg-purple-100 text-purple-800";
+                return "bg-purple-200 text-purple-900 hover:bg-purple-300";
             case "Cedula":
-                return "bg-purple-100 text-purple-800";
+                return "bg-purple-200 text-purple-900 hover:bg-purple-300";
             case "Incident Report":
-                return "bg-red-100 text-red-800";
+                return "bg-red-200 text-red-900 hover:bg-red-300";
             case "Blotter Report":
-                return "bg-red-100 text-red-800";
+                return "bg-red-200 text-red-900 hover:bg-red-300";
             case "Audit":
-                return "bg-yellow-100 text-yellow-800";
+                return "bg-yellow-200 text-yellow-900 hover:bg-yellow-300";
             default:
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-200 text-gray-900 hover:bg-gray-300";
         }
     };
+
 
     return (
         <Card>
