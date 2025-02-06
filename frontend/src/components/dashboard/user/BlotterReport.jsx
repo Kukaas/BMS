@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,6 +16,13 @@ import axios from "axios";
 import { BlotterReportGridView } from "./components/BlotterReportGridView";
 import { BlotterReportTableView } from "./components/BlotterReportTableView";
 import BlotterReportForm from "@/components/forms/BlotterReportForm";
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function BlotterReport() {
     const [showReportForm, setShowReportForm] = useState(false);
@@ -59,14 +66,16 @@ export function BlotterReport() {
     const handleSubmit = async (data, resetForm) => {
         try {
             setIsSubmitting(true);
-            const formattedData = {
+
+            // Make sure all required fields are present
+            const formData = {
                 ...data,
-                incidentDate: new Date(data.incidentDate).toISOString(),
+                actionRequested: data.actionRequested // Should now be properly passed
             };
 
             const response = await axios.post(
                 "http://localhost:5000/api/blotter/report",
-                formattedData,
+                formData,
                 {
                     headers: {
                         Authorization: `Bearer ${currentUser.token}`,
@@ -83,7 +92,7 @@ export function BlotterReport() {
             }
         } catch (error) {
             console.error("Error submitting blotter:", error);
-            const errorMessage =
+            const errorMessage = error.response?.data?.details?.[0]?.message ||
                 error.response?.data?.message ||
                 error.response?.data?.error ||
                 "Failed to submit blotter report";
@@ -204,30 +213,42 @@ export function BlotterReport() {
                 </CardContent>
             </Card>
 
-            {/* Form Modal */}
-            {showReportForm && (
-                <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
-                    <div className="bg-background rounded-lg w-full max-w-4xl my-8 shadow-lg overflow-hidden">
-                        <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-                            <h2 className="text-2xl font-bold">File New Blotter Report</h2>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setShowReportForm(false)}
-                                className="hover:bg-gray-100 rounded-full h-8 w-8 p-0 flex items-center justify-center"
-                            >
-                                <span className="text-lg">×</span>
-                            </Button>
+            {/* Keep the AlertDialog always mounted */}
+            <AlertDialog open={showReportForm} onOpenChange={setShowReportForm}>
+                <AlertDialogContent
+                    className="max-w-4xl max-h-[90vh] flex flex-col"
+                    // Add these styles to prevent content flash
+                    style={{
+                        opacity: showReportForm ? 1 : 0,
+                        transition: 'opacity 150ms ease-in-out'
+                    }}
+                >
+                    <AlertDialogHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <AlertDialogTitle>File New Blotter Report</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Fill out the form below to submit a new blotter report.
+                            </AlertDialogDescription>
                         </div>
-                        <div className="max-h-[calc(100vh-12rem)] overflow-y-auto p-6">
-                            <BlotterReportForm
-                                onSubmit={handleSubmit}
-                                isSubmitting={isSubmitting}
-                            />
-                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full"
+                            onClick={() => setShowReportForm(false)}
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </AlertDialogHeader>
+
+                    <div className="flex-1 overflow-y-auto py-4">
+                        <BlotterReportForm
+                            onSubmit={handleSubmit}
+                            isSubmitting={isSubmitting}
+                            onCancel={() => setShowReportForm(false)}
+                        />
                     </div>
-                </div>
-            )}
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

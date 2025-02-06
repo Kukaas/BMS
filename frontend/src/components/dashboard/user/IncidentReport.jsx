@@ -10,7 +10,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { IncidentReportFormContent } from "@/components/forms/IncidentReportsForm";
 import { IncidentReportGridView } from "./components/IncidentReportGridView";
 import { IncidentReportTableView } from "./components/IncidentReportTableView";
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function IncidentReport() {
     const [showReportForm, setShowReportForm] = useState(false);
@@ -208,29 +215,33 @@ export function IncidentReport() {
                 </CardContent>
             </Card>
 
-            {showReportForm && (
-                <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
-                    <div className="bg-background rounded-lg w-full max-w-4xl my-8 shadow-lg overflow-hidden">
-                        <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-                            <h2 className="text-2xl font-bold">Report New Incident</h2>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={handleCancel}
-                                className="hover:bg-gray-100 rounded-full h-8 w-8 p-0 flex items-center justify-center"
-                            >
-                                <span className="text-lg">×</span>
-                            </Button>
+            <AlertDialog open={showReportForm} onOpenChange={setShowReportForm}>
+                <AlertDialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+                    <AlertDialogHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <AlertDialogTitle>Report New Incident</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Fill out the form below to submit a new incident report.
+                            </AlertDialogDescription>
                         </div>
-                        <div className="max-h-[calc(100vh-12rem)] overflow-y-auto p-6">
-                            <IncidentReportFormContent
-                                onComplete={handleReportComplete}
-                                onCancel={handleCancel}
-                            />
-                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full"
+                            onClick={() => setShowReportForm(false)}
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </AlertDialogHeader>
+
+                    <div className="flex-1 overflow-y-auto py-4">
+                        <IncidentReportFormContent
+                            onComplete={handleReportComplete}
+                            onCancel={handleCancel}
+                        />
                     </div>
-                </div>
-            )}
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

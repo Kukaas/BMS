@@ -149,7 +149,9 @@ export const blotterReportSchema = z.object({
         .optional(),
 
     // Action Requested
-    actionRequested: z.string().min(1, "Action requested is required"),
+    actionRequested: z.enum(["Mediation", "Barangay Intervention", "Police/Court Action"], {
+        required_error: "Please select an action",
+    }),
 });
 
 // Add more schemas for other document types as needed

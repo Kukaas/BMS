@@ -20,25 +20,18 @@ import api from "@/lib/axios";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
-export default function BlotterReportForm({ onSubmit, isSubmitting }) {
+export default function BlotterReportForm({ onSubmit, isSubmitting, onCancel }) {
     const { currentUser } = useSelector((state) => state.user);
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-        setValue,
-        reset,
-        watch,
-    } = useForm({
+    const form = useForm({
         resolver: zodResolver(blotterReportSchema),
         defaultValues: {
             complainantName: currentUser?.name || "",
             complainantAddress: currentUser?.barangay || "",
+            complainantContact: currentUser?.contactNumber || "",
             complainantGender: "",
             complainantCivilStatus: "",
             complainantAge: "",
-            complainantContact: currentUser?.contactNumber || "",
             respondentName: "",
             respondentAddress: "",
             respondentContact: "",
@@ -50,10 +43,19 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
             motive: "",
             witnessName: "",
             witnessContact: "",
-            actionRequested: "",
             evidenceFile: null,
+            actionRequested: "Mediation",
         },
     });
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        setValue,
+        reset,
+        watch,
+    } = form;
 
     // Update form when user changes
     useEffect(() => {
@@ -74,13 +76,6 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
     const handleCivilStatusChange = useCallback(
         (value) => {
             setValue("complainantCivilStatus", value, { shouldValidate: true });
-        },
-        [setValue]
-    );
-
-    const handleActionChange = useCallback(
-        (value) => {
-            setValue("actionRequested", value, { shouldValidate: true });
         },
         [setValue]
     );
@@ -112,12 +107,16 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
     };
 
     const onFormSubmit = (data) => {
-        // Log the data being submitted
-        console.log("Form data before submission:", data);
+        // Format the data before submission
+        const formattedData = {
+            ...data,
+            incidentDate: new Date(data.incidentDate).toISOString(),
+            actionRequested: data.actionRequested || "Mediation"
+        };
 
-        // Call the parent component's onSubmit
-        onSubmit(data, () => {
-            reset(); // Reset form after successful submission
+        // Call the parent component's onSubmit with formatted data
+        onSubmit(formattedData, () => {
+            reset();
         });
     };
 
@@ -375,39 +374,7 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
                             className="cursor-pointer"
                         />
                         {/* Preview uploaded image */}
-                        {watch("evidenceFile") && (
-                            <div className="relative mt-4">
-                                {/* Add debug output */}
-                                <pre className="text-xs">
-                                    {JSON.stringify(watch("evidenceFile"), null, 2)}
-                                </pre>
 
-                                <img
-                                    src={watch("evidenceFile").data}
-                                    alt={watch("evidenceFile").filename}
-                                    className="w-full h-40 object-cover rounded-lg"
-                                    // Add error handler to debug image loading issues
-                                    onError={(e) => {
-                                        console.error("Image failed to load:", e);
-                                        console.log(
-                                            "Image data:",
-                                            watch("evidenceFile").data?.substring(0, 100) + "..."
-                                        );
-                                    }}
-                                />
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="icon"
-                                    className="absolute top-2 right-2"
-                                    onClick={() => {
-                                        setValue("evidenceFile", null, { shouldValidate: true });
-                                    }}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        )}
                     </div>
                 </CardContent>
             </Card>
@@ -420,18 +387,20 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
                 <CardContent>
                     <div className="space-y-2">
                         <Label htmlFor="actionRequested">Desired Action</Label>
-                        <Select onValueChange={handleActionChange} {...register("actionRequested")}>
+                        <Select
+                            onValueChange={(value) => {
+                                setValue("actionRequested", value, { shouldValidate: true });
+                            }}
+                            defaultValue="Mediation"
+                            value={watch("actionRequested")}
+                        >
                             <SelectTrigger id="actionRequested">
                                 <SelectValue placeholder="Select desired action" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Mediation">Mediation</SelectItem>
-                                <SelectItem value="Barangay Intervention">
-                                    Barangay Intervention
-                                </SelectItem>
-                                <SelectItem value="Police/Court Action">
-                                    Police/Court Action
-                                </SelectItem>
+                                <SelectItem value="Barangay Intervention">Barangay Intervention</SelectItem>
+                                <SelectItem value="Police/Court Action">Police/Court Action</SelectItem>
                             </SelectContent>
                         </Select>
                         {errors.actionRequested && (
@@ -441,32 +410,23 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
                 </CardContent>
             </Card>
 
-            <div className="flex justify-end space-x-4">
-                <Button type="submit" disabled={isSubmitting}>
+            <div className="flex justify-end gap-4 mt-6">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onCancel}
+                    disabled={isSubmitting}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                >
                     {isSubmitting ? (
-                        <>
-                            <svg
-                                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                ></circle>
-                                <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                            </svg>
-                            Submitting...
-                        </>
+                        <div className="flex items-center gap-2">
+                            <span className="animate-spin">⏳</span> Submitting...
+                        </div>
                     ) : (
                         "Submit Report"
                     )}
@@ -479,6 +439,7 @@ export default function BlotterReportForm({ onSubmit, isSubmitting }) {
 BlotterReportForm.propTypes = {
     onSubmit: PropTypes.func.isRequired,
     isSubmitting: PropTypes.bool,
+    onCancel: PropTypes.func.isRequired,
 };
 
 BlotterReportForm.defaultProps = {
