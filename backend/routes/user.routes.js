@@ -6,7 +6,8 @@ import {
     rejectUser,
     deactivateUser,
     activateUser,
-    getResidentsByBarangay
+    getResidentsByBarangay,
+    getUsers,
 } from "../controllers/user.controller.js";
 import verifyToken from "../utils/verifyToken.js";
 
@@ -23,10 +24,14 @@ router.get("/barangay", verifyToken, getUsersByBarangay);
 // GET /api/users/:userId
 router.get("/:userId", verifyToken, getUserById);
 
+// GET /api/users/all
+router.get("/", verifyToken, getUsers);
+
 // PATCH routes
 router.patch("/:userId/verify", verifyToken, verifyUser);
 router.patch("/:userId/reject", verifyToken, rejectUser);
 router.patch("/:userId/deactivate", verifyToken, deactivateUser);
 router.patch("/:userId/activate", verifyToken, activateUser);
+
 
 export default router;
