@@ -41,11 +41,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
-import {
-    Dialog,
-    DialogContent,
-    DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { UserDetailsView } from "./components/UserDetailsView";
 
 export function UserManagementDashboard() {
@@ -116,7 +112,7 @@ export function UserManagementDashboard() {
                 setLoading(false);
             }
         } catch (error) {
-            console.error('Error fetching users:', error);
+            console.error("Error fetching users:", error);
             toast.error(error.response?.data?.message || "Failed to fetch users");
             setLoading(false);
         }
@@ -135,7 +131,7 @@ export function UserManagementDashboard() {
                 verifying: true,
             });
 
-            console.log('Verifying user:', verifyDialog.userId);
+            console.log("Verifying user:", verifyDialog.userId);
 
             const res = await axios.patch(
                 `http://localhost:5000/api/users/${verifyDialog.userId}/verify`,
@@ -153,7 +149,7 @@ export function UserManagementDashboard() {
                 setVerifyDialog({ isOpen: false, userId: null });
             }
         } catch (error) {
-            console.error('Verification error:', error.response || error);
+            console.error("Verification error:", error.response || error);
             toast.error(error.response?.data?.message || "Failed to verify user");
         } finally {
             setActionLoading({
@@ -172,7 +168,7 @@ export function UserManagementDashboard() {
                 deactivating: true,
             });
 
-            console.log('Deactivating user:', deactivateDialog.userId);
+            console.log("Deactivating user:", deactivateDialog.userId);
 
             const res = await axios.patch(
                 `http://localhost:5000/api/users/${deactivateDialog.userId}/deactivate`,
@@ -191,7 +187,7 @@ export function UserManagementDashboard() {
                 setDeactivateDialog({ isOpen: false, userId: null, reason: "" });
             }
         } catch (error) {
-            console.error('Deactivation error:', error.response || error);
+            console.error("Deactivation error:", error.response || error);
             toast.error(error.response?.data?.message || "Failed to deactivate user");
         } finally {
             setActionLoading({
@@ -210,7 +206,7 @@ export function UserManagementDashboard() {
                 activating: true,
             });
 
-            console.log('Activating user with ID:', activateDialog.userId);
+            console.log("Activating user with ID:", activateDialog.userId);
 
             const res = await axios.patch(
                 `http://localhost:5000/api/users/${activateDialog.userId}/activate`,
@@ -229,7 +225,7 @@ export function UserManagementDashboard() {
                 setActivateDialog({ isOpen: false, userId: null });
             }
         } catch (error) {
-            console.error('Activation error:', error.response || error);
+            console.error("Activation error:", error.response || error);
             toast.error(error.response?.data?.message || "Failed to activate user");
         } finally {
             setActionLoading({
@@ -240,18 +236,7 @@ export function UserManagementDashboard() {
     };
 
     const isActionLoading = () => {
-        return (
-            actionLoading.verifying ||
-            actionLoading.deactivating ||
-            actionLoading.activating
-        );
-    };
-
-    const getLoadingMessage = () => {
-        if (actionLoading.verifying) return "Verifying user...";
-        if (actionLoading.deactivating) return "Deactivating user...";
-        if (actionLoading.activating) return "Activating user...";
-        return "Loading...";
+        return actionLoading.verifying || actionLoading.deactivating || actionLoading.activating;
     };
 
     // Update the filtering logic
@@ -259,15 +244,15 @@ export function UserManagementDashboard() {
         const matchesSearch = !filters.search
             ? true
             : user.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-            user.email.toLowerCase().includes(filters.search.toLowerCase());
+              user.email.toLowerCase().includes(filters.search.toLowerCase());
 
-        const matchesRole = !filters.role || filters.role === "all"
-            ? true
-            : user.role === filters.role;
+        const matchesRole =
+            !filters.role || filters.role === "all" ? true : user.role === filters.role;
 
-        const matchesAddress = !filters.address || filters.address === "all"
-            ? true
-            : user.barangay === filters.address;
+        const matchesAddress =
+            !filters.address || filters.address === "all"
+                ? true
+                : user.barangay === filters.address;
 
         return matchesSearch && matchesRole && matchesAddress;
     });
@@ -371,7 +356,10 @@ export function UserManagementDashboard() {
                         </TableHeader>
                         <TableBody>
                             {currentUsers.map((user) => (
-                                <TableRow key={user._id} className={!user.isActive ? "opacity-60" : ""}>
+                                <TableRow
+                                    key={user._id}
+                                    className={!user.isActive ? "opacity-60" : ""}
+                                >
                                     <TableCell>{user.name}</TableCell>
                                     <TableCell>{user.email}</TableCell>
                                     <TableCell>
@@ -388,7 +376,11 @@ export function UserManagementDashboard() {
                                     <TableCell>
                                         <Badge
                                             variant={user.isVerified ? "default" : "secondary"}
-                                            className={user.isVerified ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}
+                                            className={
+                                                user.isVerified
+                                                    ? "bg-green-100 text-green-800 hover:bg-green-100"
+                                                    : ""
+                                            }
                                         >
                                             {user.isVerified ? "Verified" : "Pending"}
                                         </Badge>
@@ -431,7 +423,9 @@ export function UserManagementDashboard() {
                                                                 : "text-green-600 focus:text-green-600 cursor-pointer"
                                                         }
                                                     >
-                                                        <CheckCircle2 className={`mr-2 h-4 w-4 ${user.isVerified ? "text-green-800" : "text-green-600"}`} />
+                                                        <CheckCircle2
+                                                            className={`mr-2 h-4 w-4 ${user.isVerified ? "text-green-800" : "text-green-600"}`}
+                                                        />
                                                         Verify User
                                                     </DropdownMenuItem>
 
@@ -473,7 +467,9 @@ export function UserManagementDashboard() {
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                             <DialogContent className="max-w-[700px]">
-                                                {selectedUser && <UserDetailsView user={selectedUser} />}
+                                                {selectedUser && (
+                                                    <UserDetailsView user={selectedUser} />
+                                                )}
                                             </DialogContent>
                                         </Dialog>
                                     </TableCell>
@@ -516,7 +512,7 @@ export function UserManagementDashboard() {
                     }
                 }}
             >
-                <AlertDialogContent>
+                <AlertDialogContent className="max-w-[500px] mx-auto">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Deactivate User Account</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -538,7 +534,10 @@ export function UserManagementDashboard() {
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel
-                            onClick={() => !actionLoading.deactivating && setDeactivateDialog({ isOpen: false, userId: null, reason: "" })}
+                            onClick={() =>
+                                !actionLoading.deactivating &&
+                                setDeactivateDialog({ isOpen: false, userId: null, reason: "" })
+                            }
                             disabled={actionLoading.deactivating}
                         >
                             Cancel
@@ -572,16 +571,20 @@ export function UserManagementDashboard() {
                     }
                 }}
             >
-                <AlertDialogContent>
+                <AlertDialogContent className="max-w-[500px] mx-auto">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Activate User Account</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to activate this user account? The user will be able to access their account again.
+                            Are you sure you want to activate this user account? The user will be
+                            able to access their account again.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel
-                            onClick={() => !actionLoading.activating && setActivateDialog({ isOpen: false, userId: null })}
+                            onClick={() =>
+                                !actionLoading.activating &&
+                                setActivateDialog({ isOpen: false, userId: null })
+                            }
                             disabled={actionLoading.activating}
                         >
                             Cancel
@@ -619,12 +622,16 @@ export function UserManagementDashboard() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Verify User Account</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to verify this user? This will grant them access to all verified user features.
+                            Are you sure you want to verify this user? This will grant them access
+                            to all verified user features.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel
-                            onClick={() => !actionLoading.verifying && setVerifyDialog({ isOpen: false, userId: null })}
+                            onClick={() =>
+                                !actionLoading.verifying &&
+                                setVerifyDialog({ isOpen: false, userId: null })
+                            }
                             disabled={actionLoading.verifying}
                         >
                             Cancel
