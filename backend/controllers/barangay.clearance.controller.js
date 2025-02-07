@@ -1,10 +1,11 @@
 import BarangayClearance from "../models/barangay.clearance.model.js";
 import {
     sendNotificationToBarangaySecretaries,
-    createNotification
+    createNotification,
 } from "../utils/notifications.js";
 import User from "../models/user.model.js";
 import { createLog } from "./log.controller.js";
+import { createTransactionHistory } from "./transaction.history.controller.js";
 
 export const createBarangayClearance = async (req, res, next) => {
     try {
@@ -26,9 +27,26 @@ export const createBarangayClearance = async (req, res, next) => {
             purpose,
             contactNumber,
         });
-        await createLog(userId, "Barangay Clearance Request", "Barangay Clearance", `${name} has requested a barangay clearance for ${purpose}`);
+        await createLog(
+            userId,
+            "Barangay Clearance Request",
+            "Barangay Clearance",
+            `${name} has requested a barangay clearance for ${purpose}`
+        );
 
         await barangayClearance.save();
+
+        // Create transaction history
+        await createTransactionHistory({
+            userId: req.user.id,
+            transactionId: barangayClearance._id,
+            residentName: name,
+            requestedDocument: "Barangay Clearance",
+            dateRequested: new Date(),
+            barangay: userBarangay,
+            action: "created",
+            status: "Pending",
+        });
 
         // Create and send notification to secretaries
         const staffNotification = createNotification(
@@ -48,7 +66,8 @@ export const createBarangayClearance = async (req, res, next) => {
             data: barangayClearance,
         });
     } catch (error) {
-        next(error);
+        console.error("Error creating barangay clearance:", error);
+        res.status(500).json({ message: "Error creating barangay clearance" });
     }
 };
 

@@ -26,6 +26,7 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
     } = useForm({
         resolver: zodResolver(businessClearanceSchema),
         defaultValues: {
+            userId: currentUser?._id || "",
             ownerName: currentUser?.name || "",
             email: currentUser?.email || "",
             barangay: currentUser?.barangay || "",
@@ -55,6 +56,7 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
     // Update form when user changes
     useEffect(() => {
         if (currentUser) {
+            setValue("userId", currentUser._id || "");
             setValue("ownerName", currentUser.name || "");
             setValue("email", currentUser.email || "");
             setValue("barangay", currentUser.barangay || "");
@@ -80,12 +82,23 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
 
     const handleFormSubmit = (data) => {
         console.log("Submitting business clearance form with data:", data);
-        onSubmit(data, "business-clearance");
+        onSubmit(
+            {
+                ...data,
+                userId: currentUser._id,
+                email: currentUser.email,
+            },
+            "business-clearance"
+        );
     };
 
     return (
         <form id="document-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
+                {/* Hidden fields for userId and email */}
+                <input type="hidden" {...register("userId")} />
+                <input type="hidden" {...register("email")} />
+
                 {/* Owner Information */}
                 <div className="space-y-2">
                     <Label htmlFor="ownerName">Full Name of Business Owner</Label>
@@ -207,19 +220,6 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                     )}
                 </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        {...register("email")}
-                        defaultValue={currentUser?.email || ""}
-                        readOnly
-                    />
-                    {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
-                </div>
-
-                {/* Registration and Permits */}
                 <div className="space-y-2">
                     <Label htmlFor="dtiSecRegistration">DTI/SEC Registration Number</Label>
                     <Input

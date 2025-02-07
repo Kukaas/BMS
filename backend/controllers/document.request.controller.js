@@ -6,61 +6,98 @@ import User from "../models/user.model.js";
 import {
     sendDocumentRequestNotification,
     sendDocumentStatusNotification,
-    createNotification
+    createNotification,
 } from "../utils/notifications.js";
+import { updateTransactionStatus } from "./transaction.history.controller.js";
 
 // Generic function to update document status
-export const updateDocumentStatus = async (Model, requestType, id, status) => {
-    const document = await Model.findById(id);
-    if (!document) {
-        throw new Error(`${requestType} not found`);
-    }
-
-    document.isVerified = status === "Approved";
-    document.status = status;
-    document.dateOfIssuance = new Date();
-
-    await document.save();
-
-    // Map display names to enum values
-    const docModelMap = {
-        "Business Clearance": "BusinessClearance",
-        "Barangay Clearance": "BarangayClearance",
-        "Barangay Indigency": "BarangayIndigency",
-        "Cedula": "Cedula"
-    };
-
-    // Get the correct enum value
-    const docModel = docModelMap[requestType];
-    if (!docModel) {
-        throw new Error(`Invalid document type: ${requestType}`);
-    }
-
-    // Create status update notification with secretary info
-    const statusNotification = createNotification(
-        `${requestType} Status Update`,
-        `Your ${requestType.toLowerCase()} request has been ${status.toLowerCase()} by the barangay secretary.`,
-        "status_update",
-        document._id,
-        docModel  // Use the mapped enum value
-    );
-
-    // Find user and update their notifications
-    if (document.userId) {
-        await User.findByIdAndUpdate(document.userId, {
-            $push: { notifications: statusNotification },
-            $inc: { unreadNotifications: 1 }
-        });
-    } else if (document.email) {
-        const user = await User.findOne({ email: document.email });
-        if (user) {
-            user.notifications.push(statusNotification);
-            user.unreadNotifications += 1;
-            await user.save();
+export const updateDocumentStatus = async (Model, requestType, id, status, secretaryName) => {
+    try {
+        const document = await Model.findById(id);
+        if (!document) {
+            throw new Error(`${requestType} not found`);
         }
-    }
 
-    return document;
+        // Normalize status value
+        const normalizedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+
+        // Update document fields
+        document.isVerified = normalizedStatus === "Approved" || normalizedStatus === "Completed";
+        document.status = normalizedStatus;
+        document.approvedBy = secretaryName;
+
+        // Handle dates based on status
+        if (normalizedStatus === "Approved" && !document.dateApproved) {
+            document.dateApproved = new Date();
+        }
+        if (normalizedStatus === "Completed") {
+            document.dateCompleted = new Date();
+            // Keep the original dateApproved if it exists
+            if (!document.dateApproved) {
+                document.dateApproved = new Date();
+            }
+        }
+
+        await document.save();
+
+        console.log("Updating document with secretary:", secretaryName, {
+            status: normalizedStatus,
+            dateApproved: document.dateApproved,
+            dateCompleted: document.dateCompleted,
+        });
+
+        // Update transaction history
+        await updateTransactionStatus(id, {
+            status: normalizedStatus,
+            dateApproved: document.dateApproved,
+            dateCompleted: document.dateCompleted,
+            action: "updated",
+            approvedBy: secretaryName,
+        });
+
+        // Map display names to enum values
+        const docModelMap = {
+            "Business Clearance": "BusinessClearance",
+            "Barangay Clearance": "BarangayClearance",
+            "Barangay Indigency": "BarangayIndigency",
+            Cedula: "Cedula",
+        };
+
+        // Get the correct enum value
+        const docModel = docModelMap[requestType];
+        if (!docModel) {
+            throw new Error(`Invalid document type: ${requestType}`);
+        }
+
+        // Create status update notification with secretary info
+        const statusNotification = createNotification(
+            `${requestType} Status Update`,
+            `Your ${requestType.toLowerCase()} request has been ${normalizedStatus.toLowerCase()} by the barangay secretary.`,
+            "status_update",
+            document._id,
+            docModel
+        );
+
+        // Find user and update their notifications
+        if (document.userId) {
+            await User.findByIdAndUpdate(document.userId, {
+                $push: { notifications: statusNotification },
+                $inc: { unreadNotifications: 1 },
+            });
+        } else if (document.email) {
+            const user = await User.findOne({ email: document.email });
+            if (user) {
+                user.notifications.push(statusNotification);
+                user.unreadNotifications += 1;
+                await user.save();
+            }
+        }
+
+        return document;
+    } catch (error) {
+        console.error("Error updating document status:", error);
+        throw error;
+    }
 };
 
 // Get all document requests for a barangay
@@ -69,7 +106,7 @@ export const getAllDocumentRequests = async (req, res, next) => {
         if (!req.user) {
             return res.status(401).json({
                 success: false,
-                message: "Authentication required"
+                message: "Authentication required",
             });
         }
 
@@ -83,32 +120,32 @@ export const getAllDocumentRequests = async (req, res, next) => {
             BarangayClearance.find({ barangay }).sort({ createdAt: -1 }),
             BarangayIndigency.find({ barangay }).sort({ createdAt: -1 }),
             BusinessClearance.find({ barangay }).sort({ createdAt: -1 }),
-            Cedula.find({ barangay }).sort({ createdAt: -1 })
+            Cedula.find({ barangay }).sort({ createdAt: -1 }),
         ]);
 
         // Transform and combine all requests
         const allRequests = [
-            ...clearances.map(doc => ({
+            ...clearances.map((doc) => ({
                 ...doc.toObject(),
-                documentType: 'Barangay Clearance'
+                documentType: "Barangay Clearance",
             })),
-            ...indigency.map(doc => ({
+            ...indigency.map((doc) => ({
                 ...doc.toObject(),
-                documentType: 'Barangay Indigency'
+                documentType: "Barangay Indigency",
             })),
-            ...business.map(doc => ({
+            ...business.map((doc) => ({
                 ...doc.toObject(),
-                documentType: 'Business Clearance'
+                documentType: "Business Clearance",
             })),
-            ...cedulas.map(doc => ({
+            ...cedulas.map((doc) => ({
                 ...doc.toObject(),
-                documentType: 'Cedula'
-            }))
+                documentType: "Cedula",
+            })),
         ];
 
         // Sort by creation date
-        const sortedRequests = allRequests.sort((a, b) =>
-            new Date(b.createdAt) - new Date(a.createdAt)
+        const sortedRequests = allRequests.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
 
         // Apply pagination
@@ -121,8 +158,8 @@ export const getAllDocumentRequests = async (req, res, next) => {
                 total: allRequests.length,
                 page,
                 limit,
-                totalPages: Math.ceil(allRequests.length / limit)
-            }
+                totalPages: Math.ceil(allRequests.length / limit),
+            },
         });
     } catch (error) {
         next(error);
@@ -138,7 +175,7 @@ const createDocumentRequest = async (Model, documentType, data, barangay) => {
             email: data.email,
             barangay,
             status: "pending",
-            documentType
+            documentType,
         });
 
         await document.save();
@@ -162,7 +199,7 @@ export const createBarangayClearance = async (req, res, next) => {
         res.status(201).json({
             success: true,
             message: "Barangay clearance request created successfully",
-            data: document
+            data: document,
         });
     } catch (error) {
         console.error("Error creating barangay clearance:", error);
@@ -182,7 +219,7 @@ export const createBarangayIndigency = async (req, res, next) => {
         res.status(201).json({
             success: true,
             message: "Barangay indigency request created successfully",
-            data: document
+            data: document,
         });
     } catch (error) {
         console.error("Error creating barangay indigency:", error);
@@ -194,50 +231,21 @@ export const createBarangayIndigency = async (req, res, next) => {
 export const updateBarangayClearanceStatus = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
-        const { name: secretaryName } = req.user;
+        const { status, secretaryName } = req.body;
+        const approver = secretaryName || req.user.name;
 
-        const document = await BarangayClearance.findById(id);
-        if (!document) {
-            return res.status(404).json({
-                success: false,
-                message: "Document not found"
-            });
-        }
-
-        document.isVerified = status === "Approved";
-        document.status = status;
-        document.dateOfIssuance = new Date();
-        await document.save();
-
-        // Create status update notification
-        const statusNotification = createNotification(
-            "Barangay Clearance Status Update",
-            `Your barangay clearance request has been ${status.toLowerCase()} by ${secretaryName}`,
-            "status_update",
-            document._id,
-            "BarangayClearance"  // Use exact enum value
+        const document = await updateDocumentStatus(
+            BarangayClearance,
+            "Barangay Clearance",
+            id,
+            status,
+            approver
         );
-
-        // Find user and update their notifications
-        if (document.userId) {
-            await User.findByIdAndUpdate(document.userId, {
-                $push: { notifications: statusNotification },
-                $inc: { unreadNotifications: 1 }
-            });
-        } else if (document.email) {
-            const user = await User.findOne({ email: document.email });
-            if (user) {
-                user.notifications.push(statusNotification);
-                user.unreadNotifications += 1;
-                await user.save();
-            }
-        }
 
         res.status(200).json({
             success: true,
             message: `Document ${status.toLowerCase()} successfully`,
-            data: document
+            data: document,
         });
     } catch (error) {
         console.error("Error updating barangay clearance status:", error);
@@ -247,16 +255,20 @@ export const updateBarangayClearanceStatus = async (req, res, next) => {
 
 export const updateBarangayIndigencyStatus = async (req, res, next) => {
     try {
+        const { status, secretaryName } = req.body;
+        const approver = secretaryName || req.user.name;
+
         const document = await updateDocumentStatus(
             BarangayIndigency,
             "Barangay Indigency",
             req.params.id,
-            req.body.status
+            status,
+            approver
         );
 
         res.status(200).json({
             success: true,
-            data: document
+            data: document,
         });
     } catch (error) {
         console.error("Error updating barangay indigency status:", error);
@@ -277,7 +289,7 @@ export const createBusinessClearance = async (req, res, next) => {
         res.status(201).json({
             success: true,
             message: "Business clearance request created successfully",
-            data: document
+            data: document,
         });
     } catch (error) {
         console.error("Error creating business clearance:", error);
@@ -287,17 +299,12 @@ export const createBusinessClearance = async (req, res, next) => {
 
 export const createCedula = async (req, res, next) => {
     try {
-        const document = await createDocumentRequest(
-            Cedula,
-            "Cedula",
-            req.body,
-            req.user.barangay
-        );
+        const document = await createDocumentRequest(Cedula, "Cedula", req.body, req.user.barangay);
 
         res.status(201).json({
             success: true,
             message: "Cedula request created successfully",
-            data: document
+            data: document,
         });
     } catch (error) {
         console.error("Error creating cedula request:", error);
@@ -307,16 +314,20 @@ export const createCedula = async (req, res, next) => {
 
 export const updateBusinessClearanceStatus = async (req, res, next) => {
     try {
+        const { status, secretaryName } = req.body;
+        const approver = secretaryName || req.user.name;
+
         const document = await updateDocumentStatus(
             BusinessClearance,
             "Business Clearance",
             req.params.id,
-            req.body.status
+            status,
+            approver
         );
 
         res.status(200).json({
             success: true,
-            data: document
+            data: document,
         });
     } catch (error) {
         console.error("Error updating business clearance status:", error);
@@ -326,16 +337,20 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
 
 export const updateCedulaStatus = async (req, res, next) => {
     try {
+        const { status, secretaryName } = req.body;
+        const approver = secretaryName || req.user.name;
+
         const document = await updateDocumentStatus(
             Cedula,
             "Cedula",
             req.params.id,
-            req.body.status
+            status,
+            approver
         );
 
         res.status(200).json({
             success: true,
-            data: document
+            data: document,
         });
     } catch (error) {
         console.error("Error updating cedula status:", error);
@@ -347,7 +362,7 @@ export const updateCedulaStatus = async (req, res, next) => {
 export const getUserDocumentRequests = async (req, res, next) => {
     try {
         // Extract user info from the authenticated request
-        const userId = req.user.id;  // Get the user ID
+        const userId = req.user.id; // Get the user ID
         const userEmail = req.user.email;
         const { barangay } = req.user;
 
@@ -358,10 +373,7 @@ export const getUserDocumentRequests = async (req, res, next) => {
         // Create base query with both userId and email
         const baseQuery = {
             barangay,
-            $or: [
-                { userId: userId },
-                { email: userEmail }
-            ]
+            $or: [{ userId: userId }, { email: userEmail }],
         };
 
         // Update queries to use both userId and email
@@ -369,32 +381,32 @@ export const getUserDocumentRequests = async (req, res, next) => {
             BarangayClearance.find(baseQuery).sort({ createdAt: -1 }),
             BarangayIndigency.find(baseQuery).sort({ createdAt: -1 }),
             BusinessClearance.find(baseQuery).sort({ createdAt: -1 }),
-            Cedula.find(baseQuery).sort({ createdAt: -1 })
+            Cedula.find(baseQuery).sort({ createdAt: -1 }),
         ]);
 
         // Combine and format all requests
         const allRequests = [
-            ...clearances.map(doc => ({
+            ...clearances.map((doc) => ({
                 ...doc.toObject(),
-                documentType: 'Barangay Clearance'
+                documentType: "Barangay Clearance",
             })),
-            ...indigency.map(doc => ({
+            ...indigency.map((doc) => ({
                 ...doc.toObject(),
-                documentType: 'Barangay Indigency'
+                documentType: "Barangay Indigency",
             })),
-            ...business.map(doc => ({
+            ...business.map((doc) => ({
                 ...doc.toObject(),
-                documentType: 'Business Clearance'
+                documentType: "Business Clearance",
             })),
-            ...cedulas.map(doc => ({
+            ...cedulas.map((doc) => ({
                 ...doc.toObject(),
-                documentType: 'Cedula'
-            }))
+                documentType: "Cedula",
+            })),
         ];
 
         // Sort by creation date
-        const sortedRequests = allRequests.sort((a, b) =>
-            new Date(b.createdAt) - new Date(a.createdAt)
+        const sortedRequests = allRequests.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
 
         // Apply pagination
@@ -407,8 +419,8 @@ export const getUserDocumentRequests = async (req, res, next) => {
                 total: allRequests.length,
                 page,
                 limit,
-                totalPages: Math.ceil(allRequests.length / limit)
-            }
+                totalPages: Math.ceil(allRequests.length / limit),
+            },
         });
     } catch (error) {
         next(error);
@@ -424,37 +436,36 @@ export const getDocumentRequestById = async (req, res, next) => {
 
         let document;
         switch (type.toLowerCase()) {
-            case 'clearance':
+            case "clearance":
                 document = await BarangayClearance.findOne({ _id: id, userId, barangay });
                 break;
-            case 'indigency':
+            case "indigency":
                 document = await BarangayIndigency.findOne({ _id: id, userId, barangay });
                 break;
-            case 'business':
+            case "business":
                 document = await BusinessClearance.findOne({ _id: id, userId, barangay });
                 break;
-            case 'cedula':
+            case "cedula":
                 document = await Cedula.findOne({ _id: id, userId, barangay });
                 break;
             default:
                 return res.status(400).json({
                     success: false,
-                    message: "Invalid document type"
+                    message: "Invalid document type",
                 });
         }
 
         if (!document) {
             return res.status(404).json({
                 success: false,
-                message: "Document request not found"
+                message: "Document request not found",
             });
         }
 
         res.status(200).json({
             success: true,
-            data: document
+            data: document,
         });
-
     } catch (error) {
         console.error("Error fetching document request:", error);
         next(error);

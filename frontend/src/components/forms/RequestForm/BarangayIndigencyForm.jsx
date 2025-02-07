@@ -26,11 +26,12 @@ export default function BarangayIndigencyForm({ onSubmit, initialData, onDataCha
     } = useForm({
         resolver: zodResolver(barangayIndigencySchema),
         defaultValues: {
+            userId: currentUser?._id || "",
             name: currentUser?.name || "",
+            email: currentUser?.email || "",
             barangay: currentUser?.barangay || "",
             contactNumber: currentUser?.contactNumber || "",
             purpose: initialData?.purpose || "",
-
         },
     });
 
@@ -43,8 +44,11 @@ export default function BarangayIndigencyForm({ onSubmit, initialData, onDataCha
     // Update form when user changes
     useEffect(() => {
         if (currentUser) {
+            setValue("userId", currentUser._id || "");
             setValue("name", currentUser.name || "");
+            setValue("email", currentUser.email || "");
             setValue("barangay", currentUser.barangay || "");
+            setValue("contactNumber", currentUser.contactNumber || "");
         }
     }, [currentUser, setValue]);
 
@@ -57,12 +61,22 @@ export default function BarangayIndigencyForm({ onSubmit, initialData, onDataCha
 
     const handleFormSubmit = (data) => {
         console.log("Submitting indigency form with data:", data);
-        onSubmit(data, "barangay-indigency");
+        onSubmit(
+            {
+                ...data,
+                userId: currentUser._id,
+                email: currentUser.email,
+            },
+            "barangay-indigency"
+        );
     };
 
     return (
         <form id="document-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
+                <input type="hidden" {...register("userId")} />
+                <input type="hidden" {...register("email")} />
+
                 <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
                     <Input

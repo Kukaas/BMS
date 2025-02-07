@@ -1,15 +1,18 @@
 import BarangayIndigency from "../models/barangay.indigency.model.js";
-import { createNotification } from "../utils/notifications.js";
+import {
+    createNotification,
+    sendNotificationToBarangaySecretaries,
+} from "../utils/notifications.js";
 import User from "../models/user.model.js";
 import { createLog } from "./log.controller.js";
+import { createTransactionHistory } from "./transaction.history.controller.js";
 
 export const createBarangayIndigency = async (req, res, next) => {
     try {
-        const { name, barangay, contactNumber, purpose } = req.body;
-        const user = req.user;
+        const { userId, name, email, purpose, contactNumber } = req.body;
+        const userBarangay = req.user.barangay;
 
-        // Validate required fields
-        if (!name || !barangay || !contactNumber || !purpose) {
+        if (!name || !email || !purpose || !contactNumber) {
             return res.status(400).json({
                 success: false,
                 message: "Please provide all required fields",
@@ -17,51 +20,58 @@ export const createBarangayIndigency = async (req, res, next) => {
         }
 
         const barangayIndigency = new BarangayIndigency({
-            userId: user.id,
+            userId,
             name,
-            email: user.email,
-            barangay,
-            contactNumber,
+            email,
+            barangay: userBarangay,
             purpose,
+            contactNumber,
         });
 
-        await createLog(user.id, "Barangay Indigency Request", "Barangay Indigency", `${name} has requested a barangay indigency for ${purpose}`);
+        await createLog(
+            userId,
+            "Barangay Indigency Request",
+            "Barangay Indigency",
+            `${name} has requested a barangay indigency for ${purpose}`
+        );
 
-        await barangayIndigency.save();
+        const savedIndigency = await barangayIndigency.save();
 
-        // Create notification for barangay staff
+        // Create transaction history with proper object structure
+        const transactionData = {
+            userId: req.user.id,
+            transactionId: savedIndigency._id,
+            residentName: name,
+            requestedDocument: "Barangay Indigency",
+            dateRequested: new Date(),
+            barangay: userBarangay,
+            action: "created",
+            status: "Pending",
+        };
+
+        console.log("Transaction data:", transactionData); // Debug log
+        await createTransactionHistory(transactionData);
+
+        // Create and send notification to secretaries
         const staffNotification = createNotification(
-            "New Indigency Request",
-            `A new indigency request has been submitted by ${name} for ${purpose}.`,
+            "New Barangay Indigency Request",
+            `${name} has requested a barangay indigency for ${purpose}`,
             "request",
-            barangayIndigency._id,
+            savedIndigency._id,
             "BarangayIndigency"
         );
 
-        // Find and notify all secretaries and chairman in the same barangay
-        const barangayStaff = await User.find({
-            barangay,
-            role: { $in: ["secretary", "chairman"] },
-            isActive: true, // Only notify active staff
-        });
-
-        // Send notifications to all barangay staff
-        const notificationPromises = barangayStaff.map((staff) =>
-            User.findByIdAndUpdate(staff._id, {
-                $push: { notifications: staffNotification },
-                $inc: { unreadNotifications: 1 },
-            })
-        );
-
-        await Promise.all(notificationPromises);
+        // Send notification to secretaries of the user's barangay
+        await sendNotificationToBarangaySecretaries(userBarangay, staffNotification);
 
         res.status(201).json({
             success: true,
-            message: "Barangay Indigency request submitted successfully",
-            data: barangayIndigency,
+            message: "Barangay indigency request created successfully",
+            data: savedIndigency,
         });
     } catch (error) {
-        next(error);
+        console.error("Error creating barangay indigency:", error);
+        res.status(500).json({ message: "Error creating barangay indigency" });
     }
 };
 
@@ -75,7 +85,7 @@ export const verifyBarangayIndigency = async (req, res, next) => {
         if (!["secretary", "chairman"].includes(req.user.role)) {
             return res.status(403).json({
                 success: false,
-                message: "Not authorized to verify indigency requests"
+                message: "Not authorized to verify indigency requests",
             });
         }
 
@@ -83,13 +93,13 @@ export const verifyBarangayIndigency = async (req, res, next) => {
         if (!["Pending", "Approved", "Rejected"].includes(status)) {
             return res.status(400).json({
                 success: false,
-                message: "Invalid status value"
+                message: "Invalid status value",
             });
         }
 
         const barangayIndigency = await BarangayIndigency.findOne({
             _id: id,
-            barangay // Ensure the document belongs to secretary's barangay
+            barangay, // Ensure the document belongs to secretary's barangay
         });
 
         if (!barangayIndigency) {
@@ -110,7 +120,9 @@ export const verifyBarangayIndigency = async (req, res, next) => {
         // Create status update notification for other staff members
         const staffNotification = createNotification(
             "Indigency Request Updated",
-            `An indigency request from ${barangayIndigency.name} has been ${status.toLowerCase()} by ${secretaryName}`,
+            `An indigency request from ${
+                barangayIndigency.name
+            } has been ${status.toLowerCase()} by ${secretaryName}`,
             "status_update",
             barangayIndigency._id,
             "BarangayIndigency"
@@ -121,14 +133,14 @@ export const verifyBarangayIndigency = async (req, res, next) => {
             barangay: barangayIndigency.barangay,
             role: { $in: ["secretary", "chairman"] },
             _id: { $ne: req.user.id }, // Exclude the current user
-            isActive: true
+            isActive: true,
         });
 
         // Send notifications to other staff members
-        const notificationPromises = otherStaff.map(staff =>
+        const notificationPromises = otherStaff.map((staff) =>
             User.findByIdAndUpdate(staff._id, {
                 $push: { notifications: staffNotification },
-                $inc: { unreadNotifications: 1 }
+                $inc: { unreadNotifications: 1 },
             })
         );
 

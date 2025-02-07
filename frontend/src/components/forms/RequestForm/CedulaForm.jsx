@@ -26,9 +26,13 @@ export default function CedulaForm({ onSubmit, initialData, onDataChange }) {
     } = useForm({
         resolver: zodResolver(cedulaSchema),
         defaultValues: {
+            userId: currentUser?._id || "",
             name: currentUser?.name || "",
+            email: currentUser?.email || "",
             barangay: currentUser?.barangay || "",
-            dateOfBirth: currentUser?.dateOfBirth ? new Date(currentUser.dateOfBirth).toISOString().split('T')[0] : "",
+            dateOfBirth: currentUser?.dateOfBirth
+                ? new Date(currentUser.dateOfBirth).toISOString().split("T")[0]
+                : "",
             placeOfBirth: initialData?.placeOfBirth || "",
             civilStatus: initialData?.civilStatus || "",
             occupation: initialData?.occupation || "",
@@ -47,10 +51,15 @@ export default function CedulaForm({ onSubmit, initialData, onDataChange }) {
     // Update form when user changes
     useEffect(() => {
         if (currentUser) {
+            setValue("userId", currentUser._id || "");
             setValue("name", currentUser.name || "");
+            setValue("email", currentUser.email || "");
             setValue("barangay", currentUser.barangay || "");
             if (currentUser.dateOfBirth) {
-                setValue("dateOfBirth", new Date(currentUser.dateOfBirth).toISOString().split('T')[0]);
+                setValue(
+                    "dateOfBirth",
+                    new Date(currentUser.dateOfBirth).toISOString().split("T")[0]
+                );
             }
         }
     }, [currentUser, setValue]);
@@ -64,12 +73,23 @@ export default function CedulaForm({ onSubmit, initialData, onDataChange }) {
 
     const handleFormSubmit = (data) => {
         console.log("CedulaForm - Submitting data:", data);
-        onSubmit(data, "cedula");
+        onSubmit(
+            {
+                ...data,
+                userId: currentUser._id,
+                email: currentUser.email,
+            },
+            "cedula"
+        );
     };
 
     return (
         <form id="document-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
+                {/* Hidden fields for userId and email */}
+                <input type="hidden" {...register("userId")} />
+                <input type="hidden" {...register("email")} />
+
                 {/* Personal Information */}
                 <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>

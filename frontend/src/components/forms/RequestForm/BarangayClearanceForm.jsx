@@ -32,7 +32,7 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
             barangay: currentUser?.barangay || "",
             purpose: initialData?.purpose || "",
             contactNumber: currentUser?.contactNumber || "",
-            dateOfBirth: currentUser?.dateOfBirth?.split('T')[0] || "",
+            dateOfBirth: currentUser?.dateOfBirth?.split("T")[0] || "",
         },
     });
 
@@ -45,17 +45,25 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
     // Update form when user changes
     useEffect(() => {
         if (currentUser) {
+            setValue("userId", currentUser._id || "");
             setValue("name", currentUser.name || "");
             setValue("email", currentUser.email || "");
             setValue("barangay", currentUser.barangay || "");
             setValue("contactNumber", currentUser.contactNumber || "");
-            setValue("dateOfBirth", currentUser.dateOfBirth?.split('T')[0] || "");
+            setValue("dateOfBirth", currentUser.dateOfBirth?.split("T")[0] || "");
         }
     }, [currentUser, setValue]);
 
     const handleFormSubmit = (data) => {
         console.log("Submitting clearance form with data:", data);
-        onSubmit(data, "barangay-clearance");
+        onSubmit(
+            {
+                ...data,
+                userId: currentUser._id,
+                email: currentUser.email,
+            },
+            "barangay-clearance"
+        );
     };
 
     const handlePurposeChange = useCallback(
@@ -68,6 +76,10 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
     return (
         <form id="document-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
+                {/* Hidden fields for userId and email */}
+                <input type="hidden" {...register("userId")} />
+                <input type="hidden" {...register("email")} />
+
                 <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
                     <Input
@@ -78,17 +90,7 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
                     />
                     {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        {...register("email")}
-                        defaultValue={currentUser?.email || ""}
-                        readOnly
-                    />
-                    {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
-                </div>
+
                 <div className="space-y-2">
                     <Label htmlFor="barangay">Barangay</Label>
                     <Input
@@ -101,6 +103,7 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
                         <p className="text-red-500 text-sm">{errors.barangay.message}</p>
                     )}
                 </div>
+
                 <div className="space-y-2">
                     <Label htmlFor="purpose">Purpose</Label>
                     <Select onValueChange={handlePurposeChange}>
@@ -122,6 +125,7 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
                         <p className="text-red-500 text-sm">{errors.purpose.message}</p>
                     )}
                 </div>
+
                 <div className="space-y-2">
                     <Label htmlFor="contactNumber">Contact Number</Label>
                     <Input
@@ -134,13 +138,14 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
                         <p className="text-red-500 text-sm">{errors.contactNumber.message}</p>
                     )}
                 </div>
+
                 <div className="space-y-2">
                     <Label htmlFor="dateOfBirth">Date of Birth</Label>
                     <Input
                         id="dateOfBirth"
                         type="date"
                         {...register("dateOfBirth")}
-                        defaultValue={currentUser?.dateOfBirth?.split('T')[0] || ""}
+                        defaultValue={currentUser?.dateOfBirth?.split("T")[0] || ""}
                         readOnly
                         className="h-11 bg-gray-50"
                     />
