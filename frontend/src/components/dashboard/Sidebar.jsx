@@ -115,7 +115,6 @@ export function Sidebar() {
         }
     };
 
-
     return (
         <motion.div
             className={cn(
@@ -218,18 +217,33 @@ export function Sidebar() {
                             </Tooltip>
                         </TooltipProvider>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+                    <AlertDialogContent className="bg-white max-w-md w-[90%] sm:w-[400px] p-6">
+                        <AlertDialogHeader className="space-y-3">
+                            <AlertDialogTitle className="text-xl font-semibold">
+                                Confirm Logout
+                            </AlertDialogTitle>
+                            <p className="text-gray-500 text-sm">
+                                Are you sure you want to logout? You will need to sign in again to
+                                access your account.
+                            </p>
                         </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogFooter className="mt-4">
+                            <AlertDialogCancel className="border-gray-200 hover:bg-gray-100 hover:text-gray-900">
+                                Cancel
+                            </AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={handleLogout}
                                 disabled={loggingOut}
-                                className="bg-red-500 hover:bg-red-600"
+                                className="bg-red-500 hover:bg-red-600 text-white focus:ring-red-500"
                             >
-                                {loggingOut ? "Logging out..." : "Yes, Logout"}
+                                {loggingOut ? (
+                                    <>
+                                        <span className="animate-pulse">Logging out</span>
+                                        <span className="ml-1 animate-pulse">...</span>
+                                    </>
+                                ) : (
+                                    "Logout"
+                                )}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
