@@ -80,20 +80,41 @@ export function DocumentRequestSecretary() {
         }
     }, [currentUser, currentPage, pageSize]); // Add pagination dependencies
 
+    // Add this function to normalize status values
+    const normalizeStatus = (status) => {
+        const statusMap = {
+            pending: "Pending",
+            approved: "Approved",
+            completed: "Completed",
+            rejected: "Rejected",
+        };
+        return statusMap[status.toLowerCase()] || status;
+    };
+
     const handleStatusChange = async (requestId, requestType, newStatus) => {
         try {
             setUpdating(true);
             // Convert document type to route format
             const typeSlug = requestType.toLowerCase().replace(/\s+/g, "-");
 
+            // Normalize the status value
+            const normalizedStatus = normalizeStatus(newStatus);
+
+            console.log("Updating status with:", {
+                requestId,
+                typeSlug,
+                status: normalizedStatus,
+                secretaryName: currentUser.name,
+            });
+
             const res = await api.patch(`/document-requests/${typeSlug}/${requestId}/status`, {
-                status: newStatus,
+                status: normalizedStatus,
+                secretaryName: currentUser.name,
             });
 
             if (res.data.success) {
-                // Refresh the requests after status update
                 await fetchRequests();
-                toast.success("Status updated successfully");
+                toast.success("Status and transaction history updated successfully");
             }
         } catch (error) {
             console.error("Error updating status:", error);
@@ -120,17 +141,18 @@ export function DocumentRequestSecretary() {
         }
     };
 
-    // Add this function to determine available statuses
+    // Update getAvailableStatuses to use consistent casing
     const getAvailableStatuses = (currentStatus) => {
-        switch (currentStatus) {
+        const normalizedStatus = normalizeStatus(currentStatus);
+        switch (normalizedStatus) {
             case "Pending":
                 return ["Pending", "Approved", "Rejected"];
             case "Approved":
-                return ["Approved", "Completed"]; // Only allow Completed when Approved
+                return ["Approved", "Completed"];
             case "Completed":
-                return []; // No status changes allowed
+                return [];
             case "Rejected":
-                return []; // No status changes allowed
+                return [];
             default:
                 return ["Pending", "Approved", "Completed", "Rejected"];
         }

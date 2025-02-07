@@ -1,59 +1,56 @@
 import mongoose from "mongoose";
 
-const cedulaSchema = new mongoose.Schema(
+const transactionHistorySchema = new mongoose.Schema(
     {
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,
         },
-        name: {
+        transactionId: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
+        },
+        residentName: {
             type: String,
             required: true,
         },
-        dateOfBirth: {
+        requestedDocument: {
             type: String,
             required: true,
         },
-        placeOfBirth: {
-            type: String,
+        dateRequested: {
+            type: Date,
             required: true,
+        },
+        dateApproved: {
+            type: Date,
+        },
+        dateCompleted: {
+            type: Date,
         },
         barangay: {
             type: String,
             required: true,
         },
-        civilStatus: {
+        action: {
             type: String,
-            enum: ["Single", "Married", "Widowed", "Separated"],
-            required: true,
-        },
-        occupation: {
-            type: String,
-            required: true,
-        },
-        employerName: String,
-        employerAddress: String,
-        tax: {
-            type: Number,
             required: true,
         },
         status: {
             type: String,
             enum: ["Pending", "Approved", "Completed", "Rejected"],
-            default: "Pending",
+            required: true,
         },
-        dateApproved: {
-            type: Date,
-            default: null,
+        approvedBy: {
+            type: String,
         },
-        dateCompleted: {
+        timestamp: {
             type: Date,
-            default: null,
+            default: Date.now,
         },
     },
     { timestamps: true }
 );
 
-const Cedula = mongoose.model("Cedula", cedulaSchema);
-export default Cedula;
+export default mongoose.model("TransactionHistory", transactionHistorySchema);

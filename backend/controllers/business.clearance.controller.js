@@ -2,6 +2,7 @@ import BusinessClearance from "../models/business.clearance.model.js";
 import { createNotification } from "../utils/notifications.js";
 import User from "../models/user.model.js";
 import { createLog } from "./log.controller.js";
+import { createTransactionHistory } from "./transaction.history.controller.js";
 
 export const createBusinessClearance = async (req, res, next) => {
     try {
@@ -68,6 +69,17 @@ export const createBusinessClearance = async (req, res, next) => {
             "Business Clearance",
             `${ownerName} has requested a business clearance for ${businessName}`
         );
+
+        await createTransactionHistory({
+            userId: req.user.id,
+            transactionId: businessClearanceRequest._id,
+            residentName: ownerName,
+            requestedDocument: "Business Clearance",
+            dateRequested: new Date(),
+            barangay,
+            action: "created",
+            status: "Pending",
+        });
 
         await businessClearanceRequest.save();
 
@@ -171,7 +183,9 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
         // Create status update notification with secretary info
         const statusNotification = createNotification(
             "Business Clearance Status Update",
-            `Your business clearance request for ${businessClearance.businessName} has been ${status.toLowerCase()} by ${secretaryName}`,
+            `Your business clearance request for ${
+                businessClearance.businessName
+            } has been ${status.toLowerCase()} by ${secretaryName}`,
             "status_update",
             businessClearance._id,
             "BusinessClearance"
@@ -181,7 +195,7 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
         if (businessClearance.userId) {
             await User.findByIdAndUpdate(businessClearance.userId, {
                 $push: { notifications: statusNotification },
-                $inc: { unreadNotifications: 1 }
+                $inc: { unreadNotifications: 1 },
             });
         }
 

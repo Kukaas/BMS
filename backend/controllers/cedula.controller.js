@@ -2,38 +2,74 @@ import Cedula from "../models/cedula.model.js";
 import { createNotification } from "../utils/notifications.js";
 import User from "../models/user.model.js";
 import { createLog } from "./log.controller.js";
+import { createTransactionHistory } from "./transaction.history.controller.js";
 
-export const createCedula = async (req, res, next) => {
+export const createCedula = async (req, res) => {
     try {
-        const newCedula = new Cedula({
-            ...req.body,
-            userId: req.user.id,
-            status: "Pending",
+        const {
+            userId,
+            name,
+            email,
+            dateOfBirth,
+            placeOfBirth,
+            civilStatus,
+            occupation,
+            employerName,
+            employerAddress,
+            tax,
+        } = req.body;
+
+        const userBarangay = req.user.barangay;
+
+        const cedula = new Cedula({
+            userId,
+            name,
+            email,
+            dateOfBirth,
+            placeOfBirth,
+            civilStatus,
+            occupation,
+            employerName,
+            employerAddress,
+            tax,
+            barangay: userBarangay,
         });
 
-        await createLog(
-            req.user.id,
-            "Cedula Request",
-            "Cedula",
-            `${req.body.name} has requested a cedula`
-        );
+        const savedCedula = await cedula.save();
 
-        await newCedula.save();
+        // Create transaction history
+        const transactionData = {
+            userId: req.user.id,
+            transactionId: savedCedula._id,
+            residentName: name,
+            requestedDocument: "Cedula",
+            dateRequested: new Date(),
+            barangay: userBarangay,
+            action: "created",
+            status: "Pending",
+        };
+
+        console.log("Creating cedula transaction history with data:", transactionData);
+        await createTransactionHistory(transactionData);
+
+        // Create log entry
+        await createLog(userId, "Cedula Request", "Cedula", `${name} has requested a cedula`);
 
         // Create notifications for both user and staff
+
         const userNotification = createNotification(
             "Cedula Request Created",
             "Your cedula request has been submitted successfully.",
             "request",
-            newCedula._id,
+            savedCedula._id,
             "Cedula"
         );
 
         const staffNotification = createNotification(
             "New Cedula Request",
-            `A new cedula request has been submitted by ${req.body.name}.`,
+            `A new cedula request has been submitted by ${name}.`,
             "request",
-            newCedula._id,
+            savedCedula._id,
             "Cedula"
         );
 
@@ -58,10 +94,11 @@ export const createCedula = async (req, res, next) => {
         res.status(201).json({
             success: true,
             message: "Cedula request created successfully",
-            data: newCedula,
+            data: savedCedula,
         });
     } catch (error) {
-        next(error);
+        console.error("Error creating cedula:", error);
+        res.status(500).json({ message: "Error creating cedula request" });
     }
 };
 
@@ -109,7 +146,7 @@ export const updateCedulaStatus = async (req, res, next) => {
         if (!cedula) {
             return res.status(404).json({
                 success: false,
-                message: "Cedula request not found"
+                message: "Cedula request not found",
             });
         }
 
@@ -134,7 +171,7 @@ export const updateCedulaStatus = async (req, res, next) => {
         if (cedula.userId) {
             await User.findByIdAndUpdate(cedula.userId, {
                 $push: { notifications: statusNotification },
-                $inc: { unreadNotifications: 1 }
+                $inc: { unreadNotifications: 1 },
             });
         }
 

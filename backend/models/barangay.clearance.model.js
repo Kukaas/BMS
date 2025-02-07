@@ -37,8 +37,16 @@ const barangayClearanceSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ["Pending", "Approved", "Rejected"],
+            enum: ["Pending", "Approved", "Completed", "Rejected"],
             default: "Pending",
+        },
+        dateApproved: {
+            type: Date,
+            default: null,
+        },
+        dateCompleted: {
+            type: Date,
+            default: null,
         },
     },
     { timestamps: true }
