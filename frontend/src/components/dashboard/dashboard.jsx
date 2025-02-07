@@ -38,6 +38,7 @@ import RegisterBarangayUserPage from "@/pages/RegisterBarangayUser";
 import { UserList } from "./secretary/UserList";
 import SuperAdminLogViewerPage from "@/pages/SuperAdminLogsPage";
 import { UserManagementDashboard } from "./superAdmin/AllUsers";
+import TransactionHistoryPage from "@/pages/Transaction";
 
 const componentMap = {
     overview: Overview,
@@ -53,6 +54,7 @@ const componentMap = {
     blotterreports: SecretaryBlotterDashboard,
     register: RegisterBarangayUserPage,
     logs: SuperAdminLogViewerPage,
+    transactions: TransactionHistoryPage,
     // settings: Settings,
     // help: Help,
 };
@@ -83,90 +85,137 @@ function Dashboard({ tab }) {
         }
     };
 
+    // Separate menu items for different roles
+    const superAdminItems = [
+        {
+            icon: LayoutDashboard,
+            label: "Overview",
+            href: "/dashboard?tab=overview",
+        },
+        {
+            icon: User2Icon,
+            label: "Register",
+            href: "/dashboard?tab=register",
+        },
+        {
+            icon: Users,
+            label: "All Users",
+            href: "/dashboard?tab=allusers",
+        },
+        {
+            icon: FileText,
+            label: "Logs",
+            href: "/dashboard?tab=logs",
+        },
+        {
+            icon: Users,
+            label: "Transactions",
+            href: "/dashboard?tab=transactions",
+        },
+    ];
+
+    const userItems = [
+        {
+            icon: LayoutDashboard,
+            label: "Overview",
+            href: "/dashboard?tab=overview",
+        },
+        {
+            icon: Mail,
+            label: "Requests",
+            href: "/dashboard?tab=requests",
+        },
+        {
+            icon: FileText,
+            label: "Incident reports",
+            href: "/dashboard?tab=reports",
+        },
+        {
+            icon: FileText,
+            label: "Blotter Report",
+            href: "/dashboard?tab=blotter",
+        },
+        {
+            icon: Settings,
+            label: "Settings",
+            href: "/dashboard?tab=settings",
+        },
+    ];
+
+    const chairmanItems = [
+        {
+            icon: LayoutDashboard,
+            label: "Overview",
+            href: "/dashboard?tab=overview",
+        },
+        {
+            icon: Users,
+            label: "Users",
+            href: "/dashboard?tab=users",
+        },
+        {
+            icon: Mail,
+            label: "Request",
+            href: "/dashboard?tab=requestdocs",
+        },
+        {
+            icon: FileText,
+            label: "Incident Report",
+            href: "/dashboard?tab=incidents",
+        },
+        {
+            icon: FileText,
+            label: "Blotter Report",
+            href: "/dashboard?tab=blotterreports",
+        },
+        {
+            icon: Users,
+            label: "Residents",
+            href: "/dashboard?tab=residents",
+        },
+        {
+            icon: Users,
+            label: "Transactions",
+            href: "/dashboard?tab=transactions",
+        },
+    ];
+
+    const secretaryItems = [
+        {
+            icon: LayoutDashboard,
+            label: "Overview",
+            href: "/dashboard?tab=overview",
+        },
+        {
+            icon: Mail,
+            label: "Request",
+            href: "/dashboard?tab=requestdocs",
+        },
+        {
+            icon: FileText,
+            label: "Incident Report",
+            href: "/dashboard?tab=incidents",
+        },
+        {
+            icon: FileText,
+            label: "Blotter Report",
+            href: "/dashboard?tab=blotterreports",
+        },
+        {
+            icon: Users,
+            label: "Residents",
+            href: "/dashboard?tab=residents",
+        },
+    ];
+
     const sidebarItems =
         currentUser?.role === "superAdmin"
-            ? [
-                  {
-                      icon: LayoutDashboard,
-                      label: "Overview",
-                      href: "/dashboard?tab=overview",
-                  },
-                  {
-                      icon: User2Icon,
-                      label: "Register",
-                      href: "/dashboard?tab=register",
-                  },
-                  {
-                      icon: Users,
-                      label: "All Users",
-                      href: "/dashboard?tab=allusers",
-                  },
-                  {
-                      icon: FileText,
-                      label: "Logs",
-                      href: "/dashboard?tab=logs",
-                  },
-              ]
-            : currentUser?.role === "user"
-              ? [
-                    {
-                        icon: LayoutDashboard,
-                        label: "Overview",
-                        href: "/dashboard?tab=overview",
-                    },
-                    {
-                        icon: Mail,
-                        label: "Requests",
-                        href: "/dashboard?tab=requests",
-                    },
-                    {
-                        icon: FileText,
-                        label: "Incident reports",
-                        href: "/dashboard?tab=reports",
-                    },
-                    {
-                        icon: FileText,
-                        label: "Blotter Report",
-                        href: "/dashboard?tab=blotter",
-                    },
-                    {
-                        icon: Settings,
-                        label: "Settings",
-                        href: "/dashboard?tab=settings",
-                    },
-                ]
-              : [
-                    {
-                        icon: LayoutDashboard,
-                        label: "Overview",
-                        href: "/dashboard?tab=overview",
-                    },
-                    {
-                        icon: Users,
-                        label: "Users",
-                        href: "/dashboard?tab=users",
-                    },
-                    {
-                        icon: Mail,
-                        label: "Request",
-                        href: "/dashboard?tab=requestdocs",
-                    },
-                    {
-                        icon: FileText,
-                        label: "Incident Report",
-                        href: "/dashboard?tab=incidents",
-                    },
-                    {
-                        icon: FileText,
-                        label: "Blotter Report",
-                        href: "/dashboard?tab=blotterreports",
-                    },
-                    {
-                        icon: Users,
-                        label: "Residents",
-                        href: "/dashboard?tab=residents",
-                    },
-                ];
+            ? superAdminItems
+            : currentUser?.role === "chairman"
+              ? chairmanItems
+              : currentUser?.role === "secretary"
+                ? secretaryItems
+                : userItems;
 
     return (
         <SidebarProvider defaultOpen={true}>

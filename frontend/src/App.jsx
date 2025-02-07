@@ -23,16 +23,19 @@ const DashboardWrapper = () => {
     const tab = new URLSearchParams(location.search).get("tab") || "overview";
     const { currentUser } = useSelector((state) => state.user);
 
-    const adminTabs = [
+    const chairmanTabs = [
         "overview",
         "users",
         "requestdocs",
         "incidents",
         "residents",
         "blotterreports",
+        "transactions",
     ];
 
-    const superAdminTabs = ["overview", "register", "allusers", "logs"];
+    const secretaryTabs = ["overview", "requestdocs", "incidents", "residents", "blotterreports"];
+
+    const superAdminTabs = ["overview", "register", "allusers", "logs", "transactions"];
 
     const userTabs = ["overview", "requests", "reports", "blotter", "settings"];
 
@@ -40,8 +43,10 @@ const DashboardWrapper = () => {
     let validTabs;
     if (currentUser?.role === "superAdmin") {
         validTabs = superAdminTabs;
-    } else if (isAdminRole(currentUser?.role)) {
-        validTabs = adminTabs;
+    } else if (currentUser?.role === "chairman") {
+        validTabs = chairmanTabs;
+    } else if (currentUser?.role === "secretary") {
+        validTabs = secretaryTabs;
     } else {
         validTabs = userTabs;
     }

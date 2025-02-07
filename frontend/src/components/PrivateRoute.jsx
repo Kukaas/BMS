@@ -23,30 +23,38 @@ const PrivateRoute = () => {
     const tab = new URLSearchParams(location.search).get("tab");
 
     // Define valid tabs for each role
-    const adminTabs = [
+    const chairmanTabs = [
         "overview",
         "users",
         "requestdocs",
         "incidents",
         "residents",
         "blotterreports",
+        "transactions",
     ];
-    const superAdminTabs = ["overview", "register", "allusers", "logs"];
+    const secretaryTabs = ["overview", "requestdocs", "incidents", "residents", "blotterreports"];
+    const superAdminTabs = ["overview", "register", "allusers", "logs", "transactions"];
     const userTabs = ["overview", "requests", "reports", "blotter", "settings"];
 
     // Check if current tab is valid for user's role
     const isValidTab = () => {
-        const isAdmin = currentUser?.role === "chairman" || currentUser?.role === "secretary";
-        const isSuperAdmin = currentUser?.role === "superAdmin";
-        const validTabs = isSuperAdmin ? superAdminTabs : isAdmin ? adminTabs : userTabs;
-        return validTabs.includes(tab);
+        if (!tab) return true;
+
+        switch (currentUser?.role) {
+            case "superAdmin":
+                return superAdminTabs.includes(tab);
+            case "chairman":
+                return chairmanTabs.includes(tab);
+            case "secretary":
+                return secretaryTabs.includes(tab);
+            default:
+                return userTabs.includes(tab);
+        }
     };
 
-    // Get default redirect path based on role
+    // Get default path based on role
     const getDefaultPath = () => {
-        const isAdmin = currentUser?.role === "chairman" || currentUser?.role === "secretary";
-        const isSuperAdmin = currentUser?.role === "superAdmin";
-        return isSuperAdmin || isAdmin ? "/dashboard?tab=overview" : "/dashboard?tab=overview";
+        return "/dashboard?tab=overview";
     };
 
     const handleSessionExpired = () => {
