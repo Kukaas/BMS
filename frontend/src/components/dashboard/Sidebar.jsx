@@ -80,7 +80,6 @@ export function Sidebar() {
                 label: "Overview",
                 href: "/dashboard?tab=overview",
             },
-            { icon: Users, label: "Users", href: "/dashboard?tab=users" },
             {
                 icon: Mail,
                 label: "Request",

@@ -150,11 +150,6 @@ function Dashboard({ tab }) {
             href: "/dashboard?tab=overview",
         },
         {
-            icon: Users,
-            label: "Users",
-            href: "/dashboard?tab=users",
-        },
-        {
             icon: Mail,
             label: "Request",
             href: "/dashboard?tab=requestdocs",
