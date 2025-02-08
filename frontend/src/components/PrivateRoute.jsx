@@ -25,7 +25,6 @@ const PrivateRoute = () => {
     // Define valid tabs for each role
     const chairmanTabs = [
         "overview",
-        "users",
         "requestdocs",
         "incidents",
         "residents",

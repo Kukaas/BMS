@@ -25,7 +25,6 @@ const DashboardWrapper = () => {
 
     const chairmanTabs = [
         "overview",
-        "users",
         "requestdocs",
         "incidents",
         "residents",
