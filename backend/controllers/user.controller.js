@@ -281,11 +281,12 @@ export const getResidentsByBarangay = async (req, res, next) => {
             });
         }
 
-        // Find all users from the same barangay except secretary and chairman
+        // Find all users from the same barangay except superAdmin
         const residents = await User.find({
             barangay,
-            role: "user", // Only get regular users
+            role: { $ne: "superAdmin" },
         })
+
             .select("-password") // Exclude password
             .sort({ createdAt: -1 });
 
