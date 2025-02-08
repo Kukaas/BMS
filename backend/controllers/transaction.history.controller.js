@@ -115,11 +115,12 @@ export const updateTransactionStatus = async (transactionId, updateData) => {
 export const getBarangayTransactionHistory = async (req, res, next) => {
     try {
         const { barangay } = req.params;
-        const transactions = await TransactionHistory.find({ barangay })
-            .sort({ timestamp: -1 })
-            .populate("userId", "username email")
-            .populate("transactionId");
-        res.status(200).json(transactions);
+        const transactions = await TransactionHistory.find({ barangay }).sort({ timestamp: -1 });
+        res.status(200).json({
+            success: true,
+            message: "Transaction history fetched successfully",
+            data: transactions,
+        });
     } catch (error) {
         next(error);
     }
