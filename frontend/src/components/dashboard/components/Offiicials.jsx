@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import AddOfficialForm from "@/components/forms/AddOfficialForm";
+import { Badge as UIBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
-import api from "@/lib/axios";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Dialog,
     DialogContent,
@@ -10,13 +10,13 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import AddOfficialForm from "@/components/forms/AddOfficialForm";
-import { toast } from "sonner";
-import { Eye, Phone, Mail, MapPin, Calendar, Badge, User2 } from "lucide-react";
-import { format } from "date-fns";
 import { Separator } from "@/components/ui/separator";
-import { Badge as UIBadge } from "@/components/ui/badge";
+import api from "@/lib/axios";
+import { format } from "date-fns";
+import { Badge, Calendar, Eye, Mail, MapPin, Phone, User2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { toast } from "sonner";
 
 export default function Officials() {
     const { currentUser } = useSelector((state) => state.user);
@@ -72,7 +72,9 @@ export default function Officials() {
                 <div className="flex justify-between items-center">
                     <div>
                         <CardTitle className="text-2xl">Barangay Officials</CardTitle>
-                        <p className="text-muted-foreground mt-1">Manage and view barangay officials</p>
+                        <p className="text-muted-foreground mt-1">
+                            Manage and view barangay officials
+                        </p>
                     </div>
                     <Dialog open={isOpen} onOpenChange={setIsOpen}>
                         <DialogTrigger asChild>
@@ -162,7 +164,9 @@ export default function Officials() {
                                 <div className="col-span-2 text-center py-12">
                                     <User2 className="h-12 w-12 mx-auto text-muted-foreground/50" />
                                     <p className="mt-4 text-lg font-medium">No officials found</p>
-                                    <p className="text-muted-foreground">Start by adding a new official</p>
+                                    <p className="text-muted-foreground">
+                                        Start by adding a new official
+                                    </p>
                                 </div>
                             )}
                         </div>
@@ -192,10 +196,14 @@ export default function Officials() {
                                     </div>
                                 )}
                                 <div>
-                                    <h3 className="text-2xl font-semibold">{selectedOfficial.name}</h3>
+                                    <h3 className="text-2xl font-semibold">
+                                        {selectedOfficial.name}
+                                    </h3>
                                     <div className="flex items-center mt-2 space-x-2">
                                         <Badge className="h-5 w-5 text-primary/60" />
-                                        <p className="text-lg text-muted-foreground">{selectedOfficial.position}</p>
+                                        <p className="text-lg text-muted-foreground">
+                                            {selectedOfficial.position}
+                                        </p>
                                     </div>
                                     <UIBadge
                                         variant="secondary"
@@ -224,7 +232,7 @@ export default function Officials() {
                                         <div>
                                             <p className="text-sm font-medium">Barangay</p>
                                             <p className="text-muted-foreground">
-                                                {selectedOfficial.barangay || 'Not specified'}
+                                                {selectedOfficial.barangay || "Not specified"}
                                             </p>
                                         </div>
                                     </div>
@@ -235,9 +243,12 @@ export default function Officials() {
                                         <div>
                                             <p className="text-sm font-medium">Added On</p>
                                             <p className="text-muted-foreground">
-                                                {selectedOfficial.createdAt ?
-                                                    format(new Date(selectedOfficial.createdAt), 'PPP') :
-                                                    'Not available'}
+                                                {selectedOfficial.createdAt
+                                                    ? format(
+                                                          new Date(selectedOfficial.createdAt),
+                                                          "PPP"
+                                                      )
+                                                    : "Not available"}
                                             </p>
                                         </div>
                                     </div>

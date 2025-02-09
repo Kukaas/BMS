@@ -1,26 +1,20 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
-import api from "@/lib/axios";
-import {
-    Dialog,
-    DialogContent,
-
-    DialogHeader,
-    DialogTitle,
-
-} from "@/components/ui/dialog";
-import { toast } from "sonner";
-import { Eye, Phone, Mail, MapPin, Calendar, Badge, User2 } from "lucide-react";
-import { format } from "date-fns";
-import { Separator } from "@/components/ui/separator";
 import { Badge as UIBadge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import api from "@/lib/axios";
+import { format } from "date-fns";
+import { Badge, Calendar, Eye, LayoutGrid, List, Mail, MapPin, Phone, User2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function Officials() {
     const [officials, setOfficials] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedOfficial, setSelectedOfficial] = useState(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
 
     const fetchOfficials = async () => {
         try {
@@ -57,6 +51,133 @@ export default function Officials() {
         }
     };
 
+    const renderGridView = () => (
+        <div className="grid grid-cols-2 gap-6 auto-rows-max">
+            {officials?.length > 0 ? (
+                officials.map((official) => (
+                    <Card
+                        key={official._id}
+                        className="overflow-hidden hover:shadow-lg transition-shadow h-[280px]"
+                    >
+                        <div className="p-6 h-full flex flex-col">
+                            <div className="flex flex-col items-center text-center space-y-4 flex-1">
+                                {official.image ? (
+                                    <div className="h-20 w-20 rounded-full overflow-hidden ring-2 ring-primary/10">
+                                        <img
+                                            src={official.image.data}
+                                            alt={official.name}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <User2 className="h-10 w-10 text-primary/60" />
+                                    </div>
+                                )}
+                                <div className="space-y-2">
+                                    <h3 className="font-semibold text-lg">{official.name}</h3>
+                                    <div className="flex items-center justify-center space-x-2">
+                                        <Badge className="h-4 w-4 text-primary/60" />
+                                        <p className="text-muted-foreground">{official.position}</p>
+                                    </div>
+                                    <UIBadge
+                                        variant="secondary"
+                                        className={`mt-1 ${getStatusColor(official.status)}`}
+                                    >
+                                        {official.status}
+                                    </UIBadge>
+                                </div>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                className="w-full mt-4"
+                                onClick={() => handleViewDetails(official)}
+                            >
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Details
+                            </Button>
+                        </div>
+                    </Card>
+                ))
+            ) : (
+                <div className="col-span-2 text-center py-12">
+                    <User2 className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                    <p className="mt-4 text-lg font-medium">No officials found</p>
+                    <p className="text-muted-foreground">Start by adding a new official</p>
+                </div>
+            )}
+        </div>
+    );
+
+    const renderListView = () => (
+        <div className="space-y-4">
+            {officials?.length > 0 ? (
+                officials.map((official) => (
+                    <Card key={official._id} className="hover:shadow-md transition-shadow">
+                        <div className="p-4">
+                            <div className="flex items-center gap-4">
+                                {official.image ? (
+                                    <div className="h-16 w-16 rounded-full overflow-hidden ring-2 ring-primary/10 flex-shrink-0">
+                                        <img
+                                            src={official.image.data}
+                                            alt={official.name}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                        <User2 className="h-8 w-8 text-primary/60" />
+                                    </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="font-semibold text-lg truncate">
+                                                {official.name}
+                                            </h3>
+                                            <div className="flex items-center space-x-2 mt-1">
+                                                <Badge className="h-4 w-4 text-primary/60" />
+                                                <p className="text-muted-foreground">
+                                                    {official.position}
+                                                </p>
+                                                <span className="text-gray-300 mx-2">•</span>
+                                                <p className="text-muted-foreground">
+                                                    {official.barangay}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <UIBadge
+                                                variant="secondary"
+                                                className={getStatusColor(official.status)}
+                                            >
+                                                {official.status}
+                                            </UIBadge>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleViewDetails(official)}
+                                            >
+                                                <Eye className="h-4 w-4 mr-2" />
+                                                View
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                ))
+            ) : (
+                <div className="text-center py-12">
+                    <User2 className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                    <p className="mt-4 text-lg font-medium">No officials found</p>
+                    <p className="text-muted-foreground">Start by adding a new official</p>
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <Card className="col-span-3 sticky top-4">
             <CardHeader className="bg-white border-b">
@@ -67,9 +188,26 @@ export default function Officials() {
                             Officials of all barangays in Gasan
                         </p>
                     </div>
+                    <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className={`px-3 ${viewMode === "grid" ? "bg-white shadow-sm" : ""}`}
+                            onClick={() => setViewMode("grid")}
+                        >
+                            <LayoutGrid className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className={`px-3 ${viewMode === "list" ? "bg-white shadow-sm" : ""}`}
+                            onClick={() => setViewMode("list")}
+                        >
+                            <List className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
             </CardHeader>
-
 
             <div className="overflow-auto h-[32rem]">
                 <CardContent className="p-6">
@@ -80,66 +218,10 @@ export default function Officials() {
                                 <div className="h-4 w-48 bg-gray-200 rounded" />
                             </div>
                         </div>
+                    ) : viewMode === "grid" ? (
+                        renderGridView()
                     ) : (
-                        <div className="grid grid-cols-2 gap-6 auto-rows-max">
-                            {officials?.length > 0 ? (
-                                officials.map((official) => (
-                                    <Card
-                                        key={official._id}
-                                        className="overflow-hidden hover:shadow-lg transition-shadow h-[280px]"
-                                    >
-                                        <div className="p-6 h-full flex flex-col">
-                                            <div className="flex flex-col items-center text-center space-y-4 flex-1">
-                                                {official.image ? (
-                                                    <div className="h-20 w-20 rounded-full overflow-hidden ring-2 ring-primary/10">
-                                                        <img
-                                                            src={official.image.data}
-                                                            alt={official.name}
-                                                            className="h-full w-full object-cover"
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
-                                                        <User2 className="h-10 w-10 text-primary/60" />
-                                                    </div>
-                                                )}
-                                                <div className="space-y-2">
-                                                    <h3 className="font-semibold text-lg">
-                                                        {official.name}
-                                                    </h3>
-                                                    <div className="flex items-center justify-center space-x-2">
-                                                        <Badge className="h-4 w-4 text-primary/60" />
-                                                        <p className="text-muted-foreground">
-                                                            {official.position}
-                                                        </p>
-                                                    </div>
-                                                    <UIBadge
-                                                        variant="secondary"
-                                                        className={`mt-1 ${getStatusColor(official.status)}`}
-                                                    >
-                                                        {official.status}
-                                                    </UIBadge>
-                                                </div>
-                                            </div>
-                                            <Button
-                                                variant="ghost"
-                                                className="w-full mt-4"
-                                                onClick={() => handleViewDetails(official)}
-                                            >
-                                                <Eye className="h-4 w-4 mr-2" />
-                                                View Details
-                                            </Button>
-                                        </div>
-                                    </Card>
-                                ))
-                            ) : (
-                                <div className="col-span-2 text-center py-12">
-                                    <User2 className="h-12 w-12 mx-auto text-muted-foreground/50" />
-                                    <p className="mt-4 text-lg font-medium">No officials found</p>
-                                    <p className="text-muted-foreground">Start by adding a new official</p>
-                                </div>
-                            )}
-                        </div>
+                        renderListView()
                     )}
                 </CardContent>
             </div>
@@ -166,10 +248,14 @@ export default function Officials() {
                                     </div>
                                 )}
                                 <div>
-                                    <h3 className="text-2xl font-semibold">{selectedOfficial.name}</h3>
+                                    <h3 className="text-2xl font-semibold">
+                                        {selectedOfficial.name}
+                                    </h3>
                                     <div className="flex items-center mt-2 space-x-2">
                                         <Badge className="h-5 w-5 text-primary/60" />
-                                        <p className="text-lg text-muted-foreground">{selectedOfficial.position}</p>
+                                        <p className="text-lg text-muted-foreground">
+                                            {selectedOfficial.position}
+                                        </p>
                                     </div>
                                     <UIBadge
                                         variant="secondary"
@@ -198,7 +284,7 @@ export default function Officials() {
                                         <div>
                                             <p className="text-sm font-medium">Barangay</p>
                                             <p className="text-muted-foreground">
-                                                {selectedOfficial.barangay || 'Not specified'}
+                                                {selectedOfficial.barangay || "Not specified"}
                                             </p>
                                         </div>
                                     </div>
@@ -209,9 +295,12 @@ export default function Officials() {
                                         <div>
                                             <p className="text-sm font-medium">Added On</p>
                                             <p className="text-muted-foreground">
-                                                {selectedOfficial.createdAt ?
-                                                    format(new Date(selectedOfficial.createdAt), 'PPP') :
-                                                    'Not available'}
+                                                {selectedOfficial.createdAt
+                                                    ? format(
+                                                          new Date(selectedOfficial.createdAt),
+                                                          "PPP"
+                                                      )
+                                                    : "Not available"}
                                             </p>
                                         </div>
                                     </div>
