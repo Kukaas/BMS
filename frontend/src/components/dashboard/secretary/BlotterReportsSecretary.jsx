@@ -28,13 +28,13 @@ const formatDate = (dateStr) => {
 function getStatusColor(status) {
     switch (status?.toLowerCase()) {
         case "pending":
-            return "bg-yellow-500 hover:bg-yellow-600";
+            return "bg-yellow-500 hover:bg-yellow-600 text-white";
         case "under investigation":
-            return "bg-blue-500 hover:bg-blue-600";
+            return "bg-purple-500 hover:bg-purple-600 text-white";
         case "resolved":
-            return "bg-green-500 hover:bg-green-600";
+            return "bg-green-500 hover:bg-green-600 text-white";
         case "closed":
-            return "bg-gray-700 hover:bg-gray-800";
+            return "bg-blue-500 text-white hover:bg-blue-600";
         default:
             return "bg-gray-500 hover:bg-gray-600";
     }
