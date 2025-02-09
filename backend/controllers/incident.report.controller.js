@@ -165,7 +165,7 @@ export const updateIncidentStatus = async (req, res, next) => {
         // Create status update notification with secretary info
         const statusNotification = createNotification(
             "Incident Report Status Update",
-            `Your incident report status has been updated to ${status} by ${secretaryName}.`,
+            `Your incident report status has been updated to ${status} by your barangay secretary.`,
             "status_update",
             report._id,
             "IncidentReport"
@@ -175,7 +175,7 @@ export const updateIncidentStatus = async (req, res, next) => {
         if (report.userId) {
             await User.findByIdAndUpdate(report.userId, {
                 $push: { notifications: statusNotification },
-                $inc: { unreadNotifications: 1 }
+                $inc: { unreadNotifications: 1 },
             });
         }
 

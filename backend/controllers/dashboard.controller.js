@@ -3,8 +3,8 @@ import BlotterReport from "../models/blotter.report.model.js";
 import IncidentReport from "../models/incident.report.model.js";
 import BarangayClearance from "../models/barangay.clearance.model.js";
 import BusinessClearance from "../models/business.clearance.model.js";
+import BarangayIndigency from "../models/barangay.indigency.model.js";
 import Cedula from "../models/cedula.model.js";
-
 
 export const getAllUsersByBarangay = async (req, res) => {
     try {
@@ -14,7 +14,7 @@ export const getAllUsersByBarangay = async (req, res) => {
         if (!barangay) {
             return res.status(400).json({
                 success: false,
-                message: "Barangay ID is required"
+                message: "Barangay ID is required",
             });
         }
 
@@ -24,14 +24,14 @@ export const getAllUsersByBarangay = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Users fetched successfully",
-            users
+            users,
         });
     } catch (error) {
         console.error("Error fetching users:", error);
         res.status(500).json({
             success: false,
             message: "Error fetching users",
-            error: error.message
+            error: error.message,
         });
     }
 };
@@ -44,7 +44,7 @@ export const getTotalReportsByBarangay = async (req, res) => {
         if (!barangay) {
             return res.status(400).json({
                 success: false,
-                message: "Barangay ID is required"
+                message: "Barangay ID is required",
             });
         }
 
@@ -59,7 +59,7 @@ export const getTotalReportsByBarangay = async (req, res) => {
         console.log(`Barangay ${barangay} reports:`, {
             blotterReports,
             incidentReports,
-            totalReports
+            totalReports,
         });
 
         res.status(200).json({
@@ -68,19 +68,18 @@ export const getTotalReportsByBarangay = async (req, res) => {
             totalReports,
             breakdown: {
                 blotterReports,
-                incidentReports
-            }
+                incidentReports,
+            },
         });
     } catch (error) {
         console.error("Error fetching total reports:", error);
         res.status(500).json({
             success: false,
             message: "Error fetching total reports",
-            error: error.message
+            error: error.message,
         });
     }
 };
-
 
 export const getAllRequestsByBarangay = async (req, res) => {
     try {
@@ -89,7 +88,7 @@ export const getAllRequestsByBarangay = async (req, res) => {
         if (!barangay) {
             return res.status(400).json({
                 success: false,
-                message: "Barangay ID is required"
+                message: "Barangay ID is required",
             });
         }
 
@@ -106,18 +105,18 @@ export const getAllRequestsByBarangay = async (req, res) => {
             breakdown: {
                 barangayClearance,
                 businessClearance,
-                cedula
-            }
+                cedula,
+            },
         });
     } catch (error) {
         console.error("Error fetching total requests:", error);
         res.status(500).json({
             success: false,
             message: "Error fetching total requests",
-            error: error.message
+            error: error.message,
         });
     }
-}
+};
 
 export const getPendingRequestsByBarangay = async (req, res) => {
     try {
@@ -126,7 +125,7 @@ export const getPendingRequestsByBarangay = async (req, res) => {
         if (!barangay) {
             return res.status(400).json({
                 success: false,
-                message: "Barangay ID is required"
+                message: "Barangay ID is required",
             });
         }
 
@@ -134,8 +133,8 @@ export const getPendingRequestsByBarangay = async (req, res) => {
         const businessClearance = await BusinessClearance.find({ barangay, status: "Pending" });
         const cedula = await Cedula.find({ barangay, status: "Pending" });
 
-
-        const totalPendingRequests = barangayClearance.length + businessClearance.length + cedula.length;
+        const totalPendingRequests =
+            barangayClearance.length + businessClearance.length + cedula.length;
 
         res.status(200).json({
             success: true,
@@ -144,19 +143,18 @@ export const getPendingRequestsByBarangay = async (req, res) => {
             breakdown: {
                 barangayClearance,
                 businessClearance,
-                cedula
-            }
+                cedula,
+            },
         });
     } catch (error) {
         console.error("Error fetching pending requests:", error);
         res.status(500).json({
             success: false,
             message: "Error fetching pending requests",
-            error: error.message
+            error: error.message,
         });
     }
-}
-
+};
 
 export const getAllUsers = async (req, res) => {
     try {
@@ -164,18 +162,17 @@ export const getAllUsers = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Users fetched successfully",
-            users
+            users,
         });
     } catch (error) {
         console.error("Error fetching users:", error);
         res.status(500).json({
             success: false,
             message: "Error fetching users",
-            error: error.message
+            error: error.message,
         });
     }
-}
-
+};
 
 export const getTotalReports = async (req, res) => {
     try {
@@ -190,19 +187,18 @@ export const getTotalReports = async (req, res) => {
             totalReports,
             breakdown: {
                 blotterReports,
-                incidentReports
-            }
+                incidentReports,
+            },
         });
-
     } catch (error) {
         console.error("Error fetching total reports:", error);
         res.status(500).json({
             success: false,
             message: "Error fetching total reports",
-            error: error.message
+            error: error.message,
         });
     }
-}
+};
 
 export const getTotalRequests = async (req, res) => {
     try {
@@ -219,26 +215,24 @@ export const getTotalRequests = async (req, res) => {
             breakdown: {
                 barangayClearance,
                 businessClearance,
-                cedula
-            }
+                cedula,
+            },
         });
     } catch (error) {
         console.error("Error fetching total requests:", error);
         res.status(500).json({
             success: false,
             message: "Error fetching total requests",
-            error: error.message
+            error: error.message,
         });
     }
-}
-
+};
 
 export const getPendingRequests = async (req, res) => {
     try {
         const barangayClearance = await BarangayClearance.countDocuments({ status: "Pending" });
         const businessClearance = await BusinessClearance.countDocuments({ status: "Pending" });
         const cedula = await Cedula.countDocuments({ status: "Pending" });
-
 
         const totalPendingRequests = barangayClearance + businessClearance + cedula;
 
@@ -249,18 +243,18 @@ export const getPendingRequests = async (req, res) => {
             breakdown: {
                 barangayClearance,
                 businessClearance,
-                cedula
-            }
+                cedula,
+            },
         });
     } catch (error) {
         console.error("Error fetching pending requests:", error);
         res.status(500).json({
             success: false,
             message: "Error fetching pending requests",
-            error: error.message
+            error: error.message,
         });
     }
-}
+};
 
 export const getUserTotalReports = async (req, res) => {
     try {
@@ -269,7 +263,7 @@ export const getUserTotalReports = async (req, res) => {
         if (!userId) {
             return res.status(400).json({
                 success: false,
-                message: "User ID is required"
+                message: "User ID is required",
             });
         }
 
@@ -281,17 +275,17 @@ export const getUserTotalReports = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Total reports fetched successfully",
-            totalReports
+            totalReports,
         });
     } catch (error) {
         console.error("Error fetching total reports:", error);
         res.status(500).json({
             success: false,
             message: "Error fetching total reports",
-            error: error.message
+            error: error.message,
         });
     }
-}
+};
 
 export const getUserTotalRequests = async (req, res) => {
     try {
@@ -300,30 +294,31 @@ export const getUserTotalRequests = async (req, res) => {
         if (!userId) {
             return res.status(400).json({
                 success: false,
-                message: "User ID is required"
+                message: "User ID is required",
             });
         }
 
         const barangayClearance = await BarangayClearance.countDocuments({ userId });
         const businessClearance = await BusinessClearance.countDocuments({ userId });
+        const barangayIndigency = await BarangayIndigency.countDocuments({ userId });
         const cedula = await Cedula.countDocuments({ userId });
 
-        const totalRequests = barangayClearance + businessClearance + cedula;
+        const totalRequests = barangayClearance + businessClearance + cedula + barangayIndigency;
 
         res.status(200).json({
             success: true,
             message: "Total requests fetched successfully",
-            totalRequests
+            totalRequests,
         });
     } catch (error) {
         console.error("Error fetching total requests:", error);
         res.status(500).json({
             success: false,
             message: "Error fetching total requests",
-            error: error.message
+            error: error.message,
         });
     }
-}
+};
 
 export const getUserPendingRequests = async (req, res) => {
     try {
@@ -332,33 +327,33 @@ export const getUserPendingRequests = async (req, res) => {
         if (!userId) {
             return res.status(400).json({
                 success: false,
-                message: "User ID is required"
+                message: "User ID is required",
             });
         }
 
-        const barangayClearance = await BarangayClearance.countDocuments({ userId, status: "Pending" });
-        const businessClearance = await BusinessClearance.countDocuments({ userId, status: "Pending" });
+        const barangayClearance = await BarangayClearance.countDocuments({
+            userId,
+            status: "Pending",
+        });
+        const businessClearance = await BusinessClearance.countDocuments({
+            userId,
+            status: "Pending",
+        });
         const cedula = await Cedula.countDocuments({ userId, status: "Pending" });
-
 
         const totalPendingRequests = barangayClearance + businessClearance + cedula;
 
         res.status(200).json({
             success: true,
             message: "Pending requests fetched successfully",
-            totalPendingRequests
+            totalPendingRequests,
         });
     } catch (error) {
         console.error("Error fetching pending requests:", error);
         res.status(500).json({
             success: false,
             message: "Error fetching pending requests",
-            error: error.message
+            error: error.message,
         });
     }
-}
-
-
-
-
-
+};

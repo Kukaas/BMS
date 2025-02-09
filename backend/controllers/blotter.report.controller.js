@@ -14,16 +14,16 @@ export const createBlotterReport = async (req, res, next) => {
             // Store the evidence file directly
             evidenceFile: evidenceFile
                 ? {
-                    filename: evidenceFile.filename,
-                    contentType: evidenceFile.contentType,
-                    data: evidenceFile.data,
-                }
+                      filename: evidenceFile.filename,
+                      contentType: evidenceFile.contentType,
+                      data: evidenceFile.data,
+                  }
                 : null,
             userId: req.user.id,
             // Ensure date is properly formatted
             incidentDate: new Date(otherData.incidentDate),
             // Set default actionRequested if not provided
-            actionRequested: otherData.actionRequested || "Mediation"
+            actionRequested: otherData.actionRequested || "Mediation",
         });
 
         await createLog(
@@ -45,11 +45,29 @@ export const createBlotterReport = async (req, res, next) => {
             "BlotterReport"
         );
 
+        const staffNotification = createNotification(
+            "New Blotter Report",
+            `${name} has submitted a new blotter report for ${blotterReport.actionRequested}`,
+            "report",
+            savedReport._id,
+            "BlotterReport"
+        );
+
         // Update user's notifications
         await User.findByIdAndUpdate(req.user.id, {
             $push: { notifications: userNotification },
             $inc: { unreadNotifications: 1 },
         });
+
+        const staff = await User.find({ role: { $in: ["secretary", "chairman"] } });
+
+        // Notify barangay staff
+        for (const staffMember of staff) {
+            await User.findByIdAndUpdate(staffMember._id, {
+                $push: { notifications: staffNotification },
+                $inc: { unreadNotifications: 1 },
+            });
+        }
 
         res.status(201).json({
             success: true,
@@ -64,9 +82,9 @@ export const createBlotterReport = async (req, res, next) => {
             error: error.message,
             details: error.errors
                 ? Object.keys(error.errors).map((key) => ({
-                    field: key,
-                    message: error.errors[key].message,
-                }))
+                      field: key,
+                      message: error.errors[key].message,
+                  }))
                 : null,
         });
     }
@@ -244,14 +262,14 @@ export const getUserBlotterReports = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            reports
+            reports,
         });
     } catch (error) {
         console.error("Error fetching user blotter reports:", error);
         res.status(500).json({
             success: false,
             message: "Failed to fetch user blotter reports",
-            error: error.message
+            error: error.message,
         });
     }
 };

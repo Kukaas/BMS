@@ -101,6 +101,8 @@ export function Requests() {
                 return "bg-green-200 text-green-900 hover:bg-green-300";
             case "rejected":
                 return "bg-red-200 text-red-900 hover:bg-red-300";
+            case "completed":
+                return "bg-blue-200 text-blue-900 hover:bg-blue-300";
             default:
                 return "bg-gray-200 text-gray-900 hover:bg-gray-300";
         }
