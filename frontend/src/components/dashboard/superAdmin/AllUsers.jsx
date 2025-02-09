@@ -1,24 +1,3 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -29,20 +8,76 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, UserX, UserCheck, Loader2, CheckCircle2, Eye } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+    CheckCircle2,
+    Eye,
+    Loader2,
+    MoreHorizontal,
+    UserCheck,
+    UserPlus,
+    UserX,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
+import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { UserDetailsView } from "./components/UserDetailsView";
+
+// Registration form schema
+const registrationSchema = z.object({
+    name: z.string().min(2, {
+        message: "Name must be at least 2 characters.",
+    }),
+    contactNumber: z.string().min(10, {
+        message: "Contact number must be at least 10 characters.",
+    }),
+    dateOfBirth: z.string(),
+    email: z.string().email("Invalid email address."),
+    role: z.string().nonempty("Role is required."),
+    barangay: z.string().min(2, {
+        message: "Barangay must be selected.",
+    }),
+});
 
 export function UserManagementDashboard() {
     const { currentUser } = useSelector((state) => state.user);
@@ -70,6 +105,9 @@ export function UserManagementDashboard() {
     });
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
+    const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
+    const [barangays, setBarangays] = useState([]);
+    const [registrationLoading, setRegistrationLoading] = useState(false);
 
     const [filters, setFilters] = useState({
         role: "",
@@ -79,6 +117,111 @@ export function UserManagementDashboard() {
 
     const roles = [...new Set(users.map((user) => user.role))];
     const addresses = [...new Set(users.map((user) => user.barangay))];
+
+    const allowedBarangays = [
+        "Antipolo",
+        "Bahi",
+        "Bangbang",
+        "Banuyo",
+        "Cabugao",
+        "Dawis",
+        "Dili",
+        "Libtangin",
+        "Mangiliol",
+        "Masiga",
+        "Pangi",
+        "Tapuyan",
+    ];
+
+    // Registration form
+    const registrationForm = useForm({
+        resolver: zodResolver(registrationSchema),
+        defaultValues: {
+            name: "",
+            contactNumber: "",
+            dateOfBirth: "",
+            email: "",
+            role: "",
+            barangay: "",
+        },
+    });
+
+    const handleRegister = async (values) => {
+        try {
+            const { name, contactNumber, dateOfBirth, email, role, barangay } = values;
+
+            if (!name || !contactNumber || !dateOfBirth || !email || !role || !barangay) {
+                toast.error("All fields are required.");
+                return;
+            }
+
+            setRegistrationLoading(true);
+
+            let res;
+            if (role === "secretary") {
+                res = await axios.post("http://localhost:5000/api/admin/create-secretary-account", {
+                    name,
+                    contactNumber,
+                    dateOfBirth,
+                    email,
+                    barangay,
+                    password: "secretary",
+                });
+            } else if (role === "superAdmin") {
+                res = await axios.post(
+                    "http://localhost:5000/api/admin/create-super-admin-account",
+                    {
+                        name,
+                        contactNumber,
+                        dateOfBirth,
+                        email,
+                        barangay,
+                        password: "superAdmin",
+                    }
+                );
+            } else {
+                res = await axios.post("http://localhost:5000/api/admin/create-chairman-account", {
+                    name,
+                    contactNumber,
+                    dateOfBirth,
+                    email,
+                    barangay,
+                    password: "chairman",
+                });
+            }
+
+            if (res.status === 201) {
+                toast.success("User registered successfully.", {
+                    description: "Please verify your email to login.",
+                });
+                setIsRegisterDialogOpen(false);
+                registrationForm.reset();
+                await fetchUsers(); // Refresh the users list
+            }
+        } catch (error) {
+            console.error(error);
+            if (error.response && error.response.status === 400) {
+                toast.error("Email is already taken", {
+                    description: "Please try another email.",
+                });
+            }
+        } finally {
+            setRegistrationLoading(false);
+        }
+    };
+
+    const fetchBarangays = async () => {
+        try {
+            const res = await axios.get(import.meta.env.VITE_GASAN_BARANGAYS_API_URL);
+            // Filter and sort the barangays
+            const filteredBarangays = res.data
+                .filter((barangay) => allowedBarangays.includes(barangay.name))
+                .sort((a, b) => a.name.localeCompare(b.name));
+            setBarangays(filteredBarangays);
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const getRoleBadgeColor = (role) => {
         switch (role) {
@@ -120,6 +263,7 @@ export function UserManagementDashboard() {
 
     useEffect(() => {
         fetchUsers();
+        fetchBarangays();
     }, []);
 
     const handleVerifyUser = async () => {
@@ -285,7 +429,186 @@ export function UserManagementDashboard() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>User Management</CardTitle>
+                <div className="flex justify-between items-center">
+                    <CardTitle>User Management</CardTitle>
+                    <Dialog open={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="bg-green-600 hover:bg-green-700">
+                                <UserPlus className="mr-2 h-4 w-4" />
+                                Register User
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-[500px]">
+                            <Form {...registrationForm}>
+                                <div className="mb-6">
+                                    <h2 className="text-lg font-semibold text-gray-900">
+                                        Register New User
+                                    </h2>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Fill in the details to register a new barangay official.
+                                    </p>
+                                </div>
+                                <form
+                                    onSubmit={registrationForm.handleSubmit(handleRegister)}
+                                    className="space-y-6"
+                                >
+                                    <div className="space-y-4">
+                                        {/* Name and Contact Number */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <FormField
+                                                control={registrationForm.control}
+                                                name="name"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Full Name</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                {...field}
+                                                                placeholder="John Doe"
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            <FormField
+                                                control={registrationForm.control}
+                                                name="contactNumber"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Contact Number</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                {...field}
+                                                                placeholder="09123456789"
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+
+                                        {/* Date of Birth */}
+                                        <FormField
+                                            control={registrationForm.control}
+                                            name="dateOfBirth"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Date of Birth</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="date" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        {/* Email */}
+                                        <FormField
+                                            control={registrationForm.control}
+                                            name="email"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Email</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            {...field}
+                                                            placeholder="m@example.com"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        {/* Role and Barangay */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <FormField
+                                                control={registrationForm.control}
+                                                name="role"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Role</FormLabel>
+                                                        <Select
+                                                            value={field.value}
+                                                            onValueChange={field.onChange}
+                                                        >
+                                                            <FormControl>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Select Role" />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                <SelectItem value="chairman">
+                                                                    Chairman
+                                                                </SelectItem>
+                                                                <SelectItem value="secretary">
+                                                                    Secretary
+                                                                </SelectItem>
+                                                                <SelectItem value="superAdmin">
+                                                                    Super Admin
+                                                                </SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            <FormField
+                                                control={registrationForm.control}
+                                                name="barangay"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Barangay</FormLabel>
+                                                        <Select
+                                                            value={field.value}
+                                                            onValueChange={field.onChange}
+                                                        >
+                                                            <FormControl>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Select Barangay" />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                {barangays.map((barangay) => (
+                                                                    <SelectItem
+                                                                        key={barangay.code}
+                                                                        value={barangay.name}
+                                                                    >
+                                                                        {barangay.name}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <Button
+                                        type="submit"
+                                        className="w-full bg-green-600 hover:bg-green-700"
+                                        disabled={registrationLoading}
+                                    >
+                                        {registrationLoading ? (
+                                            <div className="flex items-center gap-2">
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                Registering...
+                                            </div>
+                                        ) : (
+                                            "Register User"
+                                        )}
+                                    </Button>
+                                </form>
+                            </Form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
                 <div className="flex flex-wrap gap-4 mt-4">
                     <div className="flex-1 min-w-[200px]">
                         <Label htmlFor="role">Role</Label>
@@ -341,7 +664,7 @@ export function UserManagementDashboard() {
                 </div>
             </CardHeader>
             <CardContent>
-                <div >
+                <div>
                     <Table>
                         <TableHeader>
                             <TableRow>

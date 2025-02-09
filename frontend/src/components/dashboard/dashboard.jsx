@@ -94,11 +94,6 @@ function Dashboard({ tab }) {
             href: "/dashboard?tab=overview",
         },
         {
-            icon: User2Icon,
-            label: "Register",
-            href: "/dashboard?tab=register",
-        },
-        {
             icon: Users,
             label: "All Users",
             href: "/dashboard?tab=allusers",

@@ -1,9 +1,12 @@
 import { PageNotFound } from "@/components/common/404.view.jsx";
 import Dashboard from "@/components/dashboard/Dashboard.jsx";
 import PrivateRoute from "@/components/PrivateRoute.jsx";
+import { isTokenExpired } from "@/lib/auth";
 import About from "@/pages/About.jsx";
 import LandingPage from "@/pages/Index.jsx";
-import RegisterBarangayUserPage from "@/pages/RegisterBarangayUser.jsx";
+import { logout } from "@/redux/user/userSlice";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import "./App.css";
@@ -13,10 +16,6 @@ import SignIn from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import SignUp from "./pages/Signup";
 import VerifyOTP from "./pages/VerifyOtp";
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { logout } from "@/redux/user/userSlice";
-import { isTokenExpired, isAdminRole } from "@/lib/auth";
 
 const DashboardWrapper = () => {
     const location = useLocation();
@@ -74,7 +73,6 @@ function App() {
                     <Route path="/sign-up" element={<SignUp />} />
                     <Route path="/sign-in" element={<SignIn />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/admin/register" element={<RegisterBarangayUserPage />} />
                     <Route path="/verify-otp/:randomString" element={<VerifyOTP />} />
                     <Route path="/reset-password/:randomToken" element={<ResetPassword />} />
                     <Route path="*" element={<PageNotFound />} />
