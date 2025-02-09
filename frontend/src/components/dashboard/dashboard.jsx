@@ -131,11 +131,6 @@ function Dashboard({ tab }) {
             label: "Blotter Report",
             href: "/dashboard?tab=blotter",
         },
-        {
-            icon: Settings,
-            label: "Settings",
-            href: "/dashboard?tab=settings",
-        },
     ];
 
     const chairmanItems = [
@@ -203,10 +198,10 @@ function Dashboard({ tab }) {
         currentUser?.role === "superAdmin"
             ? superAdminItems
             : currentUser?.role === "chairman"
-              ? chairmanItems
-              : currentUser?.role === "secretary"
-                ? secretaryItems
-                : userItems;
+                ? chairmanItems
+                : currentUser?.role === "secretary"
+                    ? secretaryItems
+                    : userItems;
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -230,7 +225,7 @@ function Dashboard({ tab }) {
                                         className={cn(
                                             "text-white hover:bg-green-600 transition-colors rounded-lg p-2",
                                             tab === item.href.split("=")[1] &&
-                                                "bg-green-600 text-white font-semibold"
+                                            "bg-green-600 text-white font-semibold"
                                         )}
                                     >
                                         <Link to={item.href} className="flex items-center gap-3">

@@ -22,7 +22,6 @@ const documentTypes = [
     "Barangay Indigency",
     "Cedula",
     "Barangay Business Clearance",
-    "Requested Documents",
 ];
 
 const FORM_STATE_KEY = "documentRequestFormState";

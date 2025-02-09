@@ -33,7 +33,7 @@ const PrivateRoute = () => {
     ];
     const secretaryTabs = ["overview", "requestdocs", "incidents", "residents", "blotterreports"];
     const superAdminTabs = ["overview", "register", "allusers", "logs", "transactions"];
-    const userTabs = ["overview", "requests", "reports", "blotter", "settings"];
+    const userTabs = ["overview", "requests", "reports", "blotter"  ];
 
     // Check if current tab is valid for user's role
     const isValidTab = () => {
