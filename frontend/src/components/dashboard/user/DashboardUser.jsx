@@ -1,7 +1,7 @@
 
 import Statistics from "./components/Statistics";
 import Officials from "./components/Offiicials";
-import UpcomingEvents from "../components/UpcomingEvents";
+import UpcomingEvents from "./components/UpcomingEvents";
 
 const DashboardUser = () => {
     return (

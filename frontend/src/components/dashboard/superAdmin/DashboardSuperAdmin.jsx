@@ -1,9 +1,8 @@
 
 import Officials from "./components/Offiicials";
-import UpcomingEvents from "../components/UpcomingEvents";
-import PopulationChart from "../components/PopulationChart";
-import ProjectsOverview from "../components/ProjectsOverview";
-import Statistics from "../components/Statistics";
+import UpcomingEvents from "./components/UpcomingEvents";
+import Statistics from "./components/Statistics";
+
 
 export default function DashboardSuperAdmin() {
     return (
@@ -20,12 +19,6 @@ export default function DashboardSuperAdmin() {
                 </div>
                 <div className="col-span-3">
                     <UpcomingEvents />
-                </div>
-                <div className="col-span-4">
-                    <PopulationChart />
-                </div>
-                <div className="col-span-3">
-                    <ProjectsOverview />
                 </div>
             </div>
         </div>

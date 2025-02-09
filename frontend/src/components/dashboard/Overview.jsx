@@ -14,11 +14,12 @@ export default function Overview() {
         <div className="flex-1 space-y-2">
             {currentUser.role === "superAdmin" ? (
                 <DashboardSuperAdmin />
-            ) : currentUser.role === "captain" || currentUser.role === "secretary" ? (
+            ) : currentUser.role === "chairman" || currentUser.role === "secretary" ? (
                 <DashboardCaptainAndSecretary />
             ) : (
                 <DashboardUser />
             )}
+
         </div>
     );
 }
