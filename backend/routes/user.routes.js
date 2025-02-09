@@ -8,8 +8,10 @@ import {
     activateUser,
     getResidentsByBarangay,
     getUsers,
+    changePassword,
 } from "../controllers/user.controller.js";
 import verifyToken from "../utils/verifyToken.js";
+
 
 const router = express.Router();
 
@@ -42,7 +44,11 @@ router.patch("/:userId/activate", verifyToken, (req, res, next) => {
     activateUser(req, res, next);
 });
 
+router.patch("/:userId/change-password", verifyToken, changePassword);
+
 // Generic parameterized route should be last
 router.get("/:userId", verifyToken, getUserById);
 
+
 export default router;
+
