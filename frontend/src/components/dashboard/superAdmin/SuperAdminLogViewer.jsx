@@ -1,18 +1,14 @@
-import { useState, useEffect } from "react";
-import api from "@/lib/axios";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -21,12 +17,15 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import api from "@/lib/axios";
+import { useEffect, useState } from "react";
 // import {
 //     Pagination,
 //     PaginationContent,
@@ -37,9 +36,9 @@ import {
 // } from "@/components/ui/pagination";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Search, User, FileText, Clock } from "lucide-react";
-import { format, isWithinInterval } from "date-fns";
 import { cn } from "@/lib/utils";
+import { format, isWithinInterval } from "date-fns";
+import { CalendarIcon, Clock, FileText, Search, User } from "lucide-react";
 
 export function SuperAdminLogViewer() {
     const [logs, setLogs] = useState([]);
@@ -142,7 +141,7 @@ export function SuperAdminLogViewer() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>System Logs</CardTitle>
+                <CardTitle className="mb-4">System Logs</CardTitle>
                 <div className="flex flex-col space-y-4">
                     <div className="flex items-center gap-4">
                         <div className="flex gap-4 flex-[2]">
@@ -157,7 +156,7 @@ export function SuperAdminLogViewer() {
                                     className="pl-8"
                                 />
                             </div>
-                            <div className="relative flex-1">
+                            {/* <div className="relative flex-1">
                                 <User className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     id="user"
@@ -168,7 +167,7 @@ export function SuperAdminLogViewer() {
                                     }
                                     className="pl-8"
                                 />
-                            </div>
+                            </div> */}
                         </div>
                         <div className="flex-1">
                             <Popover>
@@ -239,25 +238,28 @@ export function SuperAdminLogViewer() {
                                 </SelectContent>
                             </Select>
                         </div>
+                        <div className="mb">
+                            <Select
+                                value={pageSize.toString()}
+                                onValueChange={handlePageSizeChange}
+                            >
+                                <SelectTrigger className="w-[130px]">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {[5, 10, 20, 30, 40, 50].map((size) => (
+                                        <SelectItem key={size} value={size.toString()}>
+                                            {size} per page
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="flex justify-end mb-4">
-                    <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
-                        <SelectTrigger className="w-[130px]">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {[5, 10, 20, 30, 40, 50].map((size) => (
-                                <SelectItem key={size} value={size.toString()}>
-                                    {size} per page
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="rounded-md border">
+                <div>
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -296,28 +298,46 @@ export function SuperAdminLogViewer() {
                                                 <div className="space-y-8 py-4">
                                                     <div className="grid grid-cols-2 gap-6">
                                                         <div className="space-y-2">
-                                                            <h3 className="text-sm font-medium text-muted-foreground">Timestamp</h3>
+                                                            <h3 className="text-sm font-medium text-muted-foreground">
+                                                                Timestamp
+                                                            </h3>
                                                             <div className="bg-muted p-4 rounded-lg">
                                                                 <div className="flex items-center gap-4">
                                                                     <div className="flex items-center gap-2">
                                                                         <CalendarIcon className="h-4 w-4 text-primary" />
                                                                         <p className="font-medium">
-                                                                            {format(new Date(log.timestamp), "MMM dd, yyyy")}
+                                                                            {format(
+                                                                                new Date(
+                                                                                    log.timestamp
+                                                                                ),
+                                                                                "MMM dd, yyyy"
+                                                                            )}
                                                                         </p>
                                                                     </div>
                                                                     <div className="flex items-center gap-2">
                                                                         <Clock className="h-4 w-4 text-primary" />
                                                                         <p className="font-medium">
-                                                                            {format(new Date(log.timestamp), "HH:mm:ss")}
+                                                                            {format(
+                                                                                new Date(
+                                                                                    log.timestamp
+                                                                                ),
+                                                                                "HH:mm:ss"
+                                                                            )}
                                                                         </p>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div className="space-y-2">
-                                                            <h3 className="text-sm font-medium text-muted-foreground">Type</h3>
+                                                            <h3 className="text-sm font-medium text-muted-foreground">
+                                                                Type
+                                                            </h3>
                                                             <div className="bg-muted p-4 rounded-lg">
-                                                                <Badge className={getTypeColor(log.type)}>
+                                                                <Badge
+                                                                    className={getTypeColor(
+                                                                        log.type
+                                                                    )}
+                                                                >
                                                                     {log.type}
                                                                 </Badge>
                                                             </div>
@@ -330,21 +350,29 @@ export function SuperAdminLogViewer() {
                                                         <div className="bg-muted p-4 rounded-lg">
                                                             <div className="flex items-center gap-2">
                                                                 <User className="h-4 w-4 text-primary" />
-                                                                <p className="font-medium">{log.userId.name}</p>
+                                                                <p className="font-medium">
+                                                                    {log.userId.name}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <h3 className="text-sm font-medium text-muted-foreground">Action</h3>
+                                                        <h3 className="text-sm font-medium text-muted-foreground">
+                                                            Action
+                                                        </h3>
                                                         <div className="bg-muted p-4 rounded-lg">
                                                             <div className="flex items-center gap-2">
                                                                 <FileText className="h-4 w-4 text-primary" />
-                                                                <p className="font-medium">{log.action}</p>
+                                                                <p className="font-medium">
+                                                                    {log.action}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <h3 className="text-sm font-medium text-muted-foreground">Details</h3>
+                                                        <h3 className="text-sm font-medium text-muted-foreground">
+                                                            Details
+                                                        </h3>
                                                         <div className="bg-muted p-4 rounded-lg">
                                                             <p className="text-sm leading-relaxed whitespace-pre-wrap">
                                                                 {log.details}

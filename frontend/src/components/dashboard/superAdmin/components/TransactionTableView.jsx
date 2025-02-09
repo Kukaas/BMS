@@ -50,7 +50,7 @@ export function TransactionTableView({
             <CardHeader>
                 <CardTitle className="text-2xl font-bold">Transaction History</CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent>
                 {/* Search and Page Size Controls */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
@@ -79,7 +79,7 @@ export function TransactionTableView({
                 </div>
 
                 {/* Table */}
-                <div className="rounded-md border">
+                <div >
                     <Table>
                         <TableHeader>
                             <TableRow>
