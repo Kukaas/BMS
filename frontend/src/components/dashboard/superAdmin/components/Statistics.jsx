@@ -14,10 +14,11 @@ function Statistics() {
 
     const fetchTotalUsers = async () => {
         try {
-            const response = await api.get(`/dashboard/users/${currentUser.barangay}`);
+            const response = await api.get(`/dashboard/users`);
             if (response.data.users && Array.isArray(response.data.users)) {
                 setTotalUsers(response.data.users.length);
             } else {
+
                 console.error("Invalid response format:", response.data);
                 setTotalUsers(0);
             }
@@ -29,10 +30,11 @@ function Statistics() {
 
     const fetchTotalReports = async () => {
         try {
-            const response = await api.get(`/dashboard/reports/${currentUser.barangay}`);
+            const response = await api.get(`/dashboard/reports`);
             if (response.data.success) {
                 setTotalReports(response.data.totalReports);
             } else {
+
                 console.error("Invalid response format:", response.data);
                 setTotalReports(0);
             }
@@ -44,9 +46,10 @@ function Statistics() {
 
     const fetchTotalRequests = async () => {
         try {
-            const response = await api.get(`/dashboard/all-requests/${currentUser.barangay}`);
+            const response = await api.get(`/dashboard/requests`);
             if (response.data.success) {
                 setTotalRequests(response.data.totalRequests);
+
             } else {
                 console.error("Invalid response format:", response.data);
                 setTotalRequests(0);
@@ -59,9 +62,10 @@ function Statistics() {
 
     const fetchPendingRequests = async () => {
         try {
-            const response = await api.get(`/dashboard/pending-requests/${currentUser.barangay}`);
+            const response = await api.get(`/dashboard/pending-requests`);
             if (response.data.success) {
                 setPendingRequests(response.data.totalPendingRequests);
+
             } else {
                 console.error("Invalid response format:", response.data);
                 setPendingRequests(0);

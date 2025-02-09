@@ -6,33 +6,37 @@ import { useSelector } from "react-redux";
 
 function Statistics() {
     const { currentUser } = useSelector((state) => state.user);
-    const [totalUsers, setTotalUsers] = useState(0);
+    // const [totalUsers, setTotalUsers] = useState(0);
     const [totalReports, setTotalReports] = useState(0);
     const [totalRequests, setTotalRequests] = useState(0);
     const [pendingRequests, setPendingRequests] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    const fetchTotalUsers = async () => {
-        try {
-            const response = await api.get(`/dashboard/users/${currentUser.barangay}`);
-            if (response.data.users && Array.isArray(response.data.users)) {
-                setTotalUsers(response.data.users.length);
-            } else {
-                console.error("Invalid response format:", response.data);
-                setTotalUsers(0);
-            }
-        } catch (error) {
-            console.error("Error fetching users:", error);
-            setTotalUsers(0);
-        }
-    };
+    // const fetchTotalUsers = async () => {
+    //     try {
+    //         const response = await api.get(`/dashboard/users/${currentUser.barangay}`);
+    //         if (response.data.users && Array.isArray(response.data.users)) {
+    //             setTotalUsers(response.data.users.length);
+    //         } else {
+
+    //             console.error("Invalid response format:", response.data);
+    //             setTotalUsers(0);
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching users:", error);
+    //         setTotalUsers(0);
+    //     }
+    // };
 
     const fetchTotalReports = async () => {
         try {
-            const response = await api.get(`/dashboard/reports/${currentUser.barangay}`);
+            const response = await api.get(`/dashboard/user-reports/${currentUser._id}`);
             if (response.data.success) {
                 setTotalReports(response.data.totalReports);
             } else {
+
+
+
                 console.error("Invalid response format:", response.data);
                 setTotalReports(0);
             }
@@ -44,9 +48,12 @@ function Statistics() {
 
     const fetchTotalRequests = async () => {
         try {
-            const response = await api.get(`/dashboard/all-requests/${currentUser.barangay}`);
+            const response = await api.get(`/dashboard/user-requests/${currentUser._id}`);
             if (response.data.success) {
                 setTotalRequests(response.data.totalRequests);
+
+
+
             } else {
                 console.error("Invalid response format:", response.data);
                 setTotalRequests(0);
@@ -59,9 +66,10 @@ function Statistics() {
 
     const fetchPendingRequests = async () => {
         try {
-            const response = await api.get(`/dashboard/pending-requests/${currentUser.barangay}`);
+            const response = await api.get(`/dashboard/user-pending-requests/${currentUser._id}`);
             if (response.data.success) {
                 setPendingRequests(response.data.totalPendingRequests);
+
             } else {
                 console.error("Invalid response format:", response.data);
                 setPendingRequests(0);
@@ -80,7 +88,7 @@ function Statistics() {
             setLoading(true);
             if (currentUser?.barangay) {
                 await Promise.all([
-                    fetchTotalUsers(),
+                    // fetchTotalUsers(),
                     fetchTotalReports(),
                     fetchTotalRequests(),
                     fetchPendingRequests()
@@ -111,11 +119,11 @@ function Statistics() {
     }
 
     const stats = [
-        {
-            title: "Total Users",
-            value: totalUsers.toLocaleString() || "0",
-            icon: Users,
-        },
+        // {
+        //     title: "Total Users",
+        //     value: totalUsers.toLocaleString() || "0",
+        //     icon: Users,
+        // },
         {
             title: "Total Reports",
             value: totalReports.toLocaleString() || "0",
