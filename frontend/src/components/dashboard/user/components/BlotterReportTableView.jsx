@@ -34,10 +34,10 @@ export function BlotterReportTableView({ blotters }) {
                 return "bg-yellow-500 text-white hover:bg-yellow-600";
             case "resolved":
                 return "bg-green-500 text-white hover:bg-green-600";
-            case "in progress":
+            case "under investigation":
+                return "bg-purple-500 text-white hover:bg-purple-600";
+            case "closed":
                 return "bg-blue-500 text-white hover:bg-blue-600";
-            case "rejected":
-                return "bg-red-500 text-white hover:bg-red-600";
             default:
                 return "bg-gray-500 text-white hover:bg-gray-600";
         }
