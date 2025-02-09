@@ -197,9 +197,3 @@
 | expireAt | Date | NOT NULL | Expiration time |
 
 ## Indexes
-
-- `userId` in `users` collection
-- `userId` in `barangayclearances` collection
-- `userId` in `barangayindigencies` collection
-- `userId` in `blotterreports` collection
-
