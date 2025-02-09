@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import {
     ChevronRight,
     FileText,
-    HelpCircle,
     LayoutDashboard,
     LogOut,
     Mail,
@@ -71,7 +70,6 @@ export function Sidebar() {
                 label: "Blotter Report",
                 href: "/dashboard?tab=blotter",
             },
-            { icon: HelpCircle, label: "Settings", href: "/dashboard?tab=settings" },
         ];
     } else if (currentUser?.role === "secretary" || currentUser?.role === "chairman") {
         sidebarItems = [

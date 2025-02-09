@@ -35,7 +35,7 @@ const DashboardWrapper = () => {
 
     const superAdminTabs = ["overview", "register", "allusers", "logs", "transactions"];
 
-    const userTabs = ["overview", "requests", "reports", "blotter", "settings"];
+    const userTabs = ["overview", "requests", "reports", "blotter"];
 
     // Determine valid tabs based on user role
     let validTabs;
