@@ -30,8 +30,11 @@ function Statistics() {
     const fetchTotalReports = async () => {
         try {
             const response = await api.get(`/dashboard/reports/${currentUser.barangay}`);
+            console.log('Reports response:', response.data); // Debug log
             if (response.data.success) {
                 setTotalReports(response.data.totalReports);
+                // Debug log
+                console.log('Setting total reports to:', response.data.totalReports, 'Breakdown:', response.data.breakdown);
             } else {
                 console.error("Invalid response format:", response.data);
                 setTotalReports(0);
@@ -72,9 +75,6 @@ function Statistics() {
         }
     }
 
-
-
-
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
@@ -84,11 +84,9 @@ function Statistics() {
                     fetchTotalReports(),
                     fetchTotalRequests(),
                     fetchPendingRequests()
-
                 ]);
             }
             setLoading(false);
-
         };
 
         fetchData();
@@ -126,13 +124,11 @@ function Statistics() {
             value: pendingRequests.toLocaleString() || "0",
             icon: FileText,
         },
-
         {
             title: "Total Requests",
             value: totalRequests.toLocaleString() || "0",
             icon: Briefcase,
         },
-
     ];
 
     return (

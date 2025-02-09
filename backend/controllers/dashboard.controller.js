@@ -48,28 +48,32 @@ export const getTotalReportsByBarangay = async (req, res) => {
             });
         }
 
-        // Get total reports for each report type
-        const blotterReports = await BlotterReport.countDocuments({ barangay });
-        const incidentReports = await IncidentReport.countDocuments({ barangay });
-
-        // Calculate total reports
-        const totalReports = blotterReports + incidentReports;
-
-        // Log for debugging
-        console.log(`Barangay ${barangay} reports:`, {
-            blotterReports,
-            incidentReports,
-            totalReports,
+        // Get reports with complainantAddress containing the barangay name
+        const blotterReports = await BlotterReport.find({
+            complainantAddress: { $regex: barangay, $options: 'i' }
         });
+        const incidentReports = await IncidentReport.find({ barangay });
+
+        // Log raw data for debugging
+        console.log('Raw report data:', {
+            barangay,
+            blotterCount: blotterReports.length,
+            incidentCount: incidentReports.length,
+            blotterReports,
+            incidentReports
+        });
+
+        // Calculate total reports using the length of the arrays
+        const totalReports = blotterReports.length + incidentReports.length;
 
         res.status(200).json({
             success: true,
             message: "Total reports fetched successfully",
             totalReports,
             breakdown: {
-                blotterReports,
-                incidentReports,
-            },
+                blotterReports: blotterReports.length,
+                incidentReports: incidentReports.length,
+            }
         });
     } catch (error) {
         console.error("Error fetching total reports:", error);
