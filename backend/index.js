@@ -19,6 +19,7 @@ import documentRequestRoutes from "./routes/document.request.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import logRoutes from "./routes/log.routes.js";
 import transactionHistoryRoutes from "./routes/transaction.history.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 
 const app = express();
 dotenv.config();
@@ -125,5 +126,6 @@ app.use("/api/document-requests", documentRequestRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/api/transaction-history", transactionHistoryRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 export default app;
