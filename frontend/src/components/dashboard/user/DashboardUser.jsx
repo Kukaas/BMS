@@ -1,6 +1,6 @@
 
 import Statistics from "./components/Statistics";
-import RecentActivities from "../components/RecentActivities";
+import Officials from "./components/Offiicials";
 import UpcomingEvents from "../components/UpcomingEvents";
 
 const DashboardUser = () => {
@@ -14,7 +14,7 @@ const DashboardUser = () => {
 
             <div className="grid gap-4 md:grid-cols-2">
                 <div className="col-span-1">
-                    <RecentActivities />
+                    <Officials />
                 </div>
                 <div className="col-span-1">
                     <UpcomingEvents />

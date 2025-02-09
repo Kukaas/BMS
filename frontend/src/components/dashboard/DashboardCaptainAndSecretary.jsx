@@ -1,6 +1,6 @@
 import React from 'react'
 import Statistics from "./components/Statistics";
-import RecentActivities from "./components/RecentActivities";
+import RecentActivities from "./components/Offiicials";
 import UpcomingEvents from "./components/UpcomingEvents";
 import PopulationChart from "./components/PopulationChart";
 import ProjectsOverview from "./components/ProjectsOverview";
