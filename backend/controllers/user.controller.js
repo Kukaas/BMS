@@ -4,6 +4,7 @@ import {
     sendDeactivationEmail,
     sendActivationEmail,
 } from "../utils/emails.js";
+import bcrypt from 'bcryptjs';
 
 export const getUsersByBarangay = async (req, res, next) => {
     try {
@@ -330,3 +331,75 @@ export const getUsers = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// Change password
+export const changePassword = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { oldPassword, newPassword } = req.body;
+
+        // Validate inputs
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Both old and new passwords are required",
+            });
+        }
+
+        // Find user
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        // Verify old password
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: "Current password does not match",
+                isPasswordError: true
+            });
+        }
+
+        // Password validation
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be at least 8 characters long",
+            });
+        }
+
+        try {
+            // Hash new password
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+            // Update password
+            user.password = hashedPassword;
+            await user.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "Password updated successfully",
+            });
+        } catch (saveError) {
+            console.error("Error saving new password:", saveError);
+            return res.status(500).json({
+                success: false,
+                message: "Error updating password",
+            });
+        }
+    } catch (error) {
+        console.error("Change password error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+};
+

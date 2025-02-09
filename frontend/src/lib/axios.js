@@ -25,10 +25,21 @@ api.interceptors.request.use(
 
 // Add response interceptor for error handling
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // Check if response indicates failure
+        if (response.data && response.data.success === false) {
+            return Promise.reject(response);
+        }
+        return response;
+    },
     (error) => {
-        if (error.response?.status === 401) {
-            // Handle unauthorized access
+        // Don't redirect for password change errors
+        if (error.config.url.includes('/change-password')) {
+            return Promise.reject(error);
+        }
+
+        if (error.response?.status === 401 && !error.response?.data?.isPasswordError) {
+            // Clear auth state and redirect to login only for non-password errors
             localStorage.removeItem("token");
             window.location.href = "/sign-in";
         }

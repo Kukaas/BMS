@@ -20,6 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { NotificationsPopover } from "./NotificationsPopover";
+import { ChangePasswordForm } from "@/components/forms/auth/ChangePasswordForm";
 
 export function Header() {
     const { currentUser } = useSelector((state) => state.user);
@@ -27,69 +28,6 @@ export function Header() {
     const navigate = useNavigate();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
-    const [passwordForm, setPasswordForm] = useState({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-    });
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const handlePasswordChange = (e) => {
-        const { name, value } = e.target;
-        setPasswordForm((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
-
-    const handlePasswordSubmit = async (e) => {
-        e.preventDefault();
-
-        // Basic validation
-        if (
-            !passwordForm.currentPassword ||
-            !passwordForm.newPassword ||
-            !passwordForm.confirmPassword
-        ) {
-            toast.error("All fields are required");
-            return;
-        }
-
-        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-            toast.error("New passwords do not match");
-            return;
-        }
-
-        if (passwordForm.newPassword.length < 8) {
-            toast.error("New password must be at least 8 characters long");
-            return;
-        }
-
-        setIsSubmitting(true);
-
-        try {
-            // Backend integration will go here
-            // const res = await api.post("/auth/change-password", {
-            //     currentPassword: passwordForm.currentPassword,
-            //     newPassword: passwordForm.newPassword,
-            // });
-
-            // Simulating API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            toast.success("Password changed successfully");
-            setIsChangePasswordOpen(false);
-            setPasswordForm({
-                currentPassword: "",
-                newPassword: "",
-                confirmPassword: "",
-            });
-        } catch (error) {
-            toast.error(error.response?.data?.message || "Failed to change password");
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
 
     const handleLogout = async () => {
         try {
@@ -262,79 +200,10 @@ export function Header() {
 
             {/* Change Password Dialog */}
             <Dialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen}>
-                <DialogContent className="max-w-[400px]">
-                    <div className="space-y-1 mb-4">
-                        <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
-                        <p className="text-sm text-gray-500">
-                            Please enter your current password and choose a new one
-                        </p>
-                    </div>
-
-                    <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="currentPassword">Current Password</Label>
-                            <Input
-                                id="currentPassword"
-                                name="currentPassword"
-                                type="password"
-                                value={passwordForm.currentPassword}
-                                onChange={handlePasswordChange}
-                                placeholder="Enter current password"
-                                className="h-11"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="newPassword">New Password</Label>
-                            <Input
-                                id="newPassword"
-                                name="newPassword"
-                                type="password"
-                                value={passwordForm.newPassword}
-                                onChange={handlePasswordChange}
-                                placeholder="Enter new password"
-                                className="h-11"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                            <Input
-                                id="confirmPassword"
-                                name="confirmPassword"
-                                type="password"
-                                value={passwordForm.confirmPassword}
-                                onChange={handlePasswordChange}
-                                placeholder="Confirm new password"
-                                className="h-11"
-                            />
-                        </div>
-
-                        <div className="flex justify-end gap-3 mt-6">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setIsChangePasswordOpen(false)}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="submit"
-                                className="bg-green-600 hover:bg-green-700 text-white"
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? (
-                                    <div className="flex items-center gap-2">
-                                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                                        Changing...
-                                    </div>
-                                ) : (
-                                    "Change Password"
-                                )}
-                            </Button>
-                        </div>
-                    </form>
-                </DialogContent>
+                <ChangePasswordForm
+                    onClose={() => setIsChangePasswordOpen(false)}
+                    userId={currentUser?._id}
+                />
             </Dialog>
         </header>
     );
