@@ -611,6 +611,17 @@ export function UserManagementDashboard() {
                 </div>
                 <div className="flex flex-wrap gap-4 mt-4">
                     <div className="flex-1 min-w-[200px]">
+                        <Label htmlFor="search">Search</Label>
+                        <Input
+                            id="search"
+                            placeholder="Search by name or email"
+                            value={filters.search}
+                            onChange={(e) =>
+                                setFilters((prev) => ({ ...prev, search: e.target.value }))
+                            }
+                        />
+                    </div>
+                    <div className="flex-1 min-w-[200px]">
                         <Label htmlFor="role">Role</Label>
                         <Select
                             onValueChange={(value) =>
@@ -649,17 +660,6 @@ export function UserManagementDashboard() {
                                 ))}
                             </SelectContent>
                         </Select>
-                    </div>
-                    <div className="flex-1 min-w-[200px]">
-                        <Label htmlFor="search">Search</Label>
-                        <Input
-                            id="search"
-                            placeholder="Search by name or email"
-                            value={filters.search}
-                            onChange={(e) =>
-                                setFilters((prev) => ({ ...prev, search: e.target.value }))
-                            }
-                        />
                     </div>
                 </div>
             </CardHeader>
