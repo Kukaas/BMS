@@ -13,10 +13,6 @@ const logSchema = new mongoose.Schema({
     details: {
         type: String,
     },
-    timestamp: {
-        type: Date,
-        default: Date.now,
-    },
     type: {
         type: String,
         enum: [
@@ -32,7 +28,7 @@ const logSchema = new mongoose.Schema({
         ],
         required: true,
     },
-});
+}, { timestamps: true });
 
 const Log = mongoose.model("Log", logSchema);
 
