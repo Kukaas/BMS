@@ -1,21 +1,11 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Plus } from "lucide-react";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
+import { Calendar, Clock, MapPin, User2 } from "lucide-react";
 import { format } from "date-fns";
 import { useSelector } from "react-redux";
 import api from "@/lib/axios";
 import { toast } from "sonner";
-import AddEventForm from "@/components/forms/AddEventForm";
-
+import { Separator } from "@/components/ui/separator";
 function formatTime(timeStr) {
     const [hours, minutes] = timeStr.split(':');
     let hour = parseInt(hours);
@@ -34,9 +24,7 @@ function formatTime(timeStr) {
 function UpcomingEvents() {
     const { currentUser } = useSelector((state) => state.user);
     const [events, setEvents] = useState([]);
-    const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const fetchEvents = async () => {
         try {
@@ -64,57 +52,15 @@ function UpcomingEvents() {
         fetchEvents();
     }, [currentUser.barangay]);
 
-    const handleSubmit = async (data) => {
-        try {
-            setIsSubmitting(true);
-            const response = await api.post("/upcoming-events/create-upcoming-event", data);
-
-            if (response.data.success) {
-                toast.success("Event created successfully");
-                setIsOpen(false);
-                fetchEvents();
-            }
-        } catch (error) {
-            console.error("Error creating event:", error);
-            toast.error("Failed to create event");
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
     return (
         <Card className="col-span-2 h-[620px] flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between bg-gray-50/50 border-b p-6 flex-none">
                 <div>
                     <CardTitle className="text-xl">Upcoming Events</CardTitle>
-
-
-
                     <p className="text-sm text-muted-foreground">
-                        Upcoming events in your barangay
+                        Upcoming events in every barangay in Gasan
                     </p>
                 </div>
-                <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                    <DialogTrigger asChild>
-                        <Button variant="default" className="bg-black text-white hover:bg-black/90">
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Event
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Add New Event</DialogTitle>
-                            <DialogDescription>
-                                Create a new event for your barangay
-                            </DialogDescription>
-                        </DialogHeader>
-                        <AddEventForm
-                            onSubmit={handleSubmit}
-                            onCancel={() => setIsOpen(false)}
-                            isSubmitting={isSubmitting}
-                        />
-                    </DialogContent>
-                </Dialog>
             </CardHeader>
             <CardContent className="p-0 overflow-auto flex-1">
                 {isLoading ? (
@@ -125,7 +71,7 @@ function UpcomingEvents() {
                         </div>
                     </div>
                 ) : events.length > 0 ? (
-                    <div className="divide-y divide-gray-100">
+                    <div >
                         {events.map((event) => (
                             <div
                                 key={event._id}
@@ -151,9 +97,16 @@ function UpcomingEvents() {
                                         {event.location}
                                     </div>
                                 </div>
+                                <div className="flex items-center gap-6 text-sm text-gray-500 pt-2">
+                                    <div className="flex items-center gap-2">
+                                        Barangay: {event.barangay}
+                                    </div>
+                                </div>
+                                <Separator />
                             </div>
                         ))}
                     </div>
+
                 ) : (
                     <div className="text-center py-12">
                         <Calendar className="h-12 w-12 mx-auto text-muted-foreground/50" />

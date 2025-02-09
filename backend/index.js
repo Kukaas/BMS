@@ -21,6 +21,7 @@ import logRoutes from "./routes/log.routes.js";
 import transactionHistoryRoutes from "./routes/transaction.history.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import officialsRoutes from "./routes/official.routes.js";
+import upcomingEventsRoutes from "./routes/upcoming.events.routes.js";
 
 const app = express();
 dotenv.config();
@@ -129,5 +130,6 @@ app.use("/api/logs", logRoutes);
 app.use("/api/transaction-history", transactionHistoryRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/officials", officialsRoutes);
+app.use("/api/upcoming-events", upcomingEventsRoutes);
 
 export default app;

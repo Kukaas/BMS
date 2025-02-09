@@ -1,10 +1,8 @@
-import React from 'react'
 import Statistics from "./components/Statistics";
-import RecentActivities from "./components/Offiicials";
+import Officials from "./components/Offiicials";
 import UpcomingEvents from "./components/UpcomingEvents";
-import PopulationChart from "./components/PopulationChart";
-import ProjectsOverview from "./components/ProjectsOverview";
 import { useSelector } from "react-redux";
+
 
 const DashboardCaptainAndSecretary = () => {
     const { currentUser } = useSelector((state) => state.user);
@@ -20,19 +18,14 @@ const DashboardCaptainAndSecretary = () => {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <div className="col-span-4">
-                    <RecentActivities />
+                    <Officials />
                 </div>
                 <div className="col-span-3">
                     <UpcomingEvents />
                 </div>
-                <div className="col-span-4">
-                    <PopulationChart />
-                </div>
-                <div className="col-span-3">
-                    <ProjectsOverview />
-                </div>
             </div>
         </div>
+
     );
 };
 
