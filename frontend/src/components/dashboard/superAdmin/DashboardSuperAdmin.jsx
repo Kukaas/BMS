@@ -1,5 +1,5 @@
 
-import RecentActivities from "../components/RecentActivities";
+import Officials from "./components/Offiicials";
 import UpcomingEvents from "../components/UpcomingEvents";
 import PopulationChart from "../components/PopulationChart";
 import ProjectsOverview from "../components/ProjectsOverview";
@@ -16,7 +16,7 @@ export default function DashboardSuperAdmin() {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <div className="col-span-4">
-                    <RecentActivities />
+                    <Officials />
                 </div>
                 <div className="col-span-3">
                     <UpcomingEvents />
