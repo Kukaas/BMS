@@ -71,24 +71,64 @@ export function SuperAdminLogViewer() {
         fetchLogs();
     }, []);
 
+    const getLogDate = (log) => {
+        return log.timestamp || log.createdAt || null;
+    };
+
+    const formatDate = (dateString, formatStr = "yyyy-MM-dd HH:mm:ss") => {
+        try {
+            if (!dateString) return 'No date available';
+            const date = new Date(dateString);
+            // Check if date is valid
+            if (isNaN(date.getTime())) {
+                return 'Invalid date';
+            }
+            return format(date, formatStr);
+        } catch (error) {
+            console.error("Error formatting date:", error);
+            return 'Invalid date';
+        }
+    };
+
+    const getUserName = (log) => {
+        try {
+            return log.userId?.name || 'Unknown User';
+        } catch (error) {
+            console.error("Error getting user name:", error);
+            return 'Unknown User';
+        }
+    };
+
     useEffect(() => {
         // Apply filters
         let result = logs;
         if (filters.dateRange.from && filters.dateRange.to) {
-            result = result.filter((log) =>
-                isWithinInterval(new Date(log.timestamp), {
-                    start: filters.dateRange.from,
-                    end: filters.dateRange.to,
-                })
-            );
+            result = result.filter((log) => {
+                try {
+                    const logDate = getLogDate(log);
+                    if (!logDate) return false;
+
+                    const date = new Date(logDate);
+                    if (isNaN(date.getTime())) return false;
+
+                    return isWithinInterval(date, {
+                        start: filters.dateRange.from,
+                        end: filters.dateRange.to,
+                    });
+                } catch (error) {
+                    console.error("Error filtering date:", error);
+                    return false;
+                }
+            });
         }
         if (filters.type && filters.type !== "all") {
             result = result.filter((log) => log.type === filters.type);
         }
         if (filters.user) {
-            result = result.filter((log) =>
-                log.userId.name.toLowerCase().includes(filters.user.toLowerCase())
-            );
+            result = result.filter((log) => {
+                const userName = getUserName(log);
+                return userName.toLowerCase().includes(filters.user.toLowerCase());
+            });
         }
         if (filters.search) {
             result = result.filter(
@@ -274,12 +314,12 @@ export function SuperAdminLogViewer() {
                             {currentLogs.map((log) => (
                                 <TableRow key={log._id}>
                                     <TableCell>
-                                        {format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss")}
+                                        {formatDate(getLogDate(log))}
                                     </TableCell>
                                     <TableCell>
                                         <Badge className={getTypeColor(log.type)}>{log.type}</Badge>
                                     </TableCell>
-                                    <TableCell>{log.userId.name}</TableCell>
+                                    <TableCell>{getUserName(log)}</TableCell>
                                     <TableCell>{log.action}</TableCell>
                                     <TableCell>
                                         <Dialog>
@@ -306,23 +346,13 @@ export function SuperAdminLogViewer() {
                                                                     <div className="flex items-center gap-2">
                                                                         <CalendarIcon className="h-4 w-4 text-primary" />
                                                                         <p className="font-medium">
-                                                                            {format(
-                                                                                new Date(
-                                                                                    log.timestamp
-                                                                                ),
-                                                                                "MMM dd, yyyy"
-                                                                            )}
+                                                                            {formatDate(getLogDate(log), "MMM dd, yyyy")}
                                                                         </p>
                                                                     </div>
                                                                     <div className="flex items-center gap-2">
                                                                         <Clock className="h-4 w-4 text-primary" />
                                                                         <p className="font-medium">
-                                                                            {format(
-                                                                                new Date(
-                                                                                    log.timestamp
-                                                                                ),
-                                                                                "HH:mm:ss"
-                                                                            )}
+                                                                            {formatDate(getLogDate(log), "HH:mm:ss")}
                                                                         </p>
                                                                     </div>
                                                                 </div>
@@ -351,7 +381,7 @@ export function SuperAdminLogViewer() {
                                                             <div className="flex items-center gap-2">
                                                                 <User className="h-4 w-4 text-primary" />
                                                                 <p className="font-medium">
-                                                                    {log.userId.name}
+                                                                    {getUserName(log)}
                                                                 </p>
                                                             </div>
                                                         </div>
