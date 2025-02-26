@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { STATUS_TYPES } from "./barangay.clearance.model.js";
 
 const cedulaSchema = new mongoose.Schema(
     {
@@ -40,8 +41,8 @@ const cedulaSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ["Pending", "Approved", "Completed", "Rejected"],
-            default: "Pending",
+            enum: Object.values(STATUS_TYPES),
+            default: STATUS_TYPES.PENDING,
         },
         dateApproved: {
             type: Date,
