@@ -35,7 +35,7 @@ const cedulaSchema = new mongoose.Schema(
         },
         employerName: String,
         employerAddress: String,
-        tax: {
+        salary: {
             type: Number,
             required: true,
         },

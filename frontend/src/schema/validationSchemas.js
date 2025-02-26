@@ -75,10 +75,7 @@ export const cedulaSchema = z.object({
     occupation: z.string().min(1, "Occupation is required"),
     employerName: z.string().optional(),
     employerAddress: z.string().optional(),
-    tax: z
-        .string()
-        .min(1, "Tax amount is required")
-        .transform((val) => parseFloat(val)),
+    salary: z.number().min(0, "Salary must be a positive number"),
 });
 
 export const businessClearanceSchema = z.object({

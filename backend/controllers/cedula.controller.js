@@ -16,7 +16,7 @@ export const createCedula = async (req, res) => {
             occupation,
             employerName,
             employerAddress,
-            tax,
+            salary,
         } = req.body;
 
         const userBarangay = req.user.barangay;
@@ -31,7 +31,7 @@ export const createCedula = async (req, res) => {
             occupation,
             employerName,
             employerAddress,
-            tax,
+            salary,
             barangay: userBarangay,
         });
 

@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import {
     Select,
     SelectContent,
@@ -48,23 +47,71 @@ export function DocumentDetailsView({
                 </div>
             </div>
 
-            {/* Document Details */}
-            <div className="space-y-3">
-                <h3 className="text-sm font-medium text-muted-foreground">Document Details</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-                    {getDocumentSpecificDetails(request).map((detail, index) => (
-                        <div key={index} className="space-y-1">
-                            <div className="flex items-center gap-2">
-                                {detail.icon}
-                                <span className="text-sm text-muted-foreground">
-                                    {detail.label}
-                                </span>
-                            </div>
-                            <p className="font-medium">{detail.value}</p>
+            {/* Document Details with Sections */}
+            {request.type === "Cedula" ? (
+                <>
+                    {/* Personal Information Section */}
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-medium text-muted-foreground">
+                            Personal Information
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                            {getDocumentSpecificDetails(request)
+                                .filter((detail) => detail.section === "Personal Information")
+                                .map((detail, index) => (
+                                    <div key={index} className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            {detail.icon}
+                                            <span className="text-sm text-muted-foreground">
+                                                {detail.label}
+                                            </span>
+                                        </div>
+                                        <p className="font-medium">{detail.value}</p>
+                                    </div>
+                                ))}
                         </div>
-                    ))}
+                    </div>
+
+                    {/* Employment Information Section */}
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-medium text-muted-foreground">
+                            Employment Information
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                            {getDocumentSpecificDetails(request)
+                                .filter((detail) => detail.section === "Employment Information")
+                                .map((detail, index) => (
+                                    <div key={index} className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            {detail.icon}
+                                            <span className="text-sm text-muted-foreground">
+                                                {detail.label}
+                                            </span>
+                                        </div>
+                                        <p className="font-medium">{detail.value}</p>
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
+                </>
+            ) : (
+                <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground">Document Details</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                        {getDocumentSpecificDetails(request).map((detail, index) => (
+                            <div key={index} className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    {detail.icon}
+                                    <span className="text-sm text-muted-foreground">
+                                        {detail.label}
+                                    </span>
+                                </div>
+                                <p className="font-medium">{detail.value}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Status Update Section */}
             <div className="sticky bottom-0 bg-background border-t pt-6">
@@ -135,7 +182,6 @@ function getDocumentSpecificDetails(request) {
 
         case "Business Clearance":
             return [
-                ...baseDetails,
                 {
                     label: "Business Name",
                     value: request.businessName,
@@ -155,30 +201,37 @@ function getDocumentSpecificDetails(request) {
 
         case "Cedula":
             return [
+                // Personal Information
                 {
                     label: "Date of Birth",
                     value: request.dateOfBirth,
                     icon: <Calendar className="h-4 w-4 text-primary" />,
+                    section: "Personal Information",
                 },
                 {
                     label: "Place of Birth",
                     value: request.placeOfBirth,
                     icon: <FileText className="h-4 w-4 text-primary" />,
+                    section: "Personal Information",
                 },
                 {
                     label: "Civil Status",
                     value: request.civilStatus,
                     icon: <FileText className="h-4 w-4 text-primary" />,
+                    section: "Personal Information",
                 },
+                // Employment Information
                 {
                     label: "Occupation",
                     value: request.occupation,
                     icon: <FileText className="h-4 w-4 text-primary" />,
+                    section: "Employment Information",
                 },
                 {
-                    label: "Tax",
-                    value: request.tax ? `₱${request.tax.toFixed(2)}` : "N/A",
+                    label: "Salary",
+                    value: request.salary ? `₱${request.salary.toLocaleString()}` : "N/A",
                     icon: <FileText className="h-4 w-4 text-primary" />,
+                    section: "Employment Information",
                 },
             ];
 

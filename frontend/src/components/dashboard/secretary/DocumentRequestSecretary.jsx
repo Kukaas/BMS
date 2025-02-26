@@ -59,7 +59,7 @@ export function DocumentRequestSecretary() {
                     placeOfBirth: request.placeOfBirth,
                     civilStatus: request.civilStatus,
                     occupation: request.occupation,
-                    tax: request.tax,
+                    salary: request.salary,
                 }));
 
                 setRequests(transformedRequests);
