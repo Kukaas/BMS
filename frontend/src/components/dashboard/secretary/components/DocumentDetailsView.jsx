@@ -8,24 +8,6 @@ import {
 } from "@/components/ui/select";
 import { User, Mail, Phone, Calendar, FileText } from "lucide-react";
 
-// Add the getStatusColor function
-function getStatusColor(status) {
-    switch (status.toLowerCase()) {
-        case "pending":
-            return "bg-yellow-500 hover:bg-yellow-600";
-        case "processing":
-            return "bg-blue-500 hover:bg-blue-600";
-        case "approved":
-            return "bg-green-500 hover:bg-green-600";
-        case "completed":
-            return "bg-green-700 hover:bg-green-800";
-        case "rejected":
-            return "bg-red-500 hover:bg-red-600";
-        default:
-            return "bg-gray-500 hover:bg-gray-600";
-    }
-}
-
 export function DocumentDetailsView({
     request,
     handleStatusChange,
@@ -33,11 +15,11 @@ export function DocumentDetailsView({
     getAvailableStatuses,
 }) {
     return (
-        <div className="space-y-8 py-4">
+        <div className="space-y-8 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
             {/* Resident Information */}
             <div className="space-y-3">
                 <h3 className="text-sm font-medium text-muted-foreground">Resident Information</h3>
-                <div className="grid grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-primary" />
@@ -69,7 +51,7 @@ export function DocumentDetailsView({
             {/* Document Details */}
             <div className="space-y-3">
                 <h3 className="text-sm font-medium text-muted-foreground">Document Details</h3>
-                <div className="grid grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
                     {getDocumentSpecificDetails(request).map((detail, index) => (
                         <div key={index} className="space-y-1">
                             <div className="flex items-center gap-2">
@@ -78,15 +60,15 @@ export function DocumentDetailsView({
                                     {detail.label}
                                 </span>
                             </div>
-                            <p className="font-medium">{detail.value || "N/A"}</p>
+                            <p className="font-medium">{detail.value}</p>
                         </div>
                     ))}
                 </div>
             </div>
 
             {/* Status Update Section */}
-            <div className="border-t pt-6">
-                <div className="flex items-center justify-between">
+            <div className="sticky bottom-0 bg-background border-t pt-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="space-y-1">
                         <h3 className="text-sm font-medium text-muted-foreground">Update Status</h3>
                         <p className="text-sm text-muted-foreground">
@@ -104,7 +86,7 @@ export function DocumentDetailsView({
                             request.status === "Rejected"
                         }
                     >
-                        <SelectTrigger className="w-[200px]">
+                        <SelectTrigger className="w-full sm:w-[200px]">
                             <SelectValue>{request.status}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>

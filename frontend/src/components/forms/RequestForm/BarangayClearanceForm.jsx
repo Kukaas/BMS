@@ -28,6 +28,7 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
         defaultValues: {
             userId: currentUser?._id || "",
             name: currentUser?.name || "",
+            age: currentUser?.age || "",
             email: currentUser?.email || "",
             contactNumber: currentUser?.contactNumber || "",
             barangay: currentUser?.barangay || "",
@@ -53,7 +54,6 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
     }, [currentUser, setValue]);
 
     const handleFormSubmit = (data) => {
-        console.log("Submitting clearance form with data:", data);
         onSubmit(
             {
                 ...data,
@@ -61,6 +61,7 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
                 email: currentUser.email,
                 contactNumber: currentUser.contactNumber,
                 barangay: currentUser.barangay,
+                type: "Barangay Clearance",
             },
             "barangay-clearance"
         );
@@ -91,6 +92,12 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
                         readOnly
                     />
                     {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="age">Age</Label>
+                    <Input id="age" type="number" {...register("age", { valueAsNumber: true })} />
+                    {errors.age && <p className="text-red-500 text-sm">{errors.age.message}</p>}
                 </div>
 
                 <div className="space-y-2">

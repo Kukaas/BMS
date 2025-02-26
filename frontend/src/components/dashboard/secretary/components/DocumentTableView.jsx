@@ -26,6 +26,9 @@ export function DocumentTableView({
     updating,
     getAvailableStatuses,
 }) {
+    // Add debug log to see the request data
+    console.log("Current requests:", currentRequests);
+
     return (
         <Table>
             <TableHeader>
@@ -58,7 +61,11 @@ export function DocumentTableView({
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => setSelectedRequest(request)}
+                                        onClick={() => {
+                                            // Log the selected request data
+                                            console.log("Selected request:", request);
+                                            setSelectedRequest(request);
+                                        }}
                                     >
                                         View Details
                                     </Button>
@@ -66,12 +73,12 @@ export function DocumentTableView({
                                 <DialogContent className="max-w-3xl">
                                     <DialogHeader>
                                         <DialogTitle>
-                                            {selectedRequest?.type}
+                                            {request.type}
                                             <span className="block text-sm font-normal text-muted-foreground mt-1">
                                                 Requested on{" "}
-                                                {selectedRequest?.requestDate
+                                                {request.requestDate
                                                     ? new Date(
-                                                          selectedRequest.requestDate
+                                                          request.requestDate
                                                       ).toLocaleDateString()
                                                     : "N/A"}
                                             </span>
@@ -80,14 +87,13 @@ export function DocumentTableView({
                                             </Badge>
                                         </DialogTitle>
                                     </DialogHeader>
-                                    {selectedRequest && (
-                                        <DocumentDetailsView
-                                            request={selectedRequest}
-                                            handleStatusChange={handleStatusChange}
-                                            updating={updating}
-                                            getAvailableStatuses={getAvailableStatuses}
-                                        />
-                                    )}
+                                    <DocumentDetailsView
+                                        request={request}
+                                        handleStatusChange={handleStatusChange}
+                                        updating={updating}
+                                        getAvailableStatuses={getAvailableStatuses}
+                                        getStatusColor={getStatusColor}
+                                    />
                                 </DialogContent>
                             </Dialog>
                         </TableCell>

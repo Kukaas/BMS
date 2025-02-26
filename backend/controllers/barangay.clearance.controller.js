@@ -9,9 +9,9 @@ import { createTransactionHistory } from "./transaction.history.controller.js";
 
 export const createBarangayClearance = async (req, res, next) => {
     try {
-        const { userId, name, email, contactNumber, purpose, barangay } = req.body;
+        const { userId, name, email, contactNumber, purpose, barangay, age } = req.body;
 
-        if (!name || !purpose) {
+        if (!name || !purpose || !age) {
             return res.status(400).json({
                 success: false,
                 message: "Please provide all required fields",
@@ -22,9 +22,11 @@ export const createBarangayClearance = async (req, res, next) => {
             userId,
             name,
             email,
+            age,
             contactNumber,
             barangay,
             purpose,
+            type: "Barangay Clearance",
         });
 
         // Create log entry
@@ -64,7 +66,10 @@ export const createBarangayClearance = async (req, res, next) => {
         res.status(201).json({
             success: true,
             message: "Barangay clearance request created successfully",
-            data: barangayClearance,
+            data: {
+                ...barangayClearance.toObject(),
+                type: "Barangay Clearance",
+            },
         });
     } catch (error) {
         console.error("Error creating barangay clearance:", error);
