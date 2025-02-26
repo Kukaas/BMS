@@ -9,6 +9,7 @@ import {
     createNotification,
 } from "../utils/notifications.js";
 import { updateTransactionStatus } from "./transaction.history.controller.js";
+import { STATUS_TYPES } from "../models/barangay.clearance.model.js";
 
 // Generic function to update document status
 export const updateDocumentStatus = async (Model, requestType, id, status, secretaryName) => {
@@ -18,24 +19,45 @@ export const updateDocumentStatus = async (Model, requestType, id, status, secre
             throw new Error(`${requestType} not found`);
         }
 
-        // Normalize status value
-        const normalizedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+        // Normalize status value to match enum
+        const normalizedStatus = Object.values(STATUS_TYPES).find(
+            (s) => s.toLowerCase() === status.toLowerCase()
+        );
+
+        if (!normalizedStatus) {
+            throw new Error(`Invalid status: ${status}`);
+        }
 
         // Update document fields
-        document.isVerified = normalizedStatus === "Approved" || normalizedStatus === "Completed";
+        document.isVerified = [
+            STATUS_TYPES.APPROVED,
+            STATUS_TYPES.FOR_PICKUP,
+            STATUS_TYPES.COMPLETED,
+        ].includes(normalizedStatus);
+
         document.status = normalizedStatus;
         document.approvedBy = secretaryName;
 
         // Handle dates based on status
-        if (normalizedStatus === "Approved" && !document.dateApproved) {
-            document.dateApproved = new Date();
-        }
-        if (normalizedStatus === "Completed") {
-            document.dateCompleted = new Date();
-            // Keep the original dateApproved if it exists
-            if (!document.dateApproved) {
-                document.dateApproved = new Date();
-            }
+        const currentDate = new Date();
+
+        switch (normalizedStatus) {
+            case STATUS_TYPES.APPROVED:
+                if (!document.dateApproved) {
+                    document.dateApproved = currentDate;
+                }
+                break;
+            case STATUS_TYPES.FOR_PICKUP:
+                if (!document.dateApproved) {
+                    document.dateApproved = currentDate;
+                }
+                break;
+            case STATUS_TYPES.COMPLETED:
+                document.dateCompleted = currentDate;
+                if (!document.dateApproved) {
+                    document.dateApproved = currentDate;
+                }
+                break;
         }
 
         await document.save();

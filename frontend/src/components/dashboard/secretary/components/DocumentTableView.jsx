@@ -20,15 +20,11 @@ import { DocumentDetailsView } from "./DocumentDetailsView";
 export function DocumentTableView({
     currentRequests,
     setSelectedRequest,
-    selectedRequest,
     getStatusColor,
     handleStatusChange,
     updating,
     getAvailableStatuses,
 }) {
-    // Add debug log to see the request data
-    console.log("Current requests:", currentRequests);
-
     return (
         <Table>
             <TableHeader>

@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
 import { DocumentTableView } from "./components/DocumentTableView";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { STATUS_TYPES } from "@/lib/constants"; // Update import path
 
 export function DocumentRequestSecretary() {
     const [requests, setRequests] = useState([]);
@@ -83,10 +84,11 @@ export function DocumentRequestSecretary() {
     // Add this function to normalize status values
     const normalizeStatus = (status) => {
         const statusMap = {
-            pending: "Pending",
-            approved: "Approved",
-            completed: "Completed",
-            rejected: "Rejected",
+            pending: STATUS_TYPES.PENDING,
+            approved: STATUS_TYPES.APPROVED,
+            "for pickup": STATUS_TYPES.FOR_PICKUP,
+            completed: STATUS_TYPES.COMPLETED,
+            rejected: STATUS_TYPES.REJECTED,
         };
         return statusMap[status.toLowerCase()] || status;
     };
@@ -128,13 +130,15 @@ export function DocumentRequestSecretary() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case "Pending":
+            case STATUS_TYPES.PENDING:
                 return "bg-yellow-500";
-            case "Approved":
+            case STATUS_TYPES.APPROVED:
                 return "bg-green-500";
-            case "Completed":
+            case STATUS_TYPES.FOR_PICKUP:
+                return "bg-purple-500";
+            case STATUS_TYPES.COMPLETED:
                 return "bg-blue-500";
-            case "Rejected":
+            case STATUS_TYPES.REJECTED:
                 return "bg-red-500";
             default:
                 return "bg-gray-500";
@@ -145,16 +149,18 @@ export function DocumentRequestSecretary() {
     const getAvailableStatuses = (currentStatus) => {
         const normalizedStatus = normalizeStatus(currentStatus);
         switch (normalizedStatus) {
-            case "Pending":
-                return ["Pending", "Approved", "Rejected"];
-            case "Approved":
-                return ["Approved", "Completed"];
-            case "Completed":
-                return [];
-            case "Rejected":
-                return [];
+            case STATUS_TYPES.PENDING:
+                return [STATUS_TYPES.APPROVED, STATUS_TYPES.REJECTED];
+            case STATUS_TYPES.APPROVED:
+                return [STATUS_TYPES.FOR_PICKUP];
+            case STATUS_TYPES.FOR_PICKUP:
+                return [STATUS_TYPES.COMPLETED];
+            case STATUS_TYPES.COMPLETED:
+                return [STATUS_TYPES.COMPLETED];
+            case STATUS_TYPES.REJECTED:
+                return [STATUS_TYPES.REJECTED];
             default:
-                return ["Pending", "Approved", "Completed", "Rejected"];
+                return Object.values(STATUS_TYPES);
         }
     };
 

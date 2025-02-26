@@ -101,7 +101,9 @@ export function DocumentDetailsView({
                                               ? "text-primary"
                                               : status === "Approved"
                                                 ? "text-green-500"
-                                                : ""
+                                                : status === "For Pickup"
+                                                  ? "text-blue-500"
+                                                  : ""
                                     }
                                 >
                                     {status}
