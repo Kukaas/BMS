@@ -21,7 +21,6 @@ export const barangayClearanceSchema = z.object({
         }
     ),
     contactNumber: z.string().min(1, "Contact number is required"),
-    dateOfBirth: z.string().min(1, "Date of birth is required"),
 });
 
 export const barangayIndigencySchema = z.object({

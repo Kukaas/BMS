@@ -6,6 +6,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { User, Mail, Phone, Calendar, FileText } from "lucide-react";
 
 // Add the getStatusColor function
 function getStatusColor(status) {
@@ -32,38 +33,66 @@ export function DocumentDetailsView({
     getAvailableStatuses,
 }) {
     return (
-        <div className="grid gap-4">
-            <div className="space-y-4">
-                <div className="grid gap-2">
-                    <div className="flex items-center justify-between">
-                        <div className="flex flex-col gap-1">
-                            <p className="text-sm font-medium leading-none">Request Date</p>
-                            <p className="text-sm text-muted-foreground">
-                                {new Date(request.requestDate).toLocaleDateString()}
-                            </p>
+        <div className="space-y-8 py-4">
+            {/* Resident Information */}
+            <div className="space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground">Resident Information</h3>
+                <div className="grid grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-primary" />
+                            <span className="text-sm text-muted-foreground">Name</span>
                         </div>
-                        <Badge className={getStatusColor(request.status)}>{request.status}</Badge>
+                        <p className="font-medium">{request.residentName}</p>
                     </div>
-                </div>
-                <div className="grid gap-2">
-                    <div className="flex flex-col gap-1">
-                        <p className="text-sm font-medium leading-none">Document Type</p>
-                        <p className="text-sm text-muted-foreground">{request.type}</p>
-                    </div>
-                </div>
-                {getDocumentDetails(request).map((detail, index) => (
-                    <div key={index} className="grid gap-2">
-                        <div className="flex flex-col gap-1">
-                            <p className="text-sm font-medium leading-none">{detail.label}</p>
-                            <p className="text-sm text-muted-foreground">{detail.value || "N/A"}</p>
+                    {request.email && (
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                                <Mail className="h-4 w-4 text-primary" />
+                                <span className="text-sm text-muted-foreground">Email</span>
+                            </div>
+                            <p className="font-medium">{request.email}</p>
                         </div>
-                    </div>
-                ))}
+                    )}
+                    {request.contactNumber && (
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4 text-primary" />
+                                <span className="text-sm text-muted-foreground">Contact</span>
+                            </div>
+                            <p className="font-medium">{request.contactNumber}</p>
+                        </div>
+                    )}
+                </div>
             </div>
 
-            <div className="grid gap-2">
-                <div className="flex flex-col gap-1">
-                    <p className="text-sm font-medium leading-none">Update Status</p>
+            {/* Document Details */}
+            <div className="space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground">Document Details</h3>
+                <div className="grid grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                    {getDocumentSpecificDetails(request).map((detail, index) => (
+                        <div key={index} className="space-y-1">
+                            <div className="flex items-center gap-2">
+                                {detail.icon}
+                                <span className="text-sm text-muted-foreground">
+                                    {detail.label}
+                                </span>
+                            </div>
+                            <p className="font-medium">{detail.value || "N/A"}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Status Update Section */}
+            <div className="border-t pt-6">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-muted-foreground">Update Status</h3>
+                        <p className="text-sm text-muted-foreground">
+                            Change the current status of this document request
+                        </p>
+                    </div>
                     <Select
                         onValueChange={(value) =>
                             handleStatusChange(request.id, request.type, value)
@@ -75,7 +104,7 @@ export function DocumentDetailsView({
                             request.status === "Rejected"
                         }
                     >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-[200px]">
                             <SelectValue>{request.status}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
@@ -104,41 +133,72 @@ export function DocumentDetailsView({
     );
 }
 
-function getDocumentDetails(request) {
+function getDocumentSpecificDetails(request) {
+    const baseDetails = [
+        {
+            label: "Purpose",
+            value: request.purpose,
+            icon: <FileText className="h-4 w-4 text-primary" />,
+        },
+    ];
+
     switch (request.type) {
         case "Barangay Clearance":
-            return [
-                { label: "Name", value: request.residentName },
-                { label: "Purpose", value: request.purpose },
-                { label: "Email", value: request.email },
-                { label: "Contact Number", value: request.contactNumber },
-            ];
+            return baseDetails;
+
         case "Barangay Indigency":
-            return [
-                { label: "Name", value: request.residentName },
-                { label: "Purpose", value: request.purpose },
-                { label: "Contact Number", value: request.contactNumber },
-            ];
+            return baseDetails;
+
         case "Business Clearance":
             return [
-                { label: "Owner Name", value: request.residentName },
-                { label: "Business Name", value: request.businessName },
-                { label: "Business Type", value: request.businessType },
-                { label: "Business Nature", value: request.businessNature },
-                { label: "Owner Address", value: request.ownerAddress },
-                { label: "Contact Number", value: request.contactNumber },
-                { label: "Email", value: request.email },
+                ...baseDetails,
+                {
+                    label: "Business Name",
+                    value: request.businessName,
+                    icon: <FileText className="h-4 w-4 text-primary" />,
+                },
+                {
+                    label: "Business Type",
+                    value: request.businessType,
+                    icon: <FileText className="h-4 w-4 text-primary" />,
+                },
+                {
+                    label: "Business Nature",
+                    value: request.businessNature,
+                    icon: <FileText className="h-4 w-4 text-primary" />,
+                },
             ];
+
         case "Cedula":
             return [
-                { label: "Name", value: request.residentName },
-                { label: "Date of Birth", value: request.dateOfBirth },
-                { label: "Place of Birth", value: request.placeOfBirth },
-                { label: "Civil Status", value: request.civilStatus },
-                { label: "Occupation", value: request.occupation },
-                { label: "Tax", value: request.tax ? `₱${request.tax.toFixed(2)}` : "N/A" },
+                {
+                    label: "Date of Birth",
+                    value: request.dateOfBirth,
+                    icon: <Calendar className="h-4 w-4 text-primary" />,
+                },
+                {
+                    label: "Place of Birth",
+                    value: request.placeOfBirth,
+                    icon: <FileText className="h-4 w-4 text-primary" />,
+                },
+                {
+                    label: "Civil Status",
+                    value: request.civilStatus,
+                    icon: <FileText className="h-4 w-4 text-primary" />,
+                },
+                {
+                    label: "Occupation",
+                    value: request.occupation,
+                    icon: <FileText className="h-4 w-4 text-primary" />,
+                },
+                {
+                    label: "Tax",
+                    value: request.tax ? `₱${request.tax.toFixed(2)}` : "N/A",
+                    icon: <FileText className="h-4 w-4 text-primary" />,
+                },
             ];
+
         default:
-            return [];
+            return baseDetails;
     }
 }

@@ -63,9 +63,22 @@ export function DocumentTableView({
                                         View Details
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent>
+                                <DialogContent className="max-w-3xl">
                                     <DialogHeader>
-                                        <DialogTitle>Document Request Details</DialogTitle>
+                                        <DialogTitle>
+                                            {selectedRequest?.type}
+                                            <span className="block text-sm font-normal text-muted-foreground mt-1">
+                                                Requested on{" "}
+                                                {selectedRequest?.requestDate
+                                                    ? new Date(
+                                                          selectedRequest.requestDate
+                                                      ).toLocaleDateString()
+                                                    : "N/A"}
+                                            </span>
+                                            <Badge className={getStatusColor(request.status)}>
+                                                {request.status}
+                                            </Badge>
+                                        </DialogTitle>
                                     </DialogHeader>
                                     {selectedRequest && (
                                         <DocumentDetailsView

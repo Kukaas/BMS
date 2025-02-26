@@ -9,10 +9,9 @@ import { createTransactionHistory } from "./transaction.history.controller.js";
 
 export const createBarangayClearance = async (req, res, next) => {
     try {
-        const { userId, name, email, purpose, contactNumber } = req.body;
-        const userBarangay = req.user.barangay;
+        const { userId, name, email, contactNumber, purpose, barangay } = req.body;
 
-        if (!name || !email || !purpose || !contactNumber) {
+        if (!name || !purpose) {
             return res.status(400).json({
                 success: false,
                 message: "Please provide all required fields",
@@ -23,10 +22,12 @@ export const createBarangayClearance = async (req, res, next) => {
             userId,
             name,
             email,
-            barangay: userBarangay,
-            purpose,
             contactNumber,
+            barangay,
+            purpose,
         });
+
+        // Create log entry
         await createLog(
             userId,
             "Barangay Clearance Request",
@@ -38,12 +39,12 @@ export const createBarangayClearance = async (req, res, next) => {
 
         // Create transaction history
         await createTransactionHistory({
-            userId: req.user.id,
+            userId,
             transactionId: barangayClearance._id,
             residentName: name,
             requestedDocument: "Barangay Clearance",
             dateRequested: new Date(),
-            barangay: userBarangay,
+            barangay,
             action: "created",
             status: "Pending",
         });
@@ -58,7 +59,7 @@ export const createBarangayClearance = async (req, res, next) => {
         );
 
         // Send notification to secretaries of the user's barangay
-        await sendNotificationToBarangaySecretaries(userBarangay, staffNotification);
+        await sendNotificationToBarangaySecretaries(barangay, staffNotification);
 
         res.status(201).json({
             success: true,
@@ -86,10 +87,19 @@ export const approveBarangayClearance = async (req, res, next) => {
             });
         }
 
-        const date = new Date();
-        barangayClearance.isVerified = status === "approved";
+        const currentDate = new Date();
+
+        // Update status-related fields
         barangayClearance.status = status;
-        barangayClearance.dateOfIssuance = date;
+        barangayClearance.isVerified = status === "Approved";
+
+        // Update date fields based on status
+        if (status === "Approved") {
+            barangayClearance.dateApproved = currentDate;
+            barangayClearance.dateOfIssuance = currentDate;
+        } else if (status === "Completed") {
+            barangayClearance.dateCompleted = currentDate;
+        }
 
         await barangayClearance.save();
 

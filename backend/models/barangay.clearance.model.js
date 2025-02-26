@@ -11,8 +11,11 @@ const barangayClearanceSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-
         email: {
+            type: String,
+            required: true,
+        },
+        contactNumber: {
             type: String,
             required: true,
         },
@@ -24,12 +27,9 @@ const barangayClearanceSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        contactNumber: {
-            type: String,
-            required: true,
-        },
         dateOfIssuance: {
             type: Date,
+            default: null,
         },
         isVerified: {
             type: Boolean,
