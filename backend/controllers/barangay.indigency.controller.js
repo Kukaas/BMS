@@ -6,6 +6,7 @@ import {
 import User from "../models/user.model.js";
 import { createLog } from "./log.controller.js";
 import { createTransactionHistory } from "./transaction.history.controller.js";
+import { STATUS_TYPES } from "../models/barangay.clearance.model.js"; // Import shared status types
 
 export const createBarangayIndigency = async (req, res, next) => {
     try {
@@ -89,8 +90,8 @@ export const verifyBarangayIndigency = async (req, res, next) => {
             });
         }
 
-        // Validate status
-        if (!["Pending", "Approved", "Rejected"].includes(status)) {
+        // Validate status using shared STATUS_TYPES
+        if (!Object.values(STATUS_TYPES).includes(status)) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid status value",
@@ -99,7 +100,7 @@ export const verifyBarangayIndigency = async (req, res, next) => {
 
         const barangayIndigency = await BarangayIndigency.findOne({
             _id: id,
-            barangay, // Ensure the document belongs to secretary's barangay
+            barangay,
         });
 
         if (!barangayIndigency) {
@@ -109,15 +110,39 @@ export const verifyBarangayIndigency = async (req, res, next) => {
             });
         }
 
-        barangayIndigency.isVerified = status === "Approved";
+        // Update document fields
+        barangayIndigency.isVerified = [
+            STATUS_TYPES.APPROVED,
+            STATUS_TYPES.FOR_PICKUP,
+            STATUS_TYPES.COMPLETED,
+        ].includes(status);
+
         barangayIndigency.status = status;
-        if (status === "Approved") {
-            barangayIndigency.dateOfIssuance = new Date();
+
+        // Handle dates based on status
+        const currentDate = new Date();
+        switch (status) {
+            case STATUS_TYPES.APPROVED:
+                if (!barangayIndigency.dateApproved) {
+                    barangayIndigency.dateApproved = currentDate;
+                }
+                break;
+            case STATUS_TYPES.FOR_PICKUP:
+                if (!barangayIndigency.dateApproved) {
+                    barangayIndigency.dateApproved = currentDate;
+                }
+                break;
+            case STATUS_TYPES.COMPLETED:
+                barangayIndigency.dateCompleted = currentDate;
+                if (!barangayIndigency.dateApproved) {
+                    barangayIndigency.dateApproved = currentDate;
+                }
+                break;
         }
 
         await barangayIndigency.save();
 
-        // Create status update notification for other staff members
+        // Create status update notification
         const staffNotification = createNotification(
             "Indigency Request Updated",
             `An indigency request from ${

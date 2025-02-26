@@ -36,7 +36,7 @@ const BarangayIndigencySchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ["Pending", "Approved", "Completed", "Rejected"],
+            enum: ["Pending", "Approved", "For Pickup", "Completed", "Rejected"],
             default: "Pending",
         },
         dateApproved: {
