@@ -31,6 +31,7 @@ export default function BarangayIndigencyForm({ onSubmit, initialData, onDataCha
             email: currentUser?.email || "",
             barangay: currentUser?.barangay || "",
             contactNumber: currentUser?.contactNumber || "",
+            age: "",
             purpose: initialData?.purpose || "",
         },
     });
@@ -89,6 +90,13 @@ export default function BarangayIndigencyForm({ onSubmit, initialData, onDataCha
                     />
                     {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
                 </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="age">Age</Label>
+                    <Input id="age" type="number" {...register("age")} />
+                    {errors.age && <p className="text-red-500 text-sm">{errors.age.message}</p>}
+                </div>
+
                 <div className="space-y-2">
                     <Label htmlFor="purpose">Purpose</Label>
                     <Select onValueChange={handlePurposeChange}>

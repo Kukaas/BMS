@@ -26,6 +26,7 @@ export const barangayClearanceSchema = z.object({
 
 export const barangayIndigencySchema = z.object({
     name: z.string().min(1, "Full name is required"),
+    age: z.string().min(1, "Age is required"),
     barangay: z.string().min(1, "Barangay is required"),
     contactNumber: z.string().min(1, "Contact number is required"),
     purpose: z.enum(

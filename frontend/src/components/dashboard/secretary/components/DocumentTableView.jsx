@@ -16,6 +16,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { DocumentDetailsView } from "./DocumentDetailsView";
+import { Printer } from "lucide-react";
 
 export function DocumentTableView({
     currentRequests,
@@ -24,6 +25,7 @@ export function DocumentTableView({
     handleStatusChange,
     updating,
     getAvailableStatuses,
+    handlePrint,
 }) {
     return (
         <Table>
@@ -52,46 +54,56 @@ export function DocumentTableView({
                             </Badge>
                         </TableCell>
                         <TableCell>
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            // Log the selected request data
-                                            console.log("Selected request:", request);
-                                            setSelectedRequest(request);
-                                        }}
-                                    >
-                                        View Details
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-3xl">
-                                    <DialogHeader>
-                                        <DialogTitle>
-                                            {request.type}
-                                            <span className="block text-sm font-normal text-muted-foreground mt-1">
-                                                Requested on{" "}
-                                                {request.requestDate
-                                                    ? new Date(
-                                                          request.requestDate
-                                                      ).toLocaleDateString()
-                                                    : "N/A"}
-                                            </span>
-                                            <Badge className={getStatusColor(request.status)}>
-                                                {request.status}
-                                            </Badge>
-                                        </DialogTitle>
-                                    </DialogHeader>
-                                    <DocumentDetailsView
-                                        request={request}
-                                        handleStatusChange={handleStatusChange}
-                                        updating={updating}
-                                        getAvailableStatuses={getAvailableStatuses}
-                                        getStatusColor={getStatusColor}
-                                    />
-                                </DialogContent>
-                            </Dialog>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handlePrint(request)}
+                                    className="flex items-center gap-2"
+                                >
+                                    <Printer className="h-4 w-4" />
+                                    Print
+                                </Button>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                console.log("Selected request:", request);
+                                                setSelectedRequest(request);
+                                            }}
+                                        >
+                                            View Details
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-3xl">
+                                        <DialogHeader>
+                                            <DialogTitle>
+                                                {request.type}
+                                                <span className="block text-sm font-normal text-muted-foreground mt-1">
+                                                    Requested on{" "}
+                                                    {request.requestDate
+                                                        ? new Date(
+                                                              request.requestDate
+                                                          ).toLocaleDateString()
+                                                        : "N/A"}
+                                                </span>
+                                                <Badge className={getStatusColor(request.status)}>
+                                                    {request.status}
+                                                </Badge>
+                                            </DialogTitle>
+                                        </DialogHeader>
+                                        <DocumentDetailsView
+                                            request={request}
+                                            handleStatusChange={handleStatusChange}
+                                            updating={updating}
+                                            getAvailableStatuses={getAvailableStatuses}
+                                            getStatusColor={getStatusColor}
+                                        />
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
                         </TableCell>
                     </TableRow>
                 ))}

@@ -479,3 +479,31 @@ export const updateProfile = async (req, res) => {
     }
 };
 
+// Add this new controller method
+export const getBarangayChairman = async (req, res, next) => {
+    try {
+        const { barangay } = req.user;
+
+        const chairman = await User.findOne({
+            barangay,
+            role: "chairman",
+            isActive: true,
+            isVerified: true
+        }).select("-password");
+
+        if (!chairman) {
+            return res.status(404).json({
+                success: false,
+                message: "Barangay chairman not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: chairman,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+

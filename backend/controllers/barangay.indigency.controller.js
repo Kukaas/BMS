@@ -10,7 +10,7 @@ import { STATUS_TYPES } from "../models/barangay.clearance.model.js"; // Import 
 
 export const createBarangayIndigency = async (req, res, next) => {
     try {
-        const { userId, name, email, purpose, contactNumber } = req.body;
+        const { userId, name, email, age, purpose, contactNumber } = req.body;
         const userBarangay = req.user.barangay;
 
         if (!name || !email || !purpose || !contactNumber) {
@@ -24,6 +24,7 @@ export const createBarangayIndigency = async (req, res, next) => {
             userId,
             name,
             email,
+            age,
             barangay: userBarangay,
             purpose,
             contactNumber,
@@ -179,5 +180,45 @@ export const verifyBarangayIndigency = async (req, res, next) => {
     } catch (error) {
         console.error("Error verifying indigency request:", error);
         next(error);
+    }
+};
+
+export const printBarangayIndigency = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { barangay } = req.user;
+
+        const indigency = await BarangayIndigency.findOne({
+            _id: id,
+            barangay: barangay,
+        });
+
+        if (!indigency) {
+            return res.status(404).json({
+                success: false,
+                message: "Barangay Indigency document not found",
+            });
+        }
+
+        // Return the document data
+        res.status(200).json({
+            success: true,
+            data: {
+                id: indigency._id,
+                name: indigency.name,
+                purpose: indigency.purpose,
+                dateIssued: indigency.dateOfIssuance || new Date(),
+                status: indigency.status,
+                barangay: indigency.barangay,
+                documentType: "Barangay Indigency",
+                age: indigency.age,
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching indigency document:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching indigency document",
+        });
     }
 };

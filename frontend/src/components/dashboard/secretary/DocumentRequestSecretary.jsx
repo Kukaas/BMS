@@ -15,6 +15,7 @@ import { Loader2, Search } from "lucide-react";
 import { DocumentTableView } from "./components/DocumentTableView";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STATUS_TYPES } from "@/lib/constants"; // Update import path
+import { generateIndigencyTemplate } from "@/components/templates/BarangayIndigencyTemplate";
 
 export function DocumentRequestSecretary() {
     const [requests, setRequests] = useState([]);
@@ -28,6 +29,9 @@ export function DocumentRequestSecretary() {
     const [pageSize, setPageSize] = useState(5);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedType, setSelectedType] = useState("all");
+
+    // Add this near the top of your component where other state variables are defined
+    const [barangayChairman, setBarangayChairman] = useState(null);
 
     const fetchRequests = async () => {
         try {
@@ -80,6 +84,23 @@ export function DocumentRequestSecretary() {
             fetchRequests();
         }
     }, [currentUser, currentPage, pageSize]); // Add pagination dependencies
+
+    // Add this useEffect to fetch the chairman's information
+    useEffect(() => {
+        const fetchChairman = async () => {
+            try {
+                const response = await api.get("/users/chairman/current");
+                if (response.data.success) {
+                    setBarangayChairman(response.data.data);
+                }
+            } catch (error) {
+                console.error("Error fetching chairman:", error);
+                toast.error("Failed to fetch barangay chairman information");
+            }
+        };
+
+        fetchChairman();
+    }, []);
 
     // Add this function to normalize status values
     const normalizeStatus = (status) => {
@@ -201,6 +222,36 @@ export function DocumentRequestSecretary() {
         setCurrentPage(page);
     };
 
+    // Update the handlePrint function to include the chairman information
+    const handlePrint = async (request) => {
+        try {
+            if (request.type !== "Barangay Indigency") {
+                toast.error("Print functionality is only available for Barangay Indigency");
+                return;
+            }
+
+            const response = await api.get(`/barangay-indigency/${request.id}/print`);
+
+            if (!response.data.success) {
+                throw new Error(response.data.message);
+            }
+
+            const document = response.data.data;
+            // Pass both currentUser and barangayChairman to the template
+            const printContent = generateIndigencyTemplate(document, {
+                ...currentUser,
+                barangayCaptain: barangayChairman?.name || currentUser?.barangayCaptain,
+            });
+
+            const printWindow = window.open("", "_blank");
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+        } catch (error) {
+            console.error("Error preparing print document:", error);
+            toast.error("Failed to prepare document for printing");
+        }
+    };
+
     if (loading) {
         return (
             <Card>
@@ -269,6 +320,7 @@ export function DocumentRequestSecretary() {
                         handleStatusChange={handleStatusChange}
                         updating={updating}
                         getAvailableStatuses={getAvailableStatuses}
+                        handlePrint={handlePrint}
                     />
 
                     {/* Pagination Controls */}
@@ -276,30 +328,28 @@ export function DocumentRequestSecretary() {
                         <p className="text-sm text-muted-foreground">
                             {searchTerm
                                 ? `${filteredRequests.length} results found`
-                                : `Total Requests: ${totalRequests}`}
+                                : `${totalRequests} requests in total`}
                         </p>
-                        <div className="flex items-center space-x-6 lg:space-x-8">
-                            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                        <div className="flex items-center gap-4">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                            >
+                                Previous
+                            </Button>
+                            <p className="text-sm text-muted-foreground">
                                 Page {currentPage} of {totalPages}
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handlePageChange(currentPage - 1)}
-                                    disabled={currentPage === 1}
-                                >
-                                    Previous
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handlePageChange(currentPage + 1)}
-                                    disabled={currentPage === totalPages}
-                                >
-                                    Next
-                                </Button>
-                            </div>
+                            </p>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                            >
+                                Next
+                            </Button>
                         </div>
                     </div>
                 </div>
