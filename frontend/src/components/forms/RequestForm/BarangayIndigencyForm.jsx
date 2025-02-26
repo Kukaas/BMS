@@ -76,6 +76,8 @@ export default function BarangayIndigencyForm({ onSubmit, initialData, onDataCha
             <div className="grid md:grid-cols-2 gap-6">
                 <input type="hidden" {...register("userId")} />
                 <input type="hidden" {...register("email")} />
+                <input type="hidden" {...register("barangay")} />
+                <input type="hidden" {...register("contactNumber")} />
 
                 <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
@@ -88,48 +90,18 @@ export default function BarangayIndigencyForm({ onSubmit, initialData, onDataCha
                     {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="barangay">Barangay</Label>
-                    <Input
-                        id="barangay"
-                        {...register("barangay")}
-                        defaultValue={currentUser?.barangay || ""}
-                        readOnly
-                    />
-                    {errors.barangay && (
-                        <p className="text-red-500 text-sm">{errors.barangay.message}</p>
-                    )}
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="contactNumber">Contact Number</Label>
-                    <Input
-                        id="contactNumber"
-                        type="tel"
-                        {...register("contactNumber")}
-                        placeholder="Enter your contact number"
-                    />
-                    {errors.contactNumber && (
-                        <p className="text-red-500 text-sm">{errors.contactNumber.message}</p>
-                    )}
-                </div>
-                <div className="space-y-2">
                     <Label htmlFor="purpose">Purpose</Label>
                     <Select onValueChange={handlePurposeChange}>
                         <SelectTrigger id="purpose">
                             <SelectValue placeholder="Select purpose" />
                         </SelectTrigger>
                         <SelectContent>
+                            <SelectItem value="Medical Assistance">Medical Assistance</SelectItem>
                             <SelectItem value="Financial Assistance">
                                 Financial Assistance
                             </SelectItem>
-                            <SelectItem value="Scholarship">Scholarship</SelectItem>
-                            <SelectItem value="Medical Assistance">Medical Assistance</SelectItem>
-                            <SelectItem value="Legal Assistance">Legal Assistance</SelectItem>
-                            <SelectItem value="Employment Assistance">
-                                Employment Assistance
-                            </SelectItem>
-                            <SelectItem value="Welfare Assistance">Welfare Assistance</SelectItem>
-                            <SelectItem value="Housing Assistance">Housing Assistance</SelectItem>
-                            <SelectItem value="Tuition Assistance">Tuition Assistance</SelectItem>
+                            <SelectItem value="Food Assistance">Food Assistance</SelectItem>
+                            <SelectItem value="Burial Assistance">Burial Assistance</SelectItem>
                         </SelectContent>
                     </Select>
                     {errors.purpose && (

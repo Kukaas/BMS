@@ -28,16 +28,7 @@ export const barangayIndigencySchema = z.object({
     barangay: z.string().min(1, "Barangay is required"),
     contactNumber: z.string().min(1, "Contact number is required"),
     purpose: z.enum(
-        [
-            "Financial Assistance",
-            "Scholarship",
-            "Medical Assistance",
-            "Legal Assistance",
-            "Employment Assistance",
-            "Welfare Assistance",
-            "Housing Assistance",
-            "Tuition Assistance",
-        ],
+        ["Medical Assistance", "Financial Assistance", "Food Assistance", "Burial Assistance"],
         {
             required_error: "Purpose is required",
         }
