@@ -161,3 +161,39 @@ export const approveBarangayClearance = async (req, res, next) => {
         next(error);
     }
 };
+
+export const getBarangayClearanceForPrint = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const barangayClearance = await BarangayClearance.findById(id);
+
+        if (!barangayClearance) {
+            return res.status(404).json({
+                success: false,
+                message: "Barangay clearance not found",
+            });
+        }
+
+        // Format the date fields
+        const formattedClearance = {
+            ...barangayClearance.toObject(),
+            dateIssued: barangayClearance.dateApproved || barangayClearance.createdAt,
+            dateOfBirth: new Date(barangayClearance.dateOfBirth).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+            }),
+        };
+
+        res.status(200).json({
+            success: true,
+            data: formattedClearance,
+        });
+    } catch (error) {
+        console.error("Error fetching barangay clearance for print:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching barangay clearance",
+        });
+    }
+};
