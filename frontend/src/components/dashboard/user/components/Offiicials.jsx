@@ -59,12 +59,12 @@ export default function Officials() {
                 officials.map((official) => (
                     <Card
                         key={official._id}
-                        className="overflow-hidden hover:shadow-lg transition-shadow h-[280px]"
+                        className="overflow-hidden hover:shadow-lg transition-shadow h-[200px]"
                     >
-                        <div className="p-6 h-full flex flex-col">
-                            <div className="flex flex-col items-center text-center space-y-4 flex-1">
+                        <div className="p-3 h-full flex flex-col">
+                            <div className="flex flex-col items-center text-center space-y-2 flex-1">
                                 {official.image ? (
-                                    <div className="h-20 w-20 rounded-full overflow-hidden ring-2 ring-primary/10">
+                                    <div className="h-12 w-12 rounded-full overflow-hidden ring-1 ring-primary/10">
                                         <img
                                             src={official.image.data}
                                             alt={official.name}
@@ -72,19 +72,23 @@ export default function Officials() {
                                         />
                                     </div>
                                 ) : (
-                                    <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <User2 className="h-10 w-10 text-primary/60" />
+                                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <User2 className="h-6 w-6 text-primary/60" />
                                     </div>
                                 )}
-                                <div className="space-y-2">
-                                    <h3 className="font-semibold text-lg">{official.name}</h3>
-                                    <div className="flex items-center justify-center space-x-2">
-                                        <Badge className="h-4 w-4 text-primary/60" />
-                                        <p className="text-muted-foreground">{official.position}</p>
+                                <div className="space-y-1">
+                                    <h3 className="font-medium text-sm truncate max-w-[150px]">
+                                        {official.name}
+                                    </h3>
+                                    <div className="flex items-center justify-center space-x-1.5">
+                                        <Badge className="h-3 w-3 text-primary/60" />
+                                        <p className="text-muted-foreground text-xs">
+                                            {official.position}
+                                        </p>
                                     </div>
                                     <UIBadge
                                         variant="secondary"
-                                        className={`mt-1 ${getStatusColor(official.status)}`}
+                                        className={`text-xs px-2 py-0.5 ${getStatusColor(official.status)}`}
                                     >
                                         {official.status}
                                     </UIBadge>
@@ -92,10 +96,11 @@ export default function Officials() {
                             </div>
                             <Button
                                 variant="ghost"
-                                className="w-full mt-4"
+                                size="sm"
+                                className="w-full mt-2"
                                 onClick={() => handleViewDetails(official)}
                             >
-                                <Eye className="h-4 w-4 mr-2" />
+                                <Eye className="h-3.5 w-3.5 mr-1.5" />
                                 View Details
                             </Button>
                         </div>
@@ -116,10 +121,10 @@ export default function Officials() {
             {officials?.length > 0 ? (
                 officials.map((official) => (
                     <Card key={official._id} className="hover:shadow-md transition-shadow">
-                        <div className="p-4">
-                            <div className="flex items-center gap-4">
+                        <div className="p-3">
+                            <div className="flex items-center gap-3">
                                 {official.image ? (
-                                    <div className="h-16 w-16 rounded-full overflow-hidden ring-2 ring-primary/10 flex-shrink-0">
+                                    <div className="h-12 w-12 rounded-full overflow-hidden ring-1 ring-primary/10 flex-shrink-0">
                                         <img
                                             src={official.image.data}
                                             alt={official.name}
@@ -127,41 +132,41 @@ export default function Officials() {
                                         />
                                     </div>
                                 ) : (
-                                    <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                        <User2 className="h-8 w-8 text-primary/60" />
+                                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                        <User2 className="h-6 w-6 text-primary/60" />
                                     </div>
                                 )}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <h3 className="font-semibold text-lg truncate">
+                                            <h3 className="font-medium text-sm truncate">
                                                 {official.name}
                                             </h3>
-                                            <div className="flex items-center space-x-2 mt-1">
-                                                <Badge className="h-4 w-4 text-primary/60" />
-                                                <p className="text-muted-foreground">
+                                            <div className="flex items-center space-x-1.5 mt-0.5">
+                                                <Badge className="h-3 w-3 text-primary/60" />
+                                                <p className="text-muted-foreground text-xs">
                                                     {official.position}
                                                 </p>
-                                                <span className="text-gray-300 mx-2">•</span>
-                                                <p className="text-muted-foreground">
+                                                <span className="text-gray-300 mx-1.5">•</span>
+                                                <p className="text-muted-foreground text-xs">
                                                     {official.contactNumber}
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2">
                                             <UIBadge
                                                 variant="secondary"
-                                                className={getStatusColor(official.status)}
+                                                className={`text-xs px-2 py-0.5 ${getStatusColor(official.status)}`}
                                             >
                                                 {official.status}
                                             </UIBadge>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
+                                                className="h-8 px-2"
                                                 onClick={() => handleViewDetails(official)}
                                             >
-                                                <Eye className="h-4 w-4 mr-2" />
-                                                View
+                                                <Eye className="h-3.5 w-3.5" />
                                             </Button>
                                         </div>
                                     </div>

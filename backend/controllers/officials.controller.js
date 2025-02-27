@@ -140,6 +140,33 @@ export const getOfficialsByBarangay = async (req, res, next) => {
     }
 };
 
+export const deleteOfficial = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const official = await Officials.findById(id);
+
+        if (!official) {
+            return res.status(404).json({
+                success: false,
+                message: "Official not found",
+            });
+        }
+
+        // Soft delete by updating status to "Inactive"
+        official.status = "Inactive";
+        await official.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Official deleted successfully",
+        });
+    } catch (error) {
+        console.error("Error deleting official:", error);
+        next(error);
+    }
+};
+
 
 
 
