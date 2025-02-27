@@ -16,6 +16,8 @@ import { DocumentTableView } from "./components/DocumentTableView";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STATUS_TYPES } from "@/lib/constants"; // Update import path
 import { generateIndigencyTemplate } from "@/components/templates/BarangayIndigencyTemplate";
+import { generateClearanceTemplate } from "@/components/templates/BarangayClearanceTemplate";
+import { format } from "date-fns";
 
 export function DocumentRequestSecretary() {
     const [requests, setRequests] = useState([]);
@@ -43,7 +45,6 @@ export function DocumentRequestSecretary() {
             });
 
             if (res.data.success) {
-                // Transform the data to match the component's expected format
                 const transformedRequests = res.data.data.map((request) => ({
                     id: request._id,
                     requestDate: request.createdAt,
@@ -53,15 +54,20 @@ export function DocumentRequestSecretary() {
                     purpose: request.purpose,
                     email: request.email,
                     contactNumber: request.contactNumber,
+                    // Make sure age is included
+                    age: request.age,
+                    // Add new Barangay Clearance fields
+                    purok: request.purok,
+                    dateOfBirth: request.dateOfBirth,
+                    sex: request.sex,
+                    placeOfBirth: request.placeOfBirth,
+                    civilStatus: request.civilStatus,
                     // Business clearance specific fields
                     businessName: request.businessName,
                     businessType: request.businessType,
                     businessNature: request.businessNature,
                     ownerAddress: request.ownerAddress,
                     // Cedula specific fields
-                    dateOfBirth: request.dateOfBirth,
-                    placeOfBirth: request.placeOfBirth,
-                    civilStatus: request.civilStatus,
                     occupation: request.occupation,
                     salary: request.salary,
                 }));
@@ -222,26 +228,49 @@ export function DocumentRequestSecretary() {
         setCurrentPage(page);
     };
 
-    // Update the handlePrint function to include the chairman information
+    // Update the handlePrint function
     const handlePrint = async (request) => {
         try {
-            if (request.type !== "Barangay Indigency") {
-                toast.error("Print functionality is only available for Barangay Indigency");
+            if (!["Barangay Indigency", "Barangay Clearance"].includes(request.type)) {
+                toast.error(
+                    "Print functionality is only available for Barangay Indigency and Clearance"
+                );
                 return;
             }
 
-            const response = await api.get(`/barangay-indigency/${request.id}/print`);
+            // Fetch officials for Barangay Clearance
+            let officials = [];
+            if (request.type === "Barangay Clearance") {
+                const officialsResponse = await api.get(
+                    `/officials/get-officials/${currentUser.barangay}`
+                );
+                if (officialsResponse.data.success) {
+                    officials = officialsResponse.data.officials;
+                }
+            }
+
+            const response = await api.get(
+                `/${request.type.toLowerCase().replace(/\s+/g, "-")}/${request.id}/print`
+            );
 
             if (!response.data.success) {
                 throw new Error(response.data.message);
             }
 
             const document = response.data.data;
-            // Pass both currentUser and barangayChairman to the template
-            const printContent = generateIndigencyTemplate(document, {
-                ...currentUser,
-                barangayCaptain: barangayChairman?.name || currentUser?.barangayCaptain,
-            });
+            let printContent;
+
+            if (request.type === "Barangay Indigency") {
+                printContent = generateIndigencyTemplate(document, {
+                    ...currentUser,
+                    barangayCaptain: barangayChairman?.name || currentUser?.barangayCaptain,
+                });
+            } else if (request.type === "Barangay Clearance") {
+                printContent = generateClearanceTemplate(document, officials, {
+                    ...currentUser,
+                    barangayCaptain: barangayChairman?.name || currentUser?.barangayCaptain,
+                });
+            }
 
             const printWindow = window.open("", "_blank");
             printWindow.document.write(printContent);

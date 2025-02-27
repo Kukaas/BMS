@@ -22,6 +22,20 @@ export const barangayClearanceSchema = z.object({
         }
     ),
     contactNumber: z.string().min(1, "Contact number is required"),
+    purok: z.enum(
+        ["Purok I", "Purok II", "Purok III", "Purok IV", "Purok V", "Purok VI", "Purok VII"],
+        {
+            required_error: "Purok is required",
+        }
+    ),
+    dateOfBirth: z.string().min(1, "Date of birth is required"),
+    sex: z.enum(["Male", "Female"], {
+        required_error: "Sex is required",
+    }),
+    placeOfBirth: z.string().min(1, "Place of birth is required"),
+    civilStatus: z.enum(["Single", "Married", "Widowed", "Separated"], {
+        required_error: "Civil status is required",
+    }),
 });
 
 export const barangayIndigencySchema = z.object({

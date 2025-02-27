@@ -9,9 +9,31 @@ import { createTransactionHistory } from "./transaction.history.controller.js";
 
 export const createBarangayClearance = async (req, res, next) => {
     try {
-        const { userId, name, email, contactNumber, purpose, barangay, age } = req.body;
+        const {
+            userId,
+            name,
+            email,
+            contactNumber,
+            purpose,
+            barangay,
+            age,
+            purok,
+            dateOfBirth,
+            sex,
+            placeOfBirth,
+            civilStatus,
+        } = req.body;
 
-        if (!name || !purpose || !age) {
+        if (
+            !name ||
+            !purpose ||
+            !age ||
+            !purok ||
+            !dateOfBirth ||
+            !sex ||
+            !placeOfBirth ||
+            !civilStatus
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "Please provide all required fields",
@@ -26,6 +48,11 @@ export const createBarangayClearance = async (req, res, next) => {
             contactNumber,
             barangay,
             purpose,
+            purok,
+            dateOfBirth,
+            sex,
+            placeOfBirth,
+            civilStatus,
             type: "Barangay Clearance",
         });
 
@@ -132,5 +159,41 @@ export const approveBarangayClearance = async (req, res, next) => {
     } catch (error) {
         console.error("Error updating barangay clearance:", error);
         next(error);
+    }
+};
+
+export const getBarangayClearanceForPrint = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const barangayClearance = await BarangayClearance.findById(id);
+
+        if (!barangayClearance) {
+            return res.status(404).json({
+                success: false,
+                message: "Barangay clearance not found",
+            });
+        }
+
+        // Format the date fields
+        const formattedClearance = {
+            ...barangayClearance.toObject(),
+            dateIssued: barangayClearance.dateApproved || barangayClearance.createdAt,
+            dateOfBirth: new Date(barangayClearance.dateOfBirth).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+            }),
+        };
+
+        res.status(200).json({
+            success: true,
+            data: formattedClearance,
+        });
+    } catch (error) {
+        console.error("Error fetching barangay clearance for print:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching barangay clearance",
+        });
     }
 };

@@ -1,5 +1,5 @@
-import GASAN_LOGO from "../../../public/gasan-logo.png";
-import PHILIPPINES_LOGO from "../../../public/ph-logo.png";
+import GASAN_LOGO from "../../assets/gasan-logo.png";
+import PHILIPPINES_LOGO from "../../assets/ph-logo.png";
 
 export const generateIndigencyTemplate = (document, currentUser) => {
     // Get the chairman's name from the passed data

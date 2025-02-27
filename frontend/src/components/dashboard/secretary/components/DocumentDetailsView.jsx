@@ -17,7 +17,7 @@ export function DocumentDetailsView({
         <div className="space-y-8 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
             {/* Resident Information */}
             <div className="space-y-3">
-                <h3 className="text-sm font-medium text-muted-foreground">Resident Information</h3>
+                <h3 className="text-sm font-medium text-muted-foreground">Basic Information</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -48,7 +48,7 @@ export function DocumentDetailsView({
             </div>
 
             {/* Document Details with Sections */}
-            {request.type === "Cedula" ? (
+            {request.type === "Barangay Clearance" && (
                 <>
                     {/* Personal Information Section */}
                     <div className="space-y-3">
@@ -56,45 +56,90 @@ export function DocumentDetailsView({
                             Personal Information
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-                            {getDocumentSpecificDetails(request)
-                                .filter((detail) => detail.section === "Personal Information")
-                                .map((detail, index) => (
-                                    <div key={index} className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                            {detail.icon}
-                                            <span className="text-sm text-muted-foreground">
-                                                {detail.label}
-                                            </span>
-                                        </div>
-                                        <p className="font-medium">{detail.value}</p>
-                                    </div>
-                                ))}
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-primary" />
+                                    <span className="text-sm text-muted-foreground">Age</span>
+                                </div>
+                                <p className="font-medium">
+                                    {request.age !== undefined ? request.age : "N/A"}
+                                </p>
+                            </div>
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-primary" />
+                                    <span className="text-sm text-muted-foreground">Sex</span>
+                                </div>
+                                <p className="font-medium">{request.sex}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4 text-primary" />
+                                    <span className="text-sm text-muted-foreground">
+                                        Date of Birth
+                                    </span>
+                                </div>
+                                <p className="font-medium">
+                                    {new Date(request.dateOfBirth).toLocaleDateString()}
+                                </p>
+                            </div>
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-primary" />
+                                    <span className="text-sm text-muted-foreground">
+                                        Civil Status
+                                    </span>
+                                </div>
+                                <p className="font-medium">{request.civilStatus}</p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Employment Information Section */}
+                    {/* Address Information Section */}
                     <div className="space-y-3">
                         <h3 className="text-sm font-medium text-muted-foreground">
-                            Employment Information
+                            Address Information
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-                            {getDocumentSpecificDetails(request)
-                                .filter((detail) => detail.section === "Employment Information")
-                                .map((detail, index) => (
-                                    <div key={index} className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                            {detail.icon}
-                                            <span className="text-sm text-muted-foreground">
-                                                {detail.label}
-                                            </span>
-                                        </div>
-                                        <p className="font-medium">{detail.value}</p>
-                                    </div>
-                                ))}
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-primary" />
+                                    <span className="text-sm text-muted-foreground">Purok</span>
+                                </div>
+                                <p className="font-medium">{request.purok}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-primary" />
+                                    <span className="text-sm text-muted-foreground">
+                                        Place of Birth
+                                    </span>
+                                </div>
+                                <p className="font-medium">{request.placeOfBirth}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Request Details Section */}
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-medium text-muted-foreground">
+                            Request Details
+                        </h3>
+                        <div className="grid grid-cols-1 gap-4 bg-muted p-4 rounded-lg">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-primary" />
+                                    <span className="text-sm text-muted-foreground">Purpose</span>
+                                </div>
+                                <p className="font-medium">{request.purpose}</p>
+                            </div>
                         </div>
                     </div>
                 </>
-            ) : (
+            )}
+
+            {/* Other document types remain unchanged */}
+            {request.type === "Barangay Indigency" && (
                 <div className="space-y-3">
                     <h3 className="text-sm font-medium text-muted-foreground">Document Details</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
@@ -175,7 +220,43 @@ function getDocumentSpecificDetails(request) {
 
     switch (request.type) {
         case "Barangay Clearance":
-            return baseDetails;
+            return [
+                {
+                    label: "Purok",
+                    value: request.purok,
+                    icon: <FileText className="h-4 w-4 text-primary" />,
+                },
+                {
+                    label: "Date of Birth",
+                    value: new Date(request.dateOfBirth).toLocaleDateString(),
+                    icon: <Calendar className="h-4 w-4 text-primary" />,
+                },
+                {
+                    label: "Age",
+                    value: request.age,
+                    icon: <FileText className="h-4 w-4 text-primary" />,
+                },
+                {
+                    label: "Sex",
+                    value: request.sex,
+                    icon: <FileText className="h-4 w-4 text-primary" />,
+                },
+                {
+                    label: "Place of Birth",
+                    value: request.placeOfBirth,
+                    icon: <FileText className="h-4 w-4 text-primary" />,
+                },
+                {
+                    label: "Civil Status",
+                    value: request.civilStatus,
+                    icon: <FileText className="h-4 w-4 text-primary" />,
+                },
+                {
+                    label: "Purpose",
+                    value: request.purpose,
+                    icon: <FileText className="h-4 w-4 text-primary" />,
+                },
+            ];
 
         case "Barangay Indigency":
             return baseDetails;
