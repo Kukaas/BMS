@@ -11,7 +11,7 @@ export const generateIndigencyTemplate = (document, currentUser) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Certificate of Indigency</title>
+        <title>Certificate of Indigency - ${document.name}</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
             tailwind.config = {
