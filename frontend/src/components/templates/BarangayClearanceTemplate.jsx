@@ -28,9 +28,9 @@ export const generateClearanceTemplate = (document, officials, currentUser) => {
     // Sort officials by position
     const sortedOfficials = officials?.sort((a, b) => {
         const positionOrder = {
-            "Punong Barangay": 1,
-            Kagawad: 2,
-            "SK Chairman": 3,
+            Chairman: 1,
+            "SK Chairman": 2,
+            Kagawad: 3,
             Secretary: 4,
             Treasurer: 5,
         };
