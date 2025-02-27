@@ -35,6 +35,9 @@ export function DocumentRequestSecretary() {
     // Add this near the top of your component where other state variables are defined
     const [barangayChairman, setBarangayChairman] = useState(null);
 
+    // Replace the isPrinting boolean with an object to track printing state by request ID
+    const [printingStates, setPrintingStates] = useState({});
+
     const fetchRequests = async () => {
         try {
             const res = await api.get("/document-requests", {
@@ -231,6 +234,9 @@ export function DocumentRequestSecretary() {
     // Update the handlePrint function
     const handlePrint = async (request) => {
         try {
+            // Set printing state for this specific request
+            setPrintingStates((prev) => ({ ...prev, [request.id]: true }));
+
             if (!["Barangay Indigency", "Barangay Clearance"].includes(request.type)) {
                 toast.error(
                     "Print functionality is only available for Barangay Indigency and Clearance"
@@ -278,6 +284,9 @@ export function DocumentRequestSecretary() {
         } catch (error) {
             console.error("Error preparing print document:", error);
             toast.error("Failed to prepare document for printing");
+        } finally {
+            // Clear printing state for this specific request
+            setPrintingStates((prev) => ({ ...prev, [request.id]: false }));
         }
     };
 
@@ -350,6 +359,7 @@ export function DocumentRequestSecretary() {
                         updating={updating}
                         getAvailableStatuses={getAvailableStatuses}
                         handlePrint={handlePrint}
+                        printingStates={printingStates}
                     />
 
                     {/* Pagination Controls */}

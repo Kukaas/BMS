@@ -28,9 +28,9 @@ export const generateClearanceTemplate = (document, officials, currentUser) => {
     // Sort officials by position
     const sortedOfficials = officials?.sort((a, b) => {
         const positionOrder = {
-            "Punong Barangay": 1,
-            Kagawad: 2,
-            "SK Chairman": 3,
+            Chairman: 1,
+            "SK Chairman": 2,
+            Kagawad: 3,
             Secretary: 4,
             Treasurer: 5,
         };
@@ -50,10 +50,10 @@ export const generateClearanceTemplate = (document, officials, currentUser) => {
     return `
     <!DOCTYPE html>
     <html lang="en">
-    <head></head>
+    <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Barangay Clearance</title>
+        <title>Barangay Clearance - ${document.name}</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
             tailwind.config = {
@@ -196,6 +196,7 @@ export const generateClearanceTemplate = (document, officials, currentUser) => {
         </div>
         <script>
             window.onload = function() {
+                document.title = "Barangay Clearance - ${document.name}";
                 window.print();
             };
         </script>
