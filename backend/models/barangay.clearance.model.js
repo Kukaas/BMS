@@ -8,6 +8,16 @@ const STATUS_TYPES = {
     REJECTED: "Rejected",
 };
 
+const PUROK_TYPES = [
+    "Purok I",
+    "Purok II",
+    "Purok III",
+    "Purok IV",
+    "Purok V",
+    "Purok VI",
+    "Purok VII",
+];
+
 const barangayClearanceSchema = new mongoose.Schema(
     {
         userId: {
@@ -60,11 +70,34 @@ const barangayClearanceSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+        purok: {
+            type: String,
+            required: true,
+            enum: PUROK_TYPES,
+        },
+        dateOfBirth: {
+            type: Date,
+            required: true,
+        },
+        sex: {
+            type: String,
+            required: true,
+            enum: ["Male", "Female"],
+        },
+        placeOfBirth: {
+            type: String,
+            required: true,
+        },
+        civilStatus: {
+            type: String,
+            required: true,
+            enum: ["Single", "Married", "Widowed", "Separated"],
+        },
     },
     { timestamps: true }
 );
 
 const BarangayClearance = mongoose.model("BarangayClearance", barangayClearanceSchema);
 
-export { STATUS_TYPES };
+export { STATUS_TYPES, PUROK_TYPES };
 export default BarangayClearance;

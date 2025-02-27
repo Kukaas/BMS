@@ -43,7 +43,6 @@ export function DocumentRequestSecretary() {
             });
 
             if (res.data.success) {
-                // Transform the data to match the component's expected format
                 const transformedRequests = res.data.data.map((request) => ({
                     id: request._id,
                     requestDate: request.createdAt,
@@ -53,15 +52,20 @@ export function DocumentRequestSecretary() {
                     purpose: request.purpose,
                     email: request.email,
                     contactNumber: request.contactNumber,
+                    // Make sure age is included
+                    age: request.age,
+                    // Add new Barangay Clearance fields
+                    purok: request.purok,
+                    dateOfBirth: request.dateOfBirth,
+                    sex: request.sex,
+                    placeOfBirth: request.placeOfBirth,
+                    civilStatus: request.civilStatus,
                     // Business clearance specific fields
                     businessName: request.businessName,
                     businessType: request.businessType,
                     businessNature: request.businessNature,
                     ownerAddress: request.ownerAddress,
                     // Cedula specific fields
-                    dateOfBirth: request.dateOfBirth,
-                    placeOfBirth: request.placeOfBirth,
-                    civilStatus: request.civilStatus,
                     occupation: request.occupation,
                     salary: request.salary,
                 }));

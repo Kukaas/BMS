@@ -150,6 +150,14 @@ export const getAllDocumentRequests = async (req, res, next) => {
             ...clearances.map((doc) => ({
                 ...doc.toObject(),
                 documentType: "Barangay Clearance",
+                id: doc._id,
+                residentName: doc.name,
+                age: doc.age,
+                purok: doc.purok,
+                dateOfBirth: doc.dateOfBirth,
+                sex: doc.sex,
+                placeOfBirth: doc.placeOfBirth,
+                civilStatus: doc.civilStatus,
             })),
             ...indigency.map((doc) => ({
                 ...doc.toObject(),

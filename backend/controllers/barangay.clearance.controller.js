@@ -9,9 +9,31 @@ import { createTransactionHistory } from "./transaction.history.controller.js";
 
 export const createBarangayClearance = async (req, res, next) => {
     try {
-        const { userId, name, email, contactNumber, purpose, barangay, age } = req.body;
+        const {
+            userId,
+            name,
+            email,
+            contactNumber,
+            purpose,
+            barangay,
+            age,
+            purok,
+            dateOfBirth,
+            sex,
+            placeOfBirth,
+            civilStatus,
+        } = req.body;
 
-        if (!name || !purpose || !age) {
+        if (
+            !name ||
+            !purpose ||
+            !age ||
+            !purok ||
+            !dateOfBirth ||
+            !sex ||
+            !placeOfBirth ||
+            !civilStatus
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "Please provide all required fields",
@@ -26,6 +48,11 @@ export const createBarangayClearance = async (req, res, next) => {
             contactNumber,
             barangay,
             purpose,
+            purok,
+            dateOfBirth,
+            sex,
+            placeOfBirth,
+            civilStatus,
             type: "Barangay Clearance",
         });
 
