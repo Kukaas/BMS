@@ -105,11 +105,12 @@ export function Header() {
                             <Menu className="h-5 w-5 text-white" />
                         </div>
                     </SidebarTrigger>
-                    <div className="relative w-full pr-4">
+                    {/* <div className="relative w-full pr-4">
                         <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                         <Input type="search" placeholder="Search..." className="pl-8 w-full" />
-                    </div>
+                    </div> */}
                 </div>
+                s
                 <div className="flex items-center space-x-4 mx-4">
                     <NotificationsPopover />
                     <DropdownMenu>

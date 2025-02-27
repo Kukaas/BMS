@@ -157,4 +157,21 @@ export const blotterReportSchema = z.object({
     }),
 });
 
+export const officialSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    position: z.enum(["Chairman", "SK Chairman", "Kagawad", "Secretary", "Treasurer"], {
+        required_error: "Position is required",
+    }),
+    contactNumber: z.string().min(1, "Contact number is required"),
+    barangay: z.string().min(1, "Barangay is required"),
+    image: z
+        .object({
+            filename: z.string(),
+            contentType: z.string(),
+            data: z.string(),
+        })
+        .optional()
+        .nullable(),
+});
+
 // Add more schemas for other document types as needed

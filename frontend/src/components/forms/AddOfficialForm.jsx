@@ -7,16 +7,28 @@ import { useState } from "react";
 import { toast } from "sonner";
 import api from "../../lib/axios";
 import { useSelector } from "react-redux";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 export default function AddOfficialForm({ onComplete, onCancel }) {
     const { currentUser } = useSelector((state) => state.user);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({
+    const {
+        register,
+        handleSubmit,
+        reset,
+        setValue,
+        formState: { errors },
+    } = useForm({
         defaultValues: {
-            barangay: currentUser?.barangay || ''
-        }
+            barangay: currentUser?.barangay || "",
+        },
     });
-
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
@@ -53,7 +65,7 @@ export default function AddOfficialForm({ onComplete, onCancel }) {
                 contactNumber: data.contactNumber,
                 image: data.image,
                 barangay: currentUser.barangay,
-                createdBy: currentUser._id
+                createdBy: currentUser._id,
             };
 
             const response = await api.post("/officials/add-official", requestBody);
@@ -65,8 +77,8 @@ export default function AddOfficialForm({ onComplete, onCancel }) {
             }
         } catch (error) {
             console.error("Error submitting form:", error);
-            const errorMessage = error.response?.data?.message ||
-                "Failed to add official. Please try again.";
+            const errorMessage =
+                error.response?.data?.message || "Failed to add official. Please try again.";
             toast.error(errorMessage);
         } finally {
             setIsSubmitting(false);
@@ -93,10 +105,21 @@ export default function AddOfficialForm({ onComplete, onCancel }) {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="position">Position</Label>
-                            <Input
-                                id="position"
-                                {...register("position", { required: "Position is required" })}
-                            />
+                            <Select
+                                onValueChange={(value) => setValue("position", value)}
+                                defaultValue=""
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a position" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Chairman">Chairman</SelectItem>
+                                    <SelectItem value="SK Chairman">SK Chairman</SelectItem>
+                                    <SelectItem value="Kagawad">Kagawad</SelectItem>
+                                    <SelectItem value="Secretary">Secretary</SelectItem>
+                                    <SelectItem value="Treasurer">Treasurer</SelectItem>
+                                </SelectContent>
+                            </Select>
                             {errors.position && (
                                 <p className="text-red-500 text-sm">{errors.position.message}</p>
                             )}
@@ -105,10 +128,14 @@ export default function AddOfficialForm({ onComplete, onCancel }) {
                             <Label htmlFor="contactNumber">Contact Number</Label>
                             <Input
                                 id="contactNumber"
-                                {...register("contactNumber", { required: "Contact number is required" })}
+                                {...register("contactNumber", {
+                                    required: "Contact number is required",
+                                })}
                             />
                             {errors.contactNumber && (
-                                <p className="text-red-500 text-sm">{errors.contactNumber.message}</p>
+                                <p className="text-red-500 text-sm">
+                                    {errors.contactNumber.message}
+                                </p>
                             )}
                         </div>
                         <div className="space-y-2">
