@@ -110,7 +110,6 @@ export function Header() {
                         <Input type="search" placeholder="Search..." className="pl-8 w-full" />
                     </div> */}
                 </div>
-                s
                 <div className="flex items-center space-x-4 mx-4">
                     <NotificationsPopover />
                     <DropdownMenu>
