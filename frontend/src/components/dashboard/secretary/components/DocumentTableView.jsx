@@ -16,7 +16,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { DocumentDetailsView } from "./DocumentDetailsView";
-import { Printer } from "lucide-react";
+import { Printer, Loader2 } from "lucide-react";
 
 export function DocumentTableView({
     currentRequests,
@@ -26,6 +26,7 @@ export function DocumentTableView({
     updating,
     getAvailableStatuses,
     handlePrint,
+    printingStates,
 }) {
     return (
         <Table>
@@ -59,10 +60,25 @@ export function DocumentTableView({
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handlePrint(request)}
+                                    disabled={
+                                        printingStates[request.id] ||
+                                        !["Barangay Indigency", "Barangay Clearance"].includes(
+                                            request.type
+                                        )
+                                    }
                                     className="flex items-center gap-2"
                                 >
-                                    <Printer className="h-4 w-4" />
-                                    Print
+                                    {printingStates[request.id] ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                            Printing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Printer className="h-4 w-4" />
+                                            Print
+                                        </>
+                                    )}
                                 </Button>
                                 <Dialog>
                                     <DialogTrigger asChild>
