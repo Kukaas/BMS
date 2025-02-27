@@ -21,7 +21,7 @@ const documentTypes = [
     "Barangay Clearance",
     "Barangay Indigency",
     "Cedula",
-    "Barangay Business Clearance",
+    "Barangay Business Permit Clearance",
 ];
 
 const FORM_STATE_KEY = "documentRequestFormState";
@@ -159,7 +159,7 @@ export default function DocumentRequestForm() {
                         onDataChange={handleFormDataChange}
                     />
                 );
-            case "Barangay Business Clearance":
+            case "Barangay Business Permit Clearance":
                 return (
                     <BusinessClearanceForm
                         user={user}
@@ -175,8 +175,7 @@ export default function DocumentRequestForm() {
 
     return (
         <Card className="w-full max-w-4xl mx-auto">
-            <CardHeader>
-            </CardHeader>
+            <CardHeader></CardHeader>
             <CardContent>
                 <div className="space-y-8">
                     <div className="space-y-2">

@@ -6,10 +6,11 @@ import {
 import User from "../models/user.model.js";
 import { createLog } from "./log.controller.js";
 import { createTransactionHistory } from "./transaction.history.controller.js";
+import { STATUS_TYPES } from "../models/barangay.clearance.model.js"; // Import shared status types
 
 export const createBarangayIndigency = async (req, res, next) => {
     try {
-        const { userId, name, email, purpose, contactNumber } = req.body;
+        const { userId, name, email, age, purpose, contactNumber } = req.body;
         const userBarangay = req.user.barangay;
 
         if (!name || !email || !purpose || !contactNumber) {
@@ -23,6 +24,7 @@ export const createBarangayIndigency = async (req, res, next) => {
             userId,
             name,
             email,
+            age,
             barangay: userBarangay,
             purpose,
             contactNumber,
@@ -89,8 +91,8 @@ export const verifyBarangayIndigency = async (req, res, next) => {
             });
         }
 
-        // Validate status
-        if (!["Pending", "Approved", "Rejected"].includes(status)) {
+        // Validate status using shared STATUS_TYPES
+        if (!Object.values(STATUS_TYPES).includes(status)) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid status value",
@@ -99,7 +101,7 @@ export const verifyBarangayIndigency = async (req, res, next) => {
 
         const barangayIndigency = await BarangayIndigency.findOne({
             _id: id,
-            barangay, // Ensure the document belongs to secretary's barangay
+            barangay,
         });
 
         if (!barangayIndigency) {
@@ -109,15 +111,39 @@ export const verifyBarangayIndigency = async (req, res, next) => {
             });
         }
 
-        barangayIndigency.isVerified = status === "Approved";
+        // Update document fields
+        barangayIndigency.isVerified = [
+            STATUS_TYPES.APPROVED,
+            STATUS_TYPES.FOR_PICKUP,
+            STATUS_TYPES.COMPLETED,
+        ].includes(status);
+
         barangayIndigency.status = status;
-        if (status === "Approved") {
-            barangayIndigency.dateOfIssuance = new Date();
+
+        // Handle dates based on status
+        const currentDate = new Date();
+        switch (status) {
+            case STATUS_TYPES.APPROVED:
+                if (!barangayIndigency.dateApproved) {
+                    barangayIndigency.dateApproved = currentDate;
+                }
+                break;
+            case STATUS_TYPES.FOR_PICKUP:
+                if (!barangayIndigency.dateApproved) {
+                    barangayIndigency.dateApproved = currentDate;
+                }
+                break;
+            case STATUS_TYPES.COMPLETED:
+                barangayIndigency.dateCompleted = currentDate;
+                if (!barangayIndigency.dateApproved) {
+                    barangayIndigency.dateApproved = currentDate;
+                }
+                break;
         }
 
         await barangayIndigency.save();
 
-        // Create status update notification for other staff members
+        // Create status update notification
         const staffNotification = createNotification(
             "Indigency Request Updated",
             `An indigency request from ${
@@ -154,5 +180,45 @@ export const verifyBarangayIndigency = async (req, res, next) => {
     } catch (error) {
         console.error("Error verifying indigency request:", error);
         next(error);
+    }
+};
+
+export const printBarangayIndigency = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { barangay } = req.user;
+
+        const indigency = await BarangayIndigency.findOne({
+            _id: id,
+            barangay: barangay,
+        });
+
+        if (!indigency) {
+            return res.status(404).json({
+                success: false,
+                message: "Barangay Indigency document not found",
+            });
+        }
+
+        // Return the document data
+        res.status(200).json({
+            success: true,
+            data: {
+                id: indigency._id,
+                name: indigency.name,
+                purpose: indigency.purpose,
+                dateIssued: indigency.dateOfIssuance || new Date(),
+                status: indigency.status,
+                barangay: indigency.barangay,
+                documentType: "Barangay Indigency",
+                age: indigency.age,
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching indigency document:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching indigency document",
+        });
     }
 };

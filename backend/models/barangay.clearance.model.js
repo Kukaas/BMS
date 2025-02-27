@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+const STATUS_TYPES = {
+    PENDING: "Pending",
+    APPROVED: "Approved",
+    FOR_PICKUP: "For Pickup",
+    COMPLETED: "Completed",
+    REJECTED: "Rejected",
+};
+
 const barangayClearanceSchema = new mongoose.Schema(
     {
         userId: {
@@ -11,8 +19,15 @@ const barangayClearanceSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-
+        age: {
+            type: Number,
+            required: true,
+        },
         email: {
+            type: String,
+            required: true,
+        },
+        contactNumber: {
             type: String,
             required: true,
         },
@@ -24,12 +39,9 @@ const barangayClearanceSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        contactNumber: {
-            type: String,
-            required: true,
-        },
         dateOfIssuance: {
             type: Date,
+            default: null,
         },
         isVerified: {
             type: Boolean,
@@ -37,8 +49,8 @@ const barangayClearanceSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ["Pending", "Approved", "Completed", "Rejected"],
-            default: "Pending",
+            enum: Object.values(STATUS_TYPES),
+            default: STATUS_TYPES.PENDING,
         },
         dateApproved: {
             type: Date,
@@ -54,4 +66,5 @@ const barangayClearanceSchema = new mongoose.Schema(
 
 const BarangayClearance = mongoose.model("BarangayClearance", barangayClearanceSchema);
 
+export { STATUS_TYPES };
 export default BarangayClearance;

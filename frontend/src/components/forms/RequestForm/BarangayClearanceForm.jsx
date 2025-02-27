@@ -28,11 +28,11 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
         defaultValues: {
             userId: currentUser?._id || "",
             name: currentUser?.name || "",
+            age: currentUser?.age || "",
             email: currentUser?.email || "",
+            contactNumber: currentUser?.contactNumber || "",
             barangay: currentUser?.barangay || "",
             purpose: initialData?.purpose || "",
-            contactNumber: currentUser?.contactNumber || "",
-            dateOfBirth: currentUser?.dateOfBirth?.split("T")[0] || "",
         },
     });
 
@@ -48,19 +48,20 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
             setValue("userId", currentUser._id || "");
             setValue("name", currentUser.name || "");
             setValue("email", currentUser.email || "");
-            setValue("barangay", currentUser.barangay || "");
             setValue("contactNumber", currentUser.contactNumber || "");
-            setValue("dateOfBirth", currentUser.dateOfBirth?.split("T")[0] || "");
+            setValue("barangay", currentUser.barangay || "");
         }
     }, [currentUser, setValue]);
 
     const handleFormSubmit = (data) => {
-        console.log("Submitting clearance form with data:", data);
         onSubmit(
             {
                 ...data,
                 userId: currentUser._id,
                 email: currentUser.email,
+                contactNumber: currentUser.contactNumber,
+                barangay: currentUser.barangay,
+                type: "Barangay Clearance",
             },
             "barangay-clearance"
         );
@@ -68,7 +69,7 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
 
     const handlePurposeChange = useCallback(
         (value) => {
-            setValue("purpose", value);
+            setValue("purpose", value, { shouldValidate: true });
         },
         [setValue]
     );
@@ -76,9 +77,11 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
     return (
         <form id="document-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
-                {/* Hidden fields for userId and email */}
+                {/* Hidden fields */}
                 <input type="hidden" {...register("userId")} />
                 <input type="hidden" {...register("email")} />
+                <input type="hidden" {...register("contactNumber")} />
+                <input type="hidden" {...register("barangay")} />
 
                 <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
@@ -92,21 +95,14 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="barangay">Barangay</Label>
-                    <Input
-                        id="barangay"
-                        {...register("barangay")}
-                        defaultValue={currentUser?.barangay || ""}
-                        readOnly
-                    />
-                    {errors.barangay && (
-                        <p className="text-red-500 text-sm">{errors.barangay.message}</p>
-                    )}
+                    <Label htmlFor="age">Age</Label>
+                    <Input id="age" type="number" {...register("age", { valueAsNumber: true })} />
+                    {errors.age && <p className="text-red-500 text-sm">{errors.age.message}</p>}
                 </div>
 
                 <div className="space-y-2">
                     <Label htmlFor="purpose">Purpose</Label>
-                    <Select onValueChange={handlePurposeChange}>
+                    <Select onValueChange={handlePurposeChange} defaultValue={initialData?.purpose}>
                         <SelectTrigger id="purpose">
                             <SelectValue placeholder="Select purpose" />
                         </SelectTrigger>
@@ -123,34 +119,6 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
                     </Select>
                     {errors.purpose && (
                         <p className="text-red-500 text-sm">{errors.purpose.message}</p>
-                    )}
-                </div>
-
-                <div className="space-y-2">
-                    <Label htmlFor="contactNumber">Contact Number</Label>
-                    <Input
-                        id="contactNumber"
-                        type="tel"
-                        {...register("contactNumber")}
-                        placeholder="Enter your contact number"
-                    />
-                    {errors.contactNumber && (
-                        <p className="text-red-500 text-sm">{errors.contactNumber.message}</p>
-                    )}
-                </div>
-
-                <div className="space-y-2">
-                    <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                    <Input
-                        id="dateOfBirth"
-                        type="date"
-                        {...register("dateOfBirth")}
-                        defaultValue={currentUser?.dateOfBirth?.split("T")[0] || ""}
-                        readOnly
-                        className="h-11 bg-gray-50"
-                    />
-                    {errors.dateOfBirth && (
-                        <p className="text-red-500 text-sm">{errors.dateOfBirth.message}</p>
                     )}
                 </div>
             </div>

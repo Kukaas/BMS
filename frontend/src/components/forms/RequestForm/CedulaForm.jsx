@@ -38,7 +38,7 @@ export default function CedulaForm({ onSubmit, initialData, onDataChange }) {
             occupation: initialData?.occupation || "",
             employerName: initialData?.employerName || "",
             employerAddress: initialData?.employerAddress || "",
-            tax: initialData?.tax || "",
+            salary: initialData?.salary || "",
         },
     });
 
@@ -192,17 +192,21 @@ export default function CedulaForm({ onSubmit, initialData, onDataChange }) {
                     )}
                 </div>
 
-                {/* Tax Information */}
+                {/* Salary Information */}
                 <div className="space-y-2">
-                    <Label htmlFor="tax">Tax Amount</Label>
+                    <Label htmlFor="salary">Salary</Label>
                     <Input
-                        id="tax"
+                        id="salary"
                         type="number"
                         step="0.01"
-                        {...register("tax")}
-                        placeholder="Enter tax amount"
+                        {...register("salary", {
+                            setValueAs: (v) => (v === "" ? undefined : Number(v)),
+                        })}
+                        placeholder="Enter salary amount"
                     />
-                    {errors.tax && <p className="text-red-500 text-sm">{errors.tax.message}</p>}
+                    {errors.salary && (
+                        <p className="text-red-500 text-sm">{errors.salary.message}</p>
+                    )}
                 </div>
             </div>
         </form>

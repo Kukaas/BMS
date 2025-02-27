@@ -11,6 +11,10 @@ const BarangayIndigencySchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        age: {
+            type: String,
+            required: true,
+        },
         email: {
             type: String,
             required: true,
@@ -36,7 +40,7 @@ const BarangayIndigencySchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ["Pending", "Approved", "Completed", "Rejected"],
+            enum: ["Pending", "Approved", "For Pickup", "Completed", "Rejected"],
             default: "Pending",
         },
         dateApproved: {

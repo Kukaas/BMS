@@ -3,6 +3,7 @@ import { createNotification } from "../utils/notifications.js";
 import User from "../models/user.model.js";
 import { createLog } from "./log.controller.js";
 import { createTransactionHistory } from "./transaction.history.controller.js";
+import { STATUS_TYPES } from "../models/barangay.clearance.model.js";
 
 export const createBusinessClearance = async (req, res, next) => {
     try {
@@ -160,7 +161,8 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
         const { status } = req.body;
         const { name: secretaryName } = req.user;
 
-        if (!["Pending", "Approved", "Rejected"].includes(status)) {
+        // Validate status using shared STATUS_TYPES
+        if (!Object.values(STATUS_TYPES).includes(status)) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid status value",
@@ -176,8 +178,36 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
             });
         }
 
+        // Update document fields
+        businessClearance.isVerified = [
+            STATUS_TYPES.APPROVED,
+            STATUS_TYPES.FOR_PICKUP,
+            STATUS_TYPES.COMPLETED,
+        ].includes(status);
+
         businessClearance.status = status;
-        businessClearance.isVerified = status === "Approved";
+
+        // Handle dates based on status
+        const currentDate = new Date();
+        switch (status) {
+            case STATUS_TYPES.APPROVED:
+                if (!businessClearance.dateApproved) {
+                    businessClearance.dateApproved = currentDate;
+                }
+                break;
+            case STATUS_TYPES.FOR_PICKUP:
+                if (!businessClearance.dateApproved) {
+                    businessClearance.dateApproved = currentDate;
+                }
+                break;
+            case STATUS_TYPES.COMPLETED:
+                businessClearance.dateCompleted = currentDate;
+                if (!businessClearance.dateApproved) {
+                    businessClearance.dateApproved = currentDate;
+                }
+                break;
+        }
+
         await businessClearance.save();
 
         // Create status update notification with secretary info

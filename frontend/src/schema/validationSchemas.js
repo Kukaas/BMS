@@ -3,6 +3,7 @@ import { z } from "zod";
 export const barangayClearanceSchema = z.object({
     userId: z.string().min(1, "User ID is required"),
     name: z.string().min(1, "Full name is required"),
+    age: z.number().min(1, "Age is required").max(150, "Invalid age"),
     email: z.string().email("Invalid email format"),
     barangay: z.string().min(1, "Barangay is required"),
     purpose: z.enum(
@@ -21,24 +22,15 @@ export const barangayClearanceSchema = z.object({
         }
     ),
     contactNumber: z.string().min(1, "Contact number is required"),
-    dateOfBirth: z.string().min(1, "Date of birth is required"),
 });
 
 export const barangayIndigencySchema = z.object({
     name: z.string().min(1, "Full name is required"),
+    age: z.string().min(1, "Age is required"),
     barangay: z.string().min(1, "Barangay is required"),
     contactNumber: z.string().min(1, "Contact number is required"),
     purpose: z.enum(
-        [
-            "Financial Assistance",
-            "Scholarship",
-            "Medical Assistance",
-            "Legal Assistance",
-            "Employment Assistance",
-            "Welfare Assistance",
-            "Housing Assistance",
-            "Tuition Assistance",
-        ],
+        ["Medical Assistance", "Financial Assistance", "Food Assistance", "Burial Assistance"],
         {
             required_error: "Purpose is required",
         }
@@ -84,10 +76,7 @@ export const cedulaSchema = z.object({
     occupation: z.string().min(1, "Occupation is required"),
     employerName: z.string().optional(),
     employerAddress: z.string().optional(),
-    tax: z
-        .string()
-        .min(1, "Tax amount is required")
-        .transform((val) => parseFloat(val)),
+    salary: z.number().min(0, "Salary must be a positive number"),
 });
 
 export const businessClearanceSchema = z.object({

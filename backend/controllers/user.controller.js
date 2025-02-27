@@ -403,3 +403,107 @@ export const changePassword = async (req, res) => {
     }
 };
 
+export const updateProfile = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { name, email, contactNumber, dateOfBirth } = req.body;
+        const { role } = req.user;
+
+        // Find user
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        // Check if user is updating their own profile or has admin privileges
+        if (userId !== req.user.id && role !== "superAdmin") {
+            return res.status(403).json({
+                success: false,
+                message: "Not authorized to update this profile",
+            });
+        }
+
+        // Check if email is being changed and if it's already taken
+        if (email !== user.email) {
+            const emailExists = await User.findOne({ email, _id: { $ne: userId } });
+            if (emailExists) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Email already exists",
+                });
+            }
+        }
+
+        // Update fields based on role
+        const updateFields = {};
+
+        if (role === "superAdmin") {
+            // SuperAdmin can update all fields
+            if (name) updateFields.name = name;
+            if (email) updateFields.email = email;
+            if (contactNumber) updateFields.contactNumber = contactNumber;
+            if (dateOfBirth) updateFields.dateOfBirth = dateOfBirth;
+        } else if (role === "secretary" || role === "chairman") {
+            // Staff can update limited fields
+            if (name) updateFields.name = name;
+            if (contactNumber) updateFields.contactNumber = contactNumber;
+        } else {
+            // Regular users can update basic info
+            if (name) updateFields.name = name;
+            if (contactNumber) updateFields.contactNumber = contactNumber;
+            if (dateOfBirth) updateFields.dateOfBirth = dateOfBirth;
+        }
+
+        // Update user
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: updateFields },
+            { new: true }
+        ).select("-password");
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            data: updatedUser,
+        });
+    } catch (error) {
+        console.error("Update profile error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error updating profile",
+            error: error.message,
+        });
+    }
+};
+
+// Add this new controller method
+export const getBarangayChairman = async (req, res, next) => {
+    try {
+        const { barangay } = req.user;
+
+        const chairman = await User.findOne({
+            barangay,
+            role: "chairman",
+            isActive: true,
+            isVerified: true
+        }).select("-password");
+
+        if (!chairman) {
+            return res.status(404).json({
+                success: false,
+                message: "Barangay chairman not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: chairman,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
