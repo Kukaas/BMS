@@ -29,9 +29,33 @@ const notificationSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema(
     {
-        name: {
+        firstName: {
             type: String,
             required: true,
+        },
+        middleName: {
+            type: String,
+            default: "",
+        },
+        lastName: {
+            type: String,
+            required: true,
+        },
+        purok: {
+            type: String,
+            required: true,
+        },
+        validId: {
+            front: {
+                filename: { type: String, required: true },
+                contentType: { type: String, required: true },
+                data: { type: String, required: true },
+            },
+            back: {
+                filename: { type: String, required: true },
+                contentType: { type: String, required: true },
+                data: { type: String, required: true },
+            },
         },
         contactNumber: {
             type: String,
@@ -45,8 +69,6 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-
-
         password: {
             type: String,
             required: true,
@@ -70,8 +92,8 @@ const userSchema = new mongoose.Schema(
         notifications: [notificationSchema],
         unreadNotifications: {
             type: Number,
-            default: 0
-        }
+            default: 0,
+        },
     },
     { timestamps: true }
 );
