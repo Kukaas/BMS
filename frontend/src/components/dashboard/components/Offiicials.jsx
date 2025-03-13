@@ -174,6 +174,9 @@ export default function Officials() {
                                                         <Badge className="h-3 w-3 text-primary/60" />
                                                         <p className="text-muted-foreground text-xs">
                                                             {official.position}
+                                                            {official.position === "Kagawad" &&
+                                                                official.purok &&
+                                                                ` - Purok ${official.purok}`}
                                                         </p>
                                                     </div>
                                                     <UIBadge
@@ -284,6 +287,20 @@ export default function Officials() {
                                             </p>
                                         </div>
                                     </div>
+                                    {selectedOfficial.position === "Kagawad" &&
+                                        selectedOfficial.purok && (
+                                            <div className="flex items-center space-x-3">
+                                                <MapPin className="h-5 w-5 text-primary/60" />
+                                                <div>
+                                                    <p className="text-sm font-medium">
+                                                        Purok Assignment
+                                                    </p>
+                                                    <p className="text-muted-foreground">
+                                                        Purok {selectedOfficial.purok}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
                                 </div>
                                 <div className="space-y-6">
                                     <div className="flex items-center space-x-3">
