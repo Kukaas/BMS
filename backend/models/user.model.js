@@ -47,14 +47,44 @@ const userSchema = new mongoose.Schema(
         },
         validId: {
             front: {
-                filename: { type: String, required: true },
-                contentType: { type: String, required: true },
-                data: { type: String, required: true },
+                filename: {
+                    type: String,
+                    required: function () {
+                        return this.role === "user";
+                    },
+                },
+                contentType: {
+                    type: String,
+                    required: function () {
+                        return this.role === "user";
+                    },
+                },
+                data: {
+                    type: String,
+                    required: function () {
+                        return this.role === "user";
+                    },
+                },
             },
             back: {
-                filename: { type: String, required: true },
-                contentType: { type: String, required: true },
-                data: { type: String, required: true },
+                filename: {
+                    type: String,
+                    required: function () {
+                        return this.role === "user";
+                    },
+                },
+                contentType: {
+                    type: String,
+                    required: function () {
+                        return this.role === "user";
+                    },
+                },
+                data: {
+                    type: String,
+                    required: function () {
+                        return this.role === "user";
+                    },
+                },
             },
         },
         contactNumber: {

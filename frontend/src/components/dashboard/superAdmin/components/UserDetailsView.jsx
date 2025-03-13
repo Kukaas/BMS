@@ -44,9 +44,11 @@ export function UserDetailsView({ user }) {
                         <div className="space-y-1">
                             <div className="flex items-center gap-2">
                                 <User className="h-4 w-4 text-primary" />
-                                <span className="text-sm text-muted-foreground">Name</span>
+                                <span className="text-sm text-muted-foreground">Full Name</span>
                             </div>
-                            <p className="font-medium">{user.name}</p>
+                            <p className="font-medium">
+                                {`${user.firstName} ${user.middleName ? user.middleName + " " : ""}${user.lastName}`}
+                            </p>
                         </div>
                         <div className="space-y-1 col-span-2">
                             <div className="flex items-center gap-2">
@@ -78,7 +80,9 @@ export function UserDetailsView({ user }) {
                                 ) : (
                                     <XCircle className="h-4 w-4 text-red-600" />
                                 )}
-                                <span className="text-sm text-muted-foreground">Account Status</span>
+                                <span className="text-sm text-muted-foreground">
+                                    Account Status
+                                </span>
                             </div>
                             <Badge variant={user.isActive ? "outline" : "destructive"}>
                                 {user.isActive ? "Active" : "Deactivated"}
@@ -91,7 +95,11 @@ export function UserDetailsView({ user }) {
                             </div>
                             <Badge
                                 variant={user.isVerified ? "default" : "secondary"}
-                                className={user.isVerified ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}
+                                className={
+                                    user.isVerified
+                                        ? "bg-green-100 text-green-800 hover:bg-green-100"
+                                        : ""
+                                }
                             >
                                 {user.isVerified ? "Verified" : "Pending"}
                             </Badge>
@@ -101,19 +109,30 @@ export function UserDetailsView({ user }) {
 
                 {/* Contact Information */}
                 <div className="space-y-2">
-                    <h3 className="text-sm font-medium text-muted-foreground">Contact Information</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                        Contact Information
+                    </h3>
                     <div className="grid grid-cols-3 gap-4 bg-muted p-4 rounded-lg">
                         <div className="space-y-1 col-span-2">
                             <div className="flex items-center gap-2">
                                 <MapPin className="h-4 w-4 text-primary" />
-                                <span className="text-sm text-muted-foreground">Address</span>
+                                <span className="text-sm text-muted-foreground">Barangay</span>
                             </div>
                             <p className="font-medium">{user.barangay || "N/A"}</p>
                         </div>
                         <div className="space-y-1">
                             <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4 text-primary" />
+                                <span className="text-sm text-muted-foreground">Purok</span>
+                            </div>
+                            <p className="font-medium">{user.purok || "N/A"}</p>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2">
                                 <Phone className="h-4 w-4 text-primary" />
-                                <span className="text-sm text-muted-foreground">Contact Number</span>
+                                <span className="text-sm text-muted-foreground">
+                                    Contact Number
+                                </span>
                             </div>
                             <p className="font-medium">{user.contactNumber || "N/A"}</p>
                         </div>
@@ -129,16 +148,16 @@ export function UserDetailsView({ user }) {
                                 <Calendar className="h-4 w-4 text-primary" />
                                 <span className="text-sm text-muted-foreground">Created At</span>
                             </div>
-                            <p className="font-medium">
-                                {formatDate(user.createdAt)}
-                            </p>
+                            <p className="font-medium">{formatDate(user.createdAt)}</p>
                         </div>
                         {user.deactivationReason && (
                             <div className="space-y-1 col-span-2">
                                 <span className="text-sm text-muted-foreground">
                                     Deactivation Reason
                                 </span>
-                                <p className="font-medium text-red-600">{user.deactivationReason}</p>
+                                <p className="font-medium text-red-600">
+                                    {user.deactivationReason}
+                                </p>
                             </div>
                         )}
                     </div>

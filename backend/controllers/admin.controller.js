@@ -4,21 +4,36 @@ import { sendVerificationEmail } from "../utils/emails.js";
 
 export const createSecretaryAccount = async (req, res, next) => {
     try {
-        const { name, contactNumber, dateOfBirth, email, password, barangay } = req.body;
+        const {
+            firstName,
+            middleName,
+            lastName,
+            contactNumber,
+            dateOfBirth,
+            email,
+            password,
+            barangay,
+            purok,
+        } = req.body;
 
-        if (!name || !contactNumber || !dateOfBirth || !email || !password || !barangay) {
+        if (
+            !firstName ||
+            !lastName ||
+            !contactNumber ||
+            !dateOfBirth ||
+            !email ||
+            !password ||
+            !barangay ||
+            !purok
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "Please fill in all fields!",
             });
         }
 
-
         // Check if user email already exists
-        const emailExist = await User.findOne({
-            email,
-        });
-
+        const emailExist = await User.findOne({ email });
         if (emailExist) {
             return res.status(400).json({
                 success: false,
@@ -26,34 +41,29 @@ export const createSecretaryAccount = async (req, res, next) => {
             });
         }
 
-        // Check if user name already exists
-        const nameExist = await User.findOne({
-            name,
-        });
-
-        if (nameExist) {
-            return res.status(401).json({
-                success: false,
-                message: "Name already exists!",
-            });
-        }
-
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const newUser = new User({
-            name,
+            firstName,
+            middleName,
+            lastName,
             contactNumber,
             dateOfBirth,
             email,
             barangay,
+            purok,
             password: hashedPassword,
             role: "secretary",
-
+            isVerified: true, // Auto-verify admin accounts
+            isActive: true,
         });
 
-        await newUser.save().then((result) => {
-            sendVerificationEmail(result, res);
+        const savedUser = await newUser.save();
+        res.status(201).json({
+            success: true,
+            message: "Secretary account created successfully!",
+            data: savedUser,
         });
     } catch (error) {
         next(error);
@@ -62,21 +72,36 @@ export const createSecretaryAccount = async (req, res, next) => {
 
 export const createCaptainAccount = async (req, res, next) => {
     try {
-        const { name, contactNumber, dateOfBirth, email, password, barangay } = req.body;
+        const {
+            firstName,
+            middleName,
+            lastName,
+            contactNumber,
+            dateOfBirth,
+            email,
+            password,
+            barangay,
+            purok,
+        } = req.body;
 
-        if (!name || !contactNumber || !dateOfBirth || !email || !password || !barangay) {
+        if (
+            !firstName ||
+            !lastName ||
+            !contactNumber ||
+            !dateOfBirth ||
+            !email ||
+            !password ||
+            !barangay ||
+            !purok
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "Please fill in all fields!",
             });
         }
 
-
         // Check if user email already exists
-        const emailExist = await User.findOne({
-            email,
-        });
-
+        const emailExist = await User.findOne({ email });
         if (emailExist) {
             return res.status(400).json({
                 success: false,
@@ -84,35 +109,29 @@ export const createCaptainAccount = async (req, res, next) => {
             });
         }
 
-        // Check if user name already exists
-        const nameExist = await User.findOne({
-            name,
-        });
-
-        if (nameExist) {
-            return res.status(401).json({
-                success: false,
-                message: "Name already exists!",
-            });
-        }
-
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const newUser = new User({
-            name,
+            firstName,
+            middleName,
+            lastName,
             contactNumber,
             dateOfBirth,
             email,
             barangay,
+            purok,
             password: hashedPassword,
             role: "chairman",
-
-
+            isVerified: true, // Auto-verify admin accounts
+            isActive: true,
         });
 
-        await newUser.save().then((result) => {
-            sendVerificationEmail(result, res);
+        const savedUser = await newUser.save();
+        res.status(201).json({
+            success: true,
+            message: "Chairman account created successfully!",
+            data: savedUser,
         });
     } catch (error) {
         next(error);
@@ -121,21 +140,36 @@ export const createCaptainAccount = async (req, res, next) => {
 
 export const createSuperAdminAccount = async (req, res, next) => {
     try {
-        const { name, contactNumber, dateOfBirth, email, password, barangay } = req.body;
+        const {
+            firstName,
+            middleName,
+            lastName,
+            contactNumber,
+            dateOfBirth,
+            email,
+            password,
+            barangay,
+            purok,
+        } = req.body;
 
-        if (!name || !contactNumber || !dateOfBirth || !email || !password || !barangay) {
+        if (
+            !firstName ||
+            !lastName ||
+            !contactNumber ||
+            !dateOfBirth ||
+            !email ||
+            !password ||
+            !barangay ||
+            !purok
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "Please fill in all fields!",
             });
         }
 
-
-
-        const emailExist = await User.findOne({
-            email,
-        });
-
+        // Check if user email already exists
+        const emailExist = await User.findOne({ email });
         if (emailExist) {
             return res.status(400).json({
                 success: false,
@@ -143,34 +177,29 @@ export const createSuperAdminAccount = async (req, res, next) => {
             });
         }
 
-        const nameExist = await User.findOne({
-            name,
-        });
-
-        if (nameExist) {
-            return res.status(401).json({
-                success: false,
-                message: "Name already exists!",
-            });
-        }
-
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const newUser = new User({
-            name,
+            firstName,
+            middleName,
+            lastName,
             contactNumber,
             dateOfBirth,
             email,
             barangay,
+            purok,
             password: hashedPassword,
             role: "superAdmin",
-
+            isVerified: true, // Auto-verify admin accounts
+            isActive: true,
         });
 
-
-        await newUser.save().then((result) => {
-            sendVerificationEmail(result, res);
+        const savedUser = await newUser.save();
+        res.status(201).json({
+            success: true,
+            message: "Super Admin account created successfully!",
+            data: savedUser,
         });
     } catch (error) {
         next(error);
