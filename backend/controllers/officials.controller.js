@@ -2,13 +2,21 @@ import Officials from "../models/officials.model.js";
 
 export const createOfficial = async (req, res, next) => {
     try {
-        const { name, position, contactNumber, image, barangay, createdBy } = req.body;
+        const { name, position, contactNumber, image, barangay, createdBy, purok } = req.body;
 
         // Validate required fields
         if (!name || !position || !contactNumber || !barangay) {
             return res.status(400).json({
                 success: false,
-                message: "Please provide all required fields"
+                message: "Please provide all required fields",
+            });
+        }
+
+        // Validate purok field for Kagawad position
+        if (position === "Kagawad" && !purok) {
+            return res.status(400).json({
+                success: false,
+                message: "Purok is required for Kagawad position",
             });
         }
 
@@ -17,17 +25,22 @@ export const createOfficial = async (req, res, next) => {
             name,
             position,
             contactNumber,
-            barangay,  // Add barangay field
+            barangay,
             status: "Active",
-            createdBy // Add createdBy field
+            createdBy,
         };
+
+        // Add purok if position is Kagawad
+        if (position === "Kagawad") {
+            officialData.purok = purok;
+        }
 
         // Add image if provided
         if (image) {
             officialData.image = {
                 filename: image.filename,
                 contentType: image.contentType,
-                data: image.data
+                data: image.data,
             };
         }
 
@@ -43,8 +56,9 @@ export const createOfficial = async (req, res, next) => {
                 position: official.position,
                 contactNumber: official.contactNumber,
                 barangay: official.barangay,
-                status: official.status
-            }
+                status: official.status,
+                purok: official.purok,
+            },
         });
     } catch (error) {
         console.error("Error creating official:", error);
@@ -54,17 +68,16 @@ export const createOfficial = async (req, res, next) => {
 
 export const getOfficials = async (req, res, next) => {
     try {
-        const officials = await Officials.find({ status: "Active" })
-            .sort({ createdAt: -1 });
+        const officials = await Officials.find({ status: "Active" }).sort({ createdAt: -1 });
 
         // Transform the officials data to include image URLs
-        const officialsWithImages = officials.map(official => {
+        const officialsWithImages = officials.map((official) => {
             const officialObj = official.toObject();
             if (officialObj.image) {
                 // Keep the image data for direct display
                 officialObj.image = {
                     data: officialObj.image.data,
-                    contentType: officialObj.image.contentType
+                    contentType: officialObj.image.contentType,
                 };
             }
             return officialObj;
@@ -72,7 +85,7 @@ export const getOfficials = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            officials: officialsWithImages
+            officials: officialsWithImages,
         });
     } catch (error) {
         next(error);
@@ -82,18 +95,18 @@ export const getOfficials = async (req, res, next) => {
 export const getOfficialImage = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const official = await Officials.findById(id).select('image');
+        const official = await Officials.findById(id).select("image");
 
         if (!official || !official.image) {
             return res.status(404).json({
                 success: false,
-                message: "Image not found"
+                message: "Image not found",
             });
         }
 
         res.status(200).json({
             success: true,
-            image: official.image
+            image: official.image,
         });
     } catch (error) {
         next(error);
@@ -107,22 +120,22 @@ export const getOfficialsByBarangay = async (req, res, next) => {
         if (!barangay) {
             return res.status(400).json({
                 success: false,
-                message: "Barangay parameter is required"
+                message: "Barangay parameter is required",
             });
         }
 
         const officials = await Officials.find({
             barangay,
-            status: "Active"
+            status: "Active",
         }).sort({ createdAt: -1 });
 
         // Transform the officials data to include image URLs
-        const officialsWithImages = officials.map(official => {
+        const officialsWithImages = officials.map((official) => {
             const officialObj = official.toObject();
             if (officialObj.image) {
                 officialObj.image = {
                     data: officialObj.image.data,
-                    contentType: officialObj.image.contentType
+                    contentType: officialObj.image.contentType,
                 };
             }
             return officialObj;
@@ -132,7 +145,7 @@ export const getOfficialsByBarangay = async (req, res, next) => {
             success: true,
             officials: officialsWithImages,
             count: officials.length,
-            barangay
+            barangay,
         });
     } catch (error) {
         console.error("Error fetching officials by barangay:", error);
@@ -166,7 +179,3 @@ export const deleteOfficial = async (req, res, next) => {
         next(error);
     }
 };
-
-
-
-

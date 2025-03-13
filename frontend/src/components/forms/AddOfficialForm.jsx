@@ -18,17 +18,33 @@ import {
 export default function AddOfficialForm({ onComplete, onCancel }) {
     const { currentUser } = useSelector((state) => state.user);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedPosition, setSelectedPosition] = useState(""); // Add this state
+
     const {
         register,
         handleSubmit,
         reset,
         setValue,
+        watch, // Add this
         formState: { errors },
     } = useForm({
         defaultValues: {
             barangay: currentUser?.barangay || "",
+            position: "",
+            purok: "",
         },
     });
+
+    // Watch the position field
+    const position = watch("position");
+
+    const handlePositionChange = (value) => {
+        setSelectedPosition(value);
+        setValue("position", value);
+        if (value !== "Kagawad") {
+            setValue("purok", ""); // Clear purok when not Kagawad
+        }
+    };
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
@@ -59,6 +75,12 @@ export default function AddOfficialForm({ onComplete, onCancel }) {
                 return;
             }
 
+            // Add purok validation for Kagawad
+            if (data.position === "Kagawad" && !data.purok) {
+                toast.error("Purok is required for Kagawad position");
+                return;
+            }
+
             const requestBody = {
                 name: data.name,
                 position: data.position,
@@ -66,6 +88,7 @@ export default function AddOfficialForm({ onComplete, onCancel }) {
                 image: data.image,
                 barangay: currentUser.barangay,
                 createdBy: currentUser._id,
+                purok: data.position === "Kagawad" ? data.purok : undefined,
             };
 
             const response = await api.post("/officials/add-official", requestBody);
@@ -105,10 +128,7 @@ export default function AddOfficialForm({ onComplete, onCancel }) {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="position">Position</Label>
-                            <Select
-                                onValueChange={(value) => setValue("position", value)}
-                                defaultValue=""
-                            >
+                            <Select onValueChange={handlePositionChange} value={selectedPosition}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a position" />
                                 </SelectTrigger>
@@ -151,6 +171,23 @@ export default function AddOfficialForm({ onComplete, onCancel }) {
                                 <p className="text-red-500 text-sm">{errors.image.message}</p>
                             )}
                         </div>
+                        {position === "Kagawad" && (
+                            <div className="space-y-2">
+                                <Label htmlFor="purok">Purok Assignment</Label>
+                                <Input
+                                    id="purok"
+                                    {...register("purok", {
+                                        required:
+                                            position === "Kagawad"
+                                                ? "Purok is required for Kagawad"
+                                                : false,
+                                    })}
+                                />
+                                {errors.purok && (
+                                    <p className="text-red-500 text-sm">{errors.purok.message}</p>
+                                )}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
                 <div className="sticky bottom-0 bg-white py-4 border-t flex justify-end space-x-4">
