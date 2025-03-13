@@ -35,7 +35,7 @@ export function SecretaryResidentsDashboard() {
     const [pageSize, setPageSize] = useState(6);
 
     useEffect(() => {
-        fetchResidents();
+        fetchUsers();
     }, []);
 
     useEffect(() => {
@@ -43,26 +43,28 @@ export function SecretaryResidentsDashboard() {
         setCurrentPage(1);
     }, [searchTerm]);
 
-    const fetchResidents = async () => {
+    const fetchUsers = async () => {
         try {
             const response = await api.get("/users/residents");
             if (response.data.success) {
                 setResidents(response.data.data);
             }
         } catch (error) {
-            console.error("Error fetching residents:", error);
-            toast.error(error.response?.data?.message || "Failed to fetch residents");
+            console.error("Error fetching users:", error);
+            toast.error(error.response?.data?.message || "Failed to fetch users");
         } finally {
             setLoading(false);
         }
     };
 
     // Filter residents based on search term
-    const filteredResidents = residents.filter(
-        (resident) =>
-            resident.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            resident.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredResidents = residents.filter((user) => {
+        const fullName = `${user.firstName} ${user.middleName} ${user.lastName}`.toLowerCase();
+        return (
+            fullName.includes(searchTerm.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    });
 
     // Calculate pagination
     const totalResidents = filteredResidents.length;
@@ -111,9 +113,7 @@ export function SecretaryResidentsDashboard() {
     };
 
     const getVerificationColor = (isVerified) => {
-        return isVerified
-            ? "bg-green-200 text-green-800"
-            : "bg-yellow-200 text-yellow-800";
+        return isVerified ? "bg-green-200 text-green-800" : "bg-yellow-200 text-yellow-800";
     };
 
     return (
@@ -177,15 +177,12 @@ export function SecretaryResidentsDashboard() {
                                         <div className="flex items-start space-x-4 mb-4">
                                             <Avatar className="h-12 w-12 shrink-0">
                                                 <AvatarFallback>
-                                                    {resident.name
-                                                        .split(" ")
-                                                        .map((n) => n[0])
-                                                        .join("")}
+                                                    {`${resident.firstName?.[0]}${resident.lastName?.[0]}`}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div className="min-w-0 flex-1">
                                                 <h3 className="text-sm font-semibold truncate">
-                                                    {resident.name}
+                                                    {`${resident.firstName} ${resident.middleName} ${resident.lastName}`}
                                                 </h3>
                                                 <p className="text-xs text-muted-foreground truncate">
                                                     {resident.email}
@@ -254,15 +251,12 @@ export function SecretaryResidentsDashboard() {
                                                             <div className="flex items-center space-x-4">
                                                                 <Avatar className="h-20 w-20">
                                                                     <AvatarFallback>
-                                                                        {selectedResident.name
-                                                                            .split(" ")
-                                                                            .map((n) => n[0])
-                                                                            .join("")}
+                                                                        {`${selectedResident.firstName?.[0]}${selectedResident.lastName?.[0]}`}
                                                                     </AvatarFallback>
                                                                 </Avatar>
                                                                 <div className="flex-1 min-w-0">
                                                                     <h3 className="text-xl font-semibold truncate">
-                                                                        {selectedResident.name}
+                                                                        {`${selectedResident.firstName} ${selectedResident.middleName} ${selectedResident.lastName}`}
                                                                     </h3>
                                                                     <p className="text-sm text-muted-foreground truncate">
                                                                         {selectedResident.email}
