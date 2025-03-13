@@ -14,19 +14,53 @@ dotenv.config();
 
 export const signUp = async (req, res, next) => {
     try {
-        const { name, contactNumber, dateOfBirth, email, password, barangay } = req.body;
+        const {
+            firstName,
+            middleName,
+            lastName,
+            validId,
+            contactNumber,
+            dateOfBirth,
+            email,
+            password,
+            barangay,
+            purok,
+        } = req.body;
 
-
-        if (!name || !contactNumber || !dateOfBirth || !email || !password || !barangay) {
+        // Validate required fields
+        if (
+            !firstName ||
+            !lastName ||
+            !contactNumber ||
+            !dateOfBirth ||
+            !email ||
+            !password ||
+            !barangay ||
+            !purok ||
+            !validId?.front?.data ||
+            !validId?.back?.data ||
+            !validId?.front?.filename ||
+            !validId?.back?.filename ||
+            !validId?.front?.contentType ||
+            !validId?.back?.contentType
+        ) {
             return res.status(400).json({
                 success: false,
-                message: "Please fill in all fields!",
+                message: "Please fill in all required fields including both front and back ID!",
             });
         }
 
-        // Check if user email already exists
-        const emailExist = await User.findOne({ email });
+        // Validate purok format
+        const purokRegex = /^Purok\s\d+$/i;
+        if (!purokRegex.test(purok)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid purok format. Must be in format 'Purok [number]'",
+            });
+        }
 
+        // Check email uniqueness
+        const emailExist = await User.findOne({ email });
         if (emailExist) {
             return res.status(400).json({
                 success: false,
@@ -34,30 +68,36 @@ export const signUp = async (req, res, next) => {
             });
         }
 
-        // Check if user name already exists
-        const nameExist = await User.findOne({ name });
-
-        if (nameExist) {
-            return res.status(401).json({
-                success: false,
-                message: "Name already exists!",
-            });
-        }
-
+        // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        // Create new user with ID file
         const newUser = new User({
-            name,
+            firstName,
+            middleName: middleName || "",
+            lastName,
+            validId: {
+                front: {
+                    filename: validId.front.filename,
+                    contentType: validId.front.contentType,
+                    data: validId.front.data,
+                },
+                back: {
+                    filename: validId.back.filename,
+                    contentType: validId.back.contentType,
+                    data: validId.back.data,
+                },
+            },
             contactNumber,
-            dateOfBirth,
+            dateOfBirth: new Date(dateOfBirth),
             email,
             barangay,
+            purok,
             password: hashedPassword,
-
         });
 
-
+        // Save user and send verification
         await newUser.save().then((result) => {
             sendVerificationEmail(result, res);
         });
@@ -113,7 +153,10 @@ export const login = async (req, res, next) => {
 
         const userData = {
             _id: user._id,
-            name: user.name,
+            firstName: user.firstName,
+            middleName: user.middleName,
+            lastName: user.lastName,
+            validId: user.validId,
             contactNumber: user.contactNumber,
             dateOfBirth: user.dateOfBirth,
             email: user.email,
@@ -136,17 +179,15 @@ export const login = async (req, res, next) => {
         );
 
         // Modified logging section - handle different user roles
-        if (user.role !== 'superAdmin') {
-            const logMessage = user.role === 'user'
-                ? `Resident ${user.name} from ${user.barangay} has logged in`
-                : `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} ${user.name} from ${user.barangay} has logged in`;
+        if (user.role !== "superAdmin") {
+            const logMessage =
+                user.role === "user"
+                    ? `Resident ${user.firstName} ${user.lastName} from ${user.barangay} has logged in`
+                    : `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} ${
+                          user.firstName
+                      } ${user.lastName} from ${user.barangay} has logged in`;
 
-            await createLog(
-                user._id,
-                "User logged in",
-                "User Activity",
-                logMessage
-            );
+            await createLog(user._id, "User logged in", "User Activity", logMessage);
         }
 
         res.status(200).json({
