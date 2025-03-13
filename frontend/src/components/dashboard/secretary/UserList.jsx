@@ -15,7 +15,16 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CheckCircle2, MoreHorizontal, XCircle, UserX, UserCheck, Loader2, Search } from "lucide-react";
+import {
+    CheckCircle2,
+    MoreHorizontal,
+    XCircle,
+    UserX,
+    UserCheck,
+    Loader2,
+    Search,
+    Eye,
+} from "lucide-react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { toast } from "sonner";
@@ -39,6 +48,8 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { UserDetailsView } from "./components/UserDetailsView";
 
 const LoadingOverlay = ({ message }) => (
     <div className="fixed inset-0 bg-background/50 backdrop-blur-[2px] z-50">
@@ -74,16 +85,20 @@ export function UserList() {
 
     const fetchUsers = async () => {
         try {
-            const res = await axios.get("http://localhost:5000/api/users/barangay", {
+            const response = await axios.get("http://localhost:5000/api/users/barangay", {
                 headers: {
-                    Authorization: `Bearer ${currentUser.token}`,
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
             });
-
-            if (res.data.success) {
-                setUsers(res.data.data);
+            if (response.data.success) {
+                // Filter out superAdmin users
+                const filteredUsers = response.data.data.filter(
+                    (user) => user.role !== "superAdmin"
+                );
+                setUsers(filteredUsers);
             }
         } catch (error) {
+            console.error("Error fetching users:", error);
             toast.error(error.response?.data?.message || "Failed to fetch users");
         } finally {
             setLoading(false);
@@ -91,10 +106,8 @@ export function UserList() {
     };
 
     useEffect(() => {
-        if (currentUser?.role === "secretary" || currentUser?.role === "chairman") {
-            fetchUsers();
-        }
-    }, [currentUser]);
+        fetchUsers();
+    }, []);
 
     const handleVerifyUser = async (userId) => {
         try {
@@ -263,18 +276,24 @@ export function UserList() {
         .filter((user) => {
             if (!searchTerm) return true;
             const searchLower = searchTerm.toLowerCase();
+            const fullName =
+                `${user.firstName || ""} ${user.middleName || ""} ${user.lastName || ""}`.toLowerCase();
             return (
-                user.name.toLowerCase().includes(searchLower) ||
-                user.email.toLowerCase().includes(searchLower) ||
-                user.role.toLowerCase().includes(searchLower) ||
-                user.barangay.toLowerCase().includes(searchLower)
+                fullName.includes(searchLower) ||
+                (user.email || "").toLowerCase().includes(searchLower) ||
+                (user.role || "").toLowerCase().includes(searchLower) ||
+                (user.barangay || "").toLowerCase().includes(searchLower)
             );
         })
         .sort((a, b) => {
             if (a.isActive !== b.isActive) {
                 return b.isActive ? 1 : -1;
             }
-            return a.name.localeCompare(b.name);
+            const aFullName =
+                `${a.firstName || ""} ${a.middleName || ""} ${a.lastName || ""}`.toLowerCase();
+            const bFullName =
+                `${b.firstName || ""} ${b.middleName || ""} ${b.lastName || ""}`.toLowerCase();
+            return aFullName.localeCompare(bFullName);
         });
 
     const lastItemIndex = currentPage * pageSize;
@@ -354,7 +373,9 @@ export function UserList() {
                                         key={user._id}
                                         className={!user.isActive ? "opacity-60" : ""}
                                     >
-                                        <TableCell className="font-medium">{user.name}</TableCell>
+                                        <TableCell className="font-medium">
+                                            {`${user.firstName} ${user.middleName ? user.middleName + " " : ""}${user.lastName}`}
+                                        </TableCell>
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell className="capitalize">{user.role}</TableCell>
                                         <TableCell>{user.barangay}</TableCell>
@@ -385,6 +406,20 @@ export function UserList() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
+                                                    <Dialog>
+                                                        <DialogTrigger asChild>
+                                                            <DropdownMenuItem
+                                                                onSelect={(e) => e.preventDefault()}
+                                                                className="text-blue-600 focus:text-blue-600"
+                                                            >
+                                                                <Eye className="mr-2 h-4 w-4" />
+                                                                View Details
+                                                            </DropdownMenuItem>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
+                                                            <UserDetailsView user={user} />
+                                                        </DialogContent>
+                                                    </Dialog>
                                                     <DropdownMenuItem
                                                         onClick={() => handleVerifyUser(user._id)}
                                                         disabled={
@@ -392,7 +427,9 @@ export function UserList() {
                                                             actionLoading.rejecting ||
                                                             actionLoading.deactivating ||
                                                             actionLoading.activating ||
-                                                            user.isVerified
+                                                            user.isVerified ||
+                                                            user.role === "chairman" ||
+                                                            user.role === "secretary"
                                                         }
                                                         className={
                                                             user.isVerified
@@ -564,7 +601,7 @@ export function UserList() {
                 open={deactivateDialog.isOpen}
                 onOpenChange={(isOpen) => setDeactivateDialog({ isOpen, userId: null, reason: "" })}
             >
-                <AlertDialogContent>
+                <AlertDialogContent className="max-w-[500px] w-[95%]">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Deactivate User Account</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -572,7 +609,7 @@ export function UserList() {
                             to the user via email.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <div className="py-4">
+                    <div className="py-3">
                         <Textarea
                             placeholder="Enter reason for deactivation..."
                             value={deactivateDialog.reason}
@@ -582,6 +619,7 @@ export function UserList() {
                                     reason: e.target.value,
                                 })
                             }
+                            className="min-h-[100px]"
                         />
                     </div>
                     <AlertDialogFooter>

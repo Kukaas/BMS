@@ -81,14 +81,28 @@ export function Sidebar() {
             {
                 icon: Mail,
                 label: "Request",
-                href: "/dashboard?tab=request-admin",
+                href: "/dashboard?tab=requestdocs",
             },
             {
                 icon: FileText,
                 label: "Incident Report",
-                href: "/dashboard?tab=incident-report-admin",
+                href: "/dashboard?tab=incidents",
             },
-            { icon: User2Icon, label: "Residents", href: "/dashboard?tab=residents" },
+            {
+                icon: FileText,
+                label: "Blotter Report",
+                href: "/dashboard?tab=blotterreports",
+            },
+            {
+                icon: User2Icon,
+                label: "Residents",
+                href: "/dashboard?tab=residents",
+            },
+            {
+                icon: User2Icon,
+                label: "Users List",
+                href: "/dashboard?tab=userlist",
+            },
         ];
     }
 
