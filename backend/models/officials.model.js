@@ -34,6 +34,12 @@ const officialsSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+        purok: {
+            type: String,
+            required: function () {
+                return this.position === "Kagawad";
+            },
+        },
     },
     { timestamps: true }
 );
@@ -41,6 +47,3 @@ const officialsSchema = new mongoose.Schema(
 const Officials = mongoose.model("Officials", officialsSchema);
 
 export default Officials;
-
-
-
