@@ -6,14 +6,14 @@ import {
 import User from "../models/user.model.js";
 import { createLog } from "./log.controller.js";
 import { createTransactionHistory } from "./transaction.history.controller.js";
-import { STATUS_TYPES } from "../models/barangay.clearance.model.js"; // Import shared status types
+import { STATUS_TYPES } from "../models/barangay.indigency.model.js";
 
 export const createBarangayIndigency = async (req, res, next) => {
     try {
-        const { userId, name, email, age, purpose, contactNumber } = req.body;
-        const userBarangay = req.user.barangay;
+        const { userId, name, email, contactNumber, purpose, barangay, age, purok } = req.body;
 
-        if (!name || !email || !purpose || !contactNumber) {
+        // Validate required fields
+        if (!name || !purpose || !age || !email || !contactNumber) {
             return res.status(400).json({
                 success: false,
                 message: "Please provide all required fields",
@@ -25,9 +25,10 @@ export const createBarangayIndigency = async (req, res, next) => {
             name,
             email,
             age,
-            barangay: userBarangay,
-            purpose,
             contactNumber,
+            barangay,
+            purpose,
+            purok,
         });
 
         await createLog(
@@ -39,20 +40,17 @@ export const createBarangayIndigency = async (req, res, next) => {
 
         const savedIndigency = await barangayIndigency.save();
 
-        // Create transaction history with proper object structure
-        const transactionData = {
-            userId: req.user.id,
+        // Create transaction history
+        await createTransactionHistory({
+            userId,
             transactionId: savedIndigency._id,
             residentName: name,
             requestedDocument: "Barangay Indigency",
             dateRequested: new Date(),
-            barangay: userBarangay,
+            barangay,
             action: "created",
-            status: "Pending",
-        };
-
-        console.log("Transaction data:", transactionData); // Debug log
-        await createTransactionHistory(transactionData);
+            status: STATUS_TYPES.PENDING,
+        });
 
         // Create and send notification to secretaries
         const staffNotification = createNotification(
@@ -64,7 +62,7 @@ export const createBarangayIndigency = async (req, res, next) => {
         );
 
         // Send notification to secretaries of the user's barangay
-        await sendNotificationToBarangaySecretaries(userBarangay, staffNotification);
+        await sendNotificationToBarangaySecretaries(barangay, staffNotification);
 
         res.status(201).json({
             success: true,
@@ -190,8 +188,8 @@ export const printBarangayIndigency = async (req, res) => {
 
         const indigency = await BarangayIndigency.findOne({
             _id: id,
-            barangay: barangay,
-        });
+            barangay,
+        }).populate("userId", "firstName middleName lastName");
 
         if (!indigency) {
             return res.status(404).json({
@@ -200,18 +198,12 @@ export const printBarangayIndigency = async (req, res) => {
             });
         }
 
-        // Return the document data
         res.status(200).json({
             success: true,
             data: {
-                id: indigency._id,
-                name: indigency.name,
-                purpose: indigency.purpose,
-                dateIssued: indigency.dateOfIssuance || new Date(),
-                status: indigency.status,
-                barangay: indigency.barangay,
-                documentType: "Barangay Indigency",
-                age: indigency.age,
+                ...indigency.toObject(),
+                dateIssued: indigency.dateApproved || indigency.createdAt,
+                type: "Barangay Indigency",
             },
         });
     } catch (error) {

@@ -24,6 +24,7 @@ export const createBarangayClearance = async (req, res, next) => {
             civilStatus,
         } = req.body;
 
+        // Validate required fields
         if (
             !name ||
             !purpose ||
@@ -40,6 +41,7 @@ export const createBarangayClearance = async (req, res, next) => {
             });
         }
 
+        // Create new clearance document
         const barangayClearance = new BarangayClearance({
             userId,
             name,

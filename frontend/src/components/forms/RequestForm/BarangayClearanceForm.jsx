@@ -27,17 +27,19 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
         resolver: zodResolver(barangayClearanceSchema),
         defaultValues: {
             userId: currentUser?._id || "",
-            name: currentUser?.name || "",
-            age: currentUser?.age || "",
+            firstName: currentUser?.firstName || "",
+            middleName: currentUser?.middleName || "",
+            lastName: currentUser?.lastName || "",
             email: currentUser?.email || "",
             contactNumber: currentUser?.contactNumber || "",
             barangay: currentUser?.barangay || "",
             dateOfBirth: currentUser?.dateOfBirth || "",
             sex: currentUser?.sex || "",
             purpose: initialData?.purpose || "",
-            purok: "",
+            purok: currentUser?.purok || "",
             placeOfBirth: "",
             civilStatus: "",
+            name: `${currentUser?.firstName || ""} ${currentUser?.middleName ? currentUser?.middleName + " " : ""}${currentUser?.lastName || ""}`.trim(),
         },
     });
 
@@ -47,16 +49,37 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
         onDataChange?.(formValues);
     }, [formValues, onDataChange]);
 
+    // Calculate age from date of birth
+    useEffect(() => {
+        if (currentUser?.dateOfBirth) {
+            const dob = new Date(currentUser.dateOfBirth);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            setValue("age", age);
+        }
+    }, [currentUser?.dateOfBirth, setValue]);
+
     // Update form when user changes
     useEffect(() => {
         if (currentUser) {
             setValue("userId", currentUser._id || "");
-            setValue("name", currentUser.name || "");
+            setValue("firstName", currentUser.firstName || "");
+            setValue("middleName", currentUser.middleName || "");
+            setValue("lastName", currentUser.lastName || "");
             setValue("email", currentUser.email || "");
             setValue("contactNumber", currentUser.contactNumber || "");
             setValue("barangay", currentUser.barangay || "");
             setValue("dateOfBirth", currentUser.dateOfBirth || "");
             setValue("sex", currentUser.sex || "");
+            setValue("purok", currentUser.purok || "");
+            setValue(
+                "name",
+                `${currentUser.firstName || ""} ${currentUser.middleName ? currentUser.middleName + " " : ""}${currentUser.lastName || ""}`.trim()
+            );
         }
     }, [currentUser, setValue]);
 
@@ -65,9 +88,11 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
             {
                 ...data,
                 userId: currentUser._id,
+                name: `${currentUser.firstName} ${currentUser.middleName ? currentUser.middleName + " " : ""}${currentUser.lastName}`.trim(),
                 email: currentUser.email,
                 contactNumber: currentUser.contactNumber,
                 barangay: currentUser.barangay,
+                purok: currentUser.purok,
                 type: "Barangay Clearance",
             },
             "barangay-clearance"
@@ -118,17 +143,43 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
             <div className="space-y-4">
                 <h3 className="text-lg font-medium">Personal Information</h3>
                 <div className="grid md:grid-cols-2 gap-6">
-                    {/* Name */}
+                    {/* Name Fields */}
                     <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
+                        <Label htmlFor="firstName">First Name</Label>
                         <Input
-                            id="name"
-                            {...register("name")}
-                            defaultValue={currentUser?.name || ""}
+                            id="firstName"
+                            {...register("firstName")}
+                            defaultValue={currentUser?.firstName || ""}
                             readOnly
                         />
-                        {errors.name && (
-                            <p className="text-red-500 text-sm">{errors.name.message}</p>
+                        {errors.firstName && (
+                            <p className="text-red-500 text-sm">{errors.firstName.message}</p>
+                        )}
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="middleName">Middle Name</Label>
+                        <Input
+                            id="middleName"
+                            {...register("middleName")}
+                            defaultValue={currentUser?.middleName || ""}
+                            readOnly
+                        />
+                        {errors.middleName && (
+                            <p className="text-red-500 text-sm">{errors.middleName.message}</p>
+                        )}
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <Input
+                            id="lastName"
+                            {...register("lastName")}
+                            defaultValue={currentUser?.lastName || ""}
+                            readOnly
+                        />
+                        {errors.lastName && (
+                            <p className="text-red-500 text-sm">{errors.lastName.message}</p>
                         )}
                     </div>
 
@@ -186,20 +237,12 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
                     {/* Purok */}
                     <div className="space-y-2">
                         <Label htmlFor="purok">Purok</Label>
-                        <Select onValueChange={handlePurokChange}>
-                            <SelectTrigger id="purok">
-                                <SelectValue placeholder="Select purok" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Purok I">Purok I</SelectItem>
-                                <SelectItem value="Purok II">Purok II</SelectItem>
-                                <SelectItem value="Purok III">Purok III</SelectItem>
-                                <SelectItem value="Purok IV">Purok IV</SelectItem>
-                                <SelectItem value="Purok V">Purok V</SelectItem>
-                                <SelectItem value="Purok VI">Purok VI</SelectItem>
-                                <SelectItem value="Purok VII">Purok VII</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <Input
+                            id="purok"
+                            value={currentUser?.purok || ""}
+                            {...register("purok")}
+                            readOnly
+                        />
                         {errors.purok && (
                             <p className="text-red-500 text-sm">{errors.purok.message}</p>
                         )}

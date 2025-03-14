@@ -3,6 +3,9 @@ import { z } from "zod";
 export const barangayClearanceSchema = z.object({
     userId: z.string().min(1, "User ID is required"),
     name: z.string().min(1, "Full name is required"),
+    firstName: z.string().min(1, "First name is required"),
+    middleName: z.string().optional(),
+    lastName: z.string().min(1, "Last name is required"),
     age: z.number().min(1, "Age is required").max(150, "Invalid age"),
     email: z.string().email("Invalid email format"),
     barangay: z.string().min(1, "Barangay is required"),
@@ -22,12 +25,6 @@ export const barangayClearanceSchema = z.object({
         }
     ),
     contactNumber: z.string().min(1, "Contact number is required"),
-    purok: z.enum(
-        ["Purok I", "Purok II", "Purok III", "Purok IV", "Purok V", "Purok VI", "Purok VII"],
-        {
-            required_error: "Purok is required",
-        }
-    ),
     dateOfBirth: z.string().min(1, "Date of birth is required"),
     sex: z.enum(["Male", "Female"], {
         required_error: "Sex is required",
@@ -40,7 +37,7 @@ export const barangayClearanceSchema = z.object({
 
 export const barangayIndigencySchema = z.object({
     name: z.string().min(1, "Full name is required"),
-    age: z.string().min(1, "Age is required"),
+    age: z.number().min(1, "Age is required"),
     barangay: z.string().min(1, "Barangay is required"),
     contactNumber: z.string().min(1, "Contact number is required"),
     purpose: z.enum(
