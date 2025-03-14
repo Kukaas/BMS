@@ -156,6 +156,76 @@ export function DocumentDetailsView({
                         )}
                     </div>
                 </div>
+            ) : request.type === "Barangay Indigency" ? (
+                <>
+                    {/* Personal Information */}
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-medium text-muted-foreground">
+                            Personal Information
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                            {renderField(
+                                <User className="h-4 w-4 text-primary" />,
+                                "Name",
+                                request.name
+                            )}
+                            {renderField(
+                                <Mail className="h-4 w-4 text-primary" />,
+                                "Email",
+                                request.email
+                            )}
+                            {renderField(
+                                <Phone className="h-4 w-4 text-primary" />,
+                                "Contact",
+                                request.contactNumber
+                            )}
+                            {renderField(
+                                <FileText className="h-4 w-4 text-primary" />,
+                                "Age",
+                                request.age
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Address Information */}
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-medium text-muted-foreground">
+                            Address Information
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                            {renderField(
+                                <MapPin className="h-4 w-4 text-primary" />,
+                                "Purok",
+                                request.purok
+                            )}
+                            {renderField(
+                                <Building2 className="h-4 w-4 text-primary" />,
+                                "Barangay",
+                                request.barangay
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Request Details */}
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-medium text-muted-foreground">
+                            Request Details
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                            {renderField(
+                                <FileText className="h-4 w-4 text-primary" />,
+                                "Purpose",
+                                request.purpose
+                            )}
+                            {renderField(
+                                <Calendar className="h-4 w-4 text-primary" />,
+                                "Request Date",
+                                request.requestDate,
+                                formatDate
+                            )}
+                        </div>
+                    </div>
+                </>
             ) : (
                 // Original Basic Information section for other document types
                 <div className="space-y-3">
@@ -175,6 +245,30 @@ export function DocumentDetailsView({
                             <Phone className="h-4 w-4 text-primary" />,
                             "Contact",
                             request.contactNumber
+                        )}
+                        {request.type === "Barangay Indigency" && (
+                            <>
+                                {renderField(
+                                    <FileText className="h-4 w-4 text-primary" />,
+                                    "Age",
+                                    request.age
+                                )}
+                                {renderField(
+                                    <MapPin className="h-4 w-4 text-primary" />,
+                                    "Purok",
+                                    request.purok
+                                )}
+                                {renderField(
+                                    <FileText className="h-4 w-4 text-primary" />,
+                                    "Purpose",
+                                    request.purpose
+                                )}
+                                {renderField(
+                                    <Building2 className="h-4 w-4 text-primary" />,
+                                    "Barangay",
+                                    request.barangay
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
@@ -253,181 +347,187 @@ export function DocumentDetailsView({
             )}
 
             {/* Payment Information */}
-            <div className="space-y-3">
-                <h3 className="text-sm font-medium text-muted-foreground">Payment Information</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-                    {renderField(
-                        <Wallet className="h-4 w-4 text-primary" />,
-                        "Payment Method",
-                        request.paymentMethod
-                    )}
-                    {renderField(
-                        <Wallet className="h-4 w-4 text-primary" />,
-                        "Amount",
-                        request.amount,
-                        (value) => `₱${value}`
-                    )}
-                    {request.referenceNumber &&
-                        renderField(
-                            <FileText className="h-4 w-4 text-primary" />,
-                            "Reference Number",
-                            request.referenceNumber
+            {request.type !== "Barangay Indigency" && (
+                <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                        Payment Information
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                        {renderField(
+                            <Wallet className="h-4 w-4 text-primary" />,
+                            "Payment Method",
+                            request.paymentMethod
                         )}
-                    {renderField(
-                        <Calendar className="h-4 w-4 text-primary" />,
-                        "Date of Payment",
-                        request.dateOfPayment,
-                        formatDate
-                    )}
+                        {renderField(
+                            <Wallet className="h-4 w-4 text-primary" />,
+                            "Amount",
+                            request.amount,
+                            (value) => `₱${value}`
+                        )}
+                        {request.referenceNumber &&
+                            renderField(
+                                <FileText className="h-4 w-4 text-primary" />,
+                                "Reference Number",
+                                request.referenceNumber
+                            )}
+                        {renderField(
+                            <Calendar className="h-4 w-4 text-primary" />,
+                            "Date of Payment",
+                            request.dateOfPayment,
+                            formatDate
+                        )}
 
-                    {/* Receipt Section */}
-                    <div className="col-span-2 space-y-2">
-                        <div className="flex items-center gap-2">
-                            <CreditCard className="h-4 w-4 text-primary" />
-                            <span className="text-sm text-muted-foreground">Receipt</span>
-                        </div>
-                        {request.receipt?.data ? (
-                            <div className="bg-muted/50 rounded-lg p-6">
-                                <div className="flex items-center gap-4 mb-2">
-                                    <div className="flex-1 truncate">
-                                        <p className="text-sm text-muted-foreground truncate">
-                                            {request.receipt.filename}
-                                        </p>
+                        {/* Receipt Section */}
+                        <div className="col-span-2 space-y-2">
+                            <div className="flex items-center gap-2">
+                                <CreditCard className="h-4 w-4 text-primary" />
+                                <span className="text-sm text-muted-foreground">Receipt</span>
+                            </div>
+                            {request.receipt?.data ? (
+                                <div className="bg-muted/50 rounded-lg p-6">
+                                    <div className="flex items-center gap-4 mb-2">
+                                        <div className="flex-1 truncate">
+                                            <p className="text-sm text-muted-foreground truncate">
+                                                {request.receipt.filename}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <Dialog
-                                        onOpenChange={() => {
-                                            resetZoom();
-                                            setPosition({ x: 0, y: 0 });
-                                        }}
-                                    >
-                                        <DialogTrigger asChild>
-                                            <Button variant="outline" size="sm">
-                                                <Eye className="h-4 w-4 mr-2" />
-                                                Preview
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent className="max-w-4xl">
-                                            <DialogHeader>
-                                                <DialogTitle>Receipt Image</DialogTitle>
-                                            </DialogHeader>
-                                            <div className="mt-4">
-                                                {/* Zoom controls */}
-                                                <div className="flex items-center justify-end gap-2 mb-4">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={zoomOut}
-                                                        disabled={scale <= 0.25}
-                                                    >
-                                                        <ZoomOut className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={resetZoom}
-                                                    >
-                                                        {Math.round(scale * 100)}%
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={zoomIn}
-                                                        disabled={scale >= 8}
-                                                    >
-                                                        <ZoomIn className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={rotate}
-                                                    >
-                                                        <RotateCw className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                                {/* Image container */}
-                                                <div
-                                                    ref={containerRef}
-                                                    className="relative bg-black/5 rounded-lg overflow-hidden"
-                                                    style={{
-                                                        height: "calc(80vh - 200px)",
-                                                        width: "100%",
-                                                    }}
-                                                    onWheel={handleWheel}
-                                                >
+                                    <div className="flex gap-2">
+                                        <Dialog
+                                            onOpenChange={() => {
+                                                resetZoom();
+                                                setPosition({ x: 0, y: 0 });
+                                            }}
+                                        >
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" size="sm">
+                                                    <Eye className="h-4 w-4 mr-2" />
+                                                    Preview
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-4xl">
+                                                <DialogHeader>
+                                                    <DialogTitle>Receipt Image</DialogTitle>
+                                                </DialogHeader>
+                                                <div className="mt-4">
+                                                    {/* Zoom controls */}
+                                                    <div className="flex items-center justify-end gap-2 mb-4">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={zoomOut}
+                                                            disabled={scale <= 0.25}
+                                                        >
+                                                            <ZoomOut className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={resetZoom}
+                                                        >
+                                                            {Math.round(scale * 100)}%
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={zoomIn}
+                                                            disabled={scale >= 8}
+                                                        >
+                                                            <ZoomIn className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={rotate}
+                                                        >
+                                                            <RotateCw className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                    {/* Image container */}
                                                     <div
-                                                        className="absolute inset-0 flex items-center justify-center"
+                                                        ref={containerRef}
+                                                        className="relative bg-black/5 rounded-lg overflow-hidden"
                                                         style={{
-                                                            cursor: isDragging
-                                                                ? "grabbing"
-                                                                : "grab",
-                                                            transform: `translate(${position.x}px, ${position.y}px)`,
+                                                            height: "calc(80vh - 200px)",
+                                                            width: "100%",
                                                         }}
-                                                        onMouseDown={handleMouseDown}
-                                                        onMouseMove={handleMouseMove}
-                                                        onMouseUp={handleMouseUp}
-                                                        onMouseLeave={handleMouseUp}
+                                                        onWheel={handleWheel}
                                                     >
-                                                        <img
-                                                            src={
-                                                                request.receipt.data.startsWith(
-                                                                    "data:"
-                                                                )
-                                                                    ? request.receipt.data
-                                                                    : `data:${request.receipt.contentType};base64,${request.receipt.data}`
-                                                            }
-                                                            alt="Receipt"
-                                                            className="select-none transition-transform duration-200"
+                                                        <div
+                                                            className="absolute inset-0 flex items-center justify-center"
                                                             style={{
-                                                                transform: `scale(${scale}) rotate(${rotation}deg)`,
-                                                                maxWidth: "none",
-                                                                maxHeight: "none",
-                                                                transformOrigin: "center center",
-                                                                pointerEvents: "none",
+                                                                cursor: isDragging
+                                                                    ? "grabbing"
+                                                                    : "grab",
+                                                                transform: `translate(${position.x}px, ${position.y}px)`,
                                                             }}
-                                                            draggable="false"
-                                                        />
+                                                            onMouseDown={handleMouseDown}
+                                                            onMouseMove={handleMouseMove}
+                                                            onMouseUp={handleMouseUp}
+                                                            onMouseLeave={handleMouseUp}
+                                                        >
+                                                            <img
+                                                                src={
+                                                                    request.receipt.data.startsWith(
+                                                                        "data:"
+                                                                    )
+                                                                        ? request.receipt.data
+                                                                        : `data:${request.receipt.contentType};base64,${request.receipt.data}`
+                                                                }
+                                                                alt="Receipt"
+                                                                className="select-none transition-transform duration-200"
+                                                                style={{
+                                                                    transform: `scale(${scale}) rotate(${rotation}deg)`,
+                                                                    maxWidth: "none",
+                                                                    maxHeight: "none",
+                                                                    transformOrigin:
+                                                                        "center center",
+                                                                    pointerEvents: "none",
+                                                                }}
+                                                                draggable="false"
+                                                            />
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            try {
-                                                const imageUrl = request.receipt.data.startsWith(
-                                                    "data:"
-                                                )
-                                                    ? request.receipt.data
-                                                    : `data:${request.receipt.contentType};base64,${request.receipt.data}`;
-                                                const link = document.createElement("a");
-                                                link.href = imageUrl;
-                                                link.download = request.receipt.filename;
-                                                document.body.appendChild(link);
-                                                link.click();
-                                                document.body.removeChild(link);
-                                            } catch (error) {
-                                                console.error("Download error:", error);
-                                                toast.error("Failed to download receipt");
-                                            }
-                                        }}
-                                    >
-                                        <Download className="h-4 w-4 mr-2" />
-                                        Download
-                                    </Button>
+                                            </DialogContent>
+                                        </Dialog>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                try {
+                                                    const imageUrl =
+                                                        request.receipt.data.startsWith("data:")
+                                                            ? request.receipt.data
+                                                            : `data:${request.receipt.contentType};base64,${request.receipt.data}`;
+                                                    const link = document.createElement("a");
+                                                    link.href = imageUrl;
+                                                    link.download = request.receipt.filename;
+                                                    document.body.appendChild(link);
+                                                    link.click();
+                                                    document.body.removeChild(link);
+                                                } catch (error) {
+                                                    console.error("Download error:", error);
+                                                    toast.error("Failed to download receipt");
+                                                }
+                                            }}
+                                        >
+                                            <Download className="h-4 w-4 mr-2" />
+                                            Download
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-center h-32 bg-muted rounded-lg">
-                                <p className="text-sm text-muted-foreground">No receipt image</p>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="flex items-center justify-center h-32 bg-muted rounded-lg">
+                                    <p className="text-sm text-muted-foreground">
+                                        No receipt image
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* Status Update Section */}
             <div className="sticky bottom-0 bg-background border-t pt-6">

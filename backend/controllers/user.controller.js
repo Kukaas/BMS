@@ -5,6 +5,7 @@ import {
     sendActivationEmail,
 } from "../utils/emails.js";
 import bcrypt from 'bcryptjs';
+import Officials from "../models/officials.model.js";
 
 export const getUsersByBarangay = async (req, res, next) => {
     try {
@@ -83,7 +84,7 @@ export const verifyUser = async (req, res, next) => {
         const { userId } = req.params;
         const { role } = req.user;
 
-        console.log('Verifying user:', userId);
+        console.log("Verifying user:", userId);
 
         // Check if user has permission
         if (role !== "secretary" && role !== "chairman" && role !== "superAdmin") {
@@ -96,7 +97,7 @@ export const verifyUser = async (req, res, next) => {
         const user = await User.findById(userId);
 
         if (!user) {
-            console.log('User not found:', userId);
+            console.log("User not found:", userId);
             return res.status(404).json({
                 success: false,
                 message: "User not found",
@@ -123,7 +124,7 @@ export const verifyUser = async (req, res, next) => {
             data: user,
         });
     } catch (error) {
-        console.error('Verification error:', error);
+        console.error("Verification error:", error);
         next(error);
     }
 };
@@ -133,7 +134,7 @@ export const rejectUser = async (req, res, next) => {
         const { userId } = req.params;
         const { role } = req.user;
 
-        console.log('Rejecting user:', userId);
+        console.log("Rejecting user:", userId);
 
         // Check if user has permission
         if (role !== "secretary" && role !== "chairman" && role !== "superAdmin") {
@@ -146,7 +147,7 @@ export const rejectUser = async (req, res, next) => {
         const user = await User.findById(userId);
 
         if (!user) {
-            console.log('User not found:', userId);
+            console.log("User not found:", userId);
             return res.status(404).json({
                 success: false,
                 message: "User not found",
@@ -160,9 +161,9 @@ export const rejectUser = async (req, res, next) => {
         // Add email notification if needed
         try {
             // You can add rejection email notification here if needed
-            console.log('User rejected:', user.email);
+            console.log("User rejected:", user.email);
         } catch (emailError) {
-            console.log('Error sending rejection email:', emailError);
+            console.log("Error sending rejection email:", emailError);
         }
 
         res.status(200).json({
@@ -171,7 +172,7 @@ export const rejectUser = async (req, res, next) => {
             data: user,
         });
     } catch (error) {
-        console.error('Rejection error:', error);
+        console.error("Rejection error:", error);
         next(error);
     }
 };
@@ -183,7 +184,7 @@ export const deactivateUser = async (req, res, next) => {
         const { reason } = req.body;
         const { role } = req.user;
 
-        console.log('Deactivating user:', userId); // Add logging
+        console.log("Deactivating user:", userId); // Add logging
 
         if (!reason) {
             return res.status(400).json({
@@ -203,7 +204,7 @@ export const deactivateUser = async (req, res, next) => {
         const user = await User.findById(userId);
 
         if (!user) {
-            console.log('User not found:', userId);
+            console.log("User not found:", userId);
             return res.status(404).json({
                 success: false,
                 message: "User not found",
@@ -238,7 +239,7 @@ export const deactivateUser = async (req, res, next) => {
             data: user,
         });
     } catch (error) {
-        console.error('Deactivation error:', error);
+        console.error("Deactivation error:", error);
         next(error);
     }
 };
@@ -248,12 +249,12 @@ export const activateUser = async (req, res, next) => {
         const { userId } = req.params;
 
         // Add some logging
-        console.log('Activating user:', userId);
+        console.log("Activating user:", userId);
 
         const user = await User.findById(userId);
 
         if (!user) {
-            console.log('User not found:', userId);
+            console.log("User not found:", userId);
             return res.status(404).json({
                 success: false,
                 message: "User not found",
@@ -269,7 +270,7 @@ export const activateUser = async (req, res, next) => {
             data: user,
         });
     } catch (error) {
-        console.error('Activation error:', error);
+        console.error("Activation error:", error);
         next(error);
     }
 };
@@ -366,7 +367,7 @@ export const changePassword = async (req, res) => {
             return res.status(401).json({
                 success: false,
                 message: "Current password does not match",
-                isPasswordError: true
+                isPasswordError: true,
             });
         }
 
@@ -501,12 +502,10 @@ export const getBarangayChairman = async (req, res, next) => {
     try {
         const { barangay } = req.user;
 
-        const chairman = await User.findOne({
+        const chairman = await Officials.findOne({
             barangay,
-            role: "chairman",
-            isActive: true,
-            isVerified: true
-        }).select("-password");
+            position: "Chairman",
+        });
 
         if (!chairman) {
             return res.status(404).json({

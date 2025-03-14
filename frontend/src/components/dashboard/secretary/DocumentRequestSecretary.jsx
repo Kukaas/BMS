@@ -70,6 +70,8 @@ export function DocumentRequestSecretary() {
                         name: name,
                         residentName: name,
                         status: request.status,
+                        purpose: request.purpose,
+                        age: request.age,
                         // Basic Information
                         email: request.email,
                         contactNumber: request.contactNumber,
@@ -77,6 +79,7 @@ export function DocumentRequestSecretary() {
                         barangay: request.barangay,
                         municipality: request.municipality,
                         province: request.province,
+                        purok: request.purok,
                         // Business clearance specific fields
                         businessName: request.businessName,
                         businessType: request.businessType,
