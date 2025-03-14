@@ -91,8 +91,6 @@ export function BarangayUserRegistration({ className }) {
                     dateOfBirth,
                     email,
                     barangay,
-                    password: "secretary",
-
                 });
             } else if (role === "superAdmin") {
                 res = await axios.post(
@@ -103,9 +101,7 @@ export function BarangayUserRegistration({ className }) {
                         dateOfBirth,
                         email,
                         barangay,
-                        password: "superAdmin",
                     }
-
                 );
             } else {
                 res = await axios.post("http://localhost:5000/api/admin/create-chairman-account", {
@@ -114,15 +110,13 @@ export function BarangayUserRegistration({ className }) {
                     dateOfBirth,
                     email,
                     barangay,
-                    password: "chairman",
                 });
-
             }
 
             if (res.status === 201) {
                 setLoading(false);
                 toast.success("User registered successfully.", {
-                    description: "Please verify your email to login.",
+                    description: "A verification email has been sent with login credentials.",
                 });
             }
         } catch (error) {

@@ -2,6 +2,18 @@ import bcrypt from "bcryptjs";
 import User from "../models/user.model.js";
 import { sendVerificationEmail } from "../utils/emails.js";
 
+// Function to generate secure random password
+const generateSecurePassword = () => {
+    const length = 15;
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let password = "";
+    for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * charset.length);
+        password += charset[randomIndex];
+    }
+    return password;
+};
+
 export const createSecretaryAccount = async (req, res, next) => {
     try {
         const {
@@ -11,7 +23,6 @@ export const createSecretaryAccount = async (req, res, next) => {
             contactNumber,
             dateOfBirth,
             email,
-            password,
             barangay,
             purok,
         } = req.body;
@@ -22,7 +33,6 @@ export const createSecretaryAccount = async (req, res, next) => {
             !contactNumber ||
             !dateOfBirth ||
             !email ||
-            !password ||
             !barangay ||
             !purok
         ) {
@@ -41,8 +51,9 @@ export const createSecretaryAccount = async (req, res, next) => {
             });
         }
 
+        const generatedPassword = generateSecurePassword();
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        const hashedPassword = await bcrypt.hash(generatedPassword, salt);
 
         const newUser = new User({
             firstName,
@@ -55,14 +66,18 @@ export const createSecretaryAccount = async (req, res, next) => {
             purok,
             password: hashedPassword,
             role: "secretary",
-            isVerified: true, // Auto-verify admin accounts
+            isVerified: false,
             isActive: true,
         });
 
         const savedUser = await newUser.save();
+
+        // Send verification email with password
+        await sendVerificationEmail(savedUser, res, generatedPassword);
+
         res.status(201).json({
             success: true,
-            message: "Secretary account created successfully!",
+            message: "Secretary account created successfully! Please check email for verification.",
             data: savedUser,
         });
     } catch (error) {
@@ -79,7 +94,6 @@ export const createCaptainAccount = async (req, res, next) => {
             contactNumber,
             dateOfBirth,
             email,
-            password,
             barangay,
             purok,
         } = req.body;
@@ -90,7 +104,6 @@ export const createCaptainAccount = async (req, res, next) => {
             !contactNumber ||
             !dateOfBirth ||
             !email ||
-            !password ||
             !barangay ||
             !purok
         ) {
@@ -109,8 +122,9 @@ export const createCaptainAccount = async (req, res, next) => {
             });
         }
 
+        const generatedPassword = generateSecurePassword();
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        const hashedPassword = await bcrypt.hash(generatedPassword, salt);
 
         const newUser = new User({
             firstName,
@@ -123,14 +137,18 @@ export const createCaptainAccount = async (req, res, next) => {
             purok,
             password: hashedPassword,
             role: "chairman",
-            isVerified: true, // Auto-verify admin accounts
+            isVerified: false,
             isActive: true,
         });
 
         const savedUser = await newUser.save();
+
+        // Send verification email with password
+        await sendVerificationEmail(savedUser, res, generatedPassword);
+
         res.status(201).json({
             success: true,
-            message: "Chairman account created successfully!",
+            message: "Chairman account created successfully! Please check email for verification.",
             data: savedUser,
         });
     } catch (error) {
@@ -147,7 +165,6 @@ export const createSuperAdminAccount = async (req, res, next) => {
             contactNumber,
             dateOfBirth,
             email,
-            password,
             barangay,
             purok,
         } = req.body;
@@ -158,7 +175,6 @@ export const createSuperAdminAccount = async (req, res, next) => {
             !contactNumber ||
             !dateOfBirth ||
             !email ||
-            !password ||
             !barangay ||
             !purok
         ) {
@@ -177,8 +193,9 @@ export const createSuperAdminAccount = async (req, res, next) => {
             });
         }
 
+        const generatedPassword = generateSecurePassword();
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        const hashedPassword = await bcrypt.hash(generatedPassword, salt);
 
         const newUser = new User({
             firstName,
@@ -191,14 +208,19 @@ export const createSuperAdminAccount = async (req, res, next) => {
             purok,
             password: hashedPassword,
             role: "superAdmin",
-            isVerified: true, // Auto-verify admin accounts
+            isVerified: false,
             isActive: true,
         });
 
         const savedUser = await newUser.save();
+
+        // Send verification email with password
+        await sendVerificationEmail(savedUser, res, generatedPassword);
+
         res.status(201).json({
             success: true,
-            message: "Super Admin account created successfully!",
+            message:
+                "Super Admin account created successfully! Please check email for verification.",
             data: savedUser,
         });
     } catch (error) {
