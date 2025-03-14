@@ -110,7 +110,10 @@ export function DocumentTableView({
                                             </DialogTitle>
                                         </DialogHeader>
                                         <DocumentDetailsView
-                                            request={request}
+                                            request={{
+                                                ...request,
+                                                id: request.id || request._id,
+                                            }}
                                             handleStatusChange={handleStatusChange}
                                             updating={updating}
                                             getAvailableStatuses={getAvailableStatuses}
