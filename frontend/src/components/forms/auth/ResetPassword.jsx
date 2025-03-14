@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { z } from "zod";
 
 // Components and UI elements
@@ -25,10 +25,21 @@ import { cn } from "@/lib/utils";
 // Hooks
 import { useForm } from "react-hook-form";
 
-const schema = z.object({
-    password: z.string().min(6),
-    confirmPassword: z.string().min(6),
-});
+const schema = z
+    .object({
+        password: z
+            .string()
+            .min(8, "Password must be at least 8 characters")
+            .regex(
+                /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/,
+                "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+            ),
+        confirmPassword: z.string().min(8, "Password must be at least 8 characters"),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+        message: "Passwords don't match",
+        path: ["confirmPassword"],
+    });
 
 export function ResetPasswordForm({ className }) {
     const [loading, setLoading] = useState(false);
@@ -78,60 +89,71 @@ export function ResetPasswordForm({ className }) {
     return (
         <Form {...form}>
             <form
-                className={cn("flex flex-col gap-6", className)}
+                className={cn("space-y-6", className)}
                 onSubmit={form.handleSubmit(handleResetPassword)}
             >
-                <div className="flex flex-col items-center gap-2 text-center">
-                    <h1 className="text-2xl font-bold">
-                        Welcome back! Let&apos;s reset your password
+                <div className="space-y-4 text-center">
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                        Reset Your Password
                     </h1>
-                    <p className="text-balance text-sm text-muted-foreground">
-                        Enter your new password below.
+                    <p className="text-sm text-gray-600">
+                        Enter your new password below to reset your account
                     </p>
                 </div>
-                <div className="grid gap-6">
-                    <div className="grid gap-2">
-                        <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>New Password</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} type="password" />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                    <div className="grid gap-2">
-                        <FormField
-                            control={form.control}
-                            name="confirmPassword"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Confirm Password</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} type="password" />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                        {loading ? "Resetting..." : "Reset Password"}
-                    </Button>
+
+                <div className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-sm font-medium text-gray-700">
+                                    New Password
+                                </FormLabel>
+                                <FormControl>
+                                    <Input {...field} type="password" className="h-11" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-sm font-medium text-gray-700">
+                                    Confirm Password
+                                </FormLabel>
+                                <FormControl>
+                                    <Input {...field} type="password" className="h-11" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </div>
-                <div className="text-center text-sm">
-                    Don&apos;t have an account?{" "}
-                    <p
-                        className="underline underline-offset-4 cursor-pointer"
-                        onClick={() => navigate("/sign-up")}
-                    >
-                        Sign up
-                    </p>
+
+                <Button
+                    type="submit"
+                    className="w-full h-11 bg-green-600 hover:bg-green-700 text-white"
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <div className="flex items-center gap-2">
+                            <span className="animate-spin">⏳</span> Resetting...
+                        </div>
+                    ) : (
+                        "Reset Password"
+                    )}
+                </Button>
+
+                <div className="text-center text-sm text-gray-600">
+                    Remember your password?{" "}
+                    <Link to="/sign-in" className="font-medium text-green-600 hover:text-green-500">
+                        Sign in
+                    </Link>
                 </div>
             </form>
         </Form>
