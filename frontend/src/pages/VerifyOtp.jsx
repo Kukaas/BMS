@@ -1,32 +1,58 @@
+import { ArrowLeft, GalleryVerticalEnd } from "lucide-react";
+import { Link } from "react-router-dom";
 import VerifyOTPForm from "@/components/forms/auth/VerifyOtpForm";
-import { GalleryVerticalEnd } from "lucide-react";
-
-import bg from "../assets/bg.png";
 
 export default function VerifyOTP() {
+    const handleBackToHome = () => {
+        localStorage.removeItem("email");
+        localStorage.removeItem("otpAttempts");
+        localStorage.removeItem("otpCooldownExpiry");
+    };
+
     return (
-        <div className="grid min-h-svh lg:grid-cols-2">
-            <div className="flex flex-col gap-4 p-6 md:p-10">
-                <div className="flex justify-center gap-2 md:justify-start">
-                    <a href="#" className="flex items-center gap-2 font-medium">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                            <GalleryVerticalEnd className="size-4" />
-                        </div>
-                        Company Name
-                    </a>
+        <div className="h-screen flex overflow-hidden">
+            {/* Left Panel - Form */}
+            <div className="flex-1 flex flex-col p-8 md:p-12 lg:p-16 bg-white overflow-y-auto">
+                <div className="flex items-center gap-2 mb-8">
+                    <Link
+                        to="/"
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                        onClick={handleBackToHome}
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                        Back to Home
+                    </Link>
                 </div>
-                <div className="flex flex-1 items-center justify-center">
-                    <div className="w-full max-w-xs">
+
+                <div className="flex items-center gap-2 mb-12">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-green-600 text-white">
+                        <GalleryVerticalEnd className="h-5 w-5" />
+                    </div>
+                    <span className="text-xl font-semibold text-gray-900">GASAN BMS</span>
+                </div>
+
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="w-full max-w-lg px-4">
                         <VerifyOTPForm />
                     </div>
                 </div>
             </div>
-            <div className="relative hidden bg-muted lg:block">
+
+            {/* Right Panel - Image */}
+            <div className="hidden lg:block lg:flex-1 relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-600/90 to-green-800/90 mix-blend-multiply" />
                 <img
-                    src={bg}
-                    alt="Image"
-                    className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale brightness-50"
+                    src="https://images.unsplash.com/photo-1590069261209-f8e9b8642343?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1376&q=80"
+                    alt="Gasan, Marinduque"
+                    className="object-cover w-full h-full"
                 />
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-12">
+                    <h2 className="text-4xl font-bold mb-4 text-center">Welcome to Gasan BMS</h2>
+                    <p className="text-lg text-center max-w-md">
+                        Empowering our community through efficient digital governance and seamless
+                        services.
+                    </p>
+                </div>
             </div>
         </div>
     );

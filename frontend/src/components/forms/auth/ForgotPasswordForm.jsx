@@ -2,7 +2,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
@@ -29,9 +29,26 @@ const schema = z.object({
     email: z.string().email(),
 });
 
+const MAX_OTP_ATTEMPTS = 5;
+
+const generateRandomToken = (length) => {
+    let result = "";
+    while (result.length < length) {
+        result += Math.random().toString(36).substring(2);
+    }
+    return result.substring(0, length);
+};
+
 export default function ForgotPasswordForm({ className }) {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        // Clear any existing OTP-related data
+        localStorage.removeItem("email");
+        localStorage.removeItem("otpCooldownExpiry");
+        localStorage.removeItem("otpAttempts");
+    }, []);
 
     const form = useForm({
         resolver: zodResolver(schema),
@@ -41,15 +58,6 @@ export default function ForgotPasswordForm({ className }) {
     });
 
     const handleForgotPassword = async (values) => {
-        const generateRandomToken = (length) => {
-            let result = "";
-            while (result.length < length) {
-                result += Math.random().toString(36).substring(2); // Concatenate random strings
-            }
-            return result.substring(0, length); // Truncate to the desired length
-        };
-
-        const generatedToken = generateRandomToken(50);
         try {
             setLoading(true);
             const { email } = values;
@@ -59,29 +67,43 @@ export default function ForgotPasswordForm({ className }) {
                 return;
             }
 
+            // Initialize OTP attempts counter
+            localStorage.setItem("otpAttempts", "1");
+            localStorage.setItem("email", email);
+
+            // Set initial cooldown
+            const expiryTime = Date.now() + 60 * 1000; // 1 minute
+            localStorage.setItem("otpCooldownExpiry", expiryTime.toString());
+
             const response = await axios.post(
                 "http://localhost:5000/api/auth/forgot-password",
                 values
             );
 
             if (response.status === 200) {
-                setLoading(false);
-                localStorage.setItem("email", email);
                 toast.success("An OTP has been sent to your email.");
-                navigate(`/verify-otp/${generatedToken}`);
+                const token = generateRandomToken(50);
+                navigate(`/verify-otp/${token}`);
             }
         } catch (error) {
             if (error.response && error.response.status === 401) {
-                setLoading(false);
                 toast.error("Email not found", {
                     description: "Please try another email.",
                 });
+                // Clear storage on error
+                localStorage.removeItem("email");
+                localStorage.removeItem("otpAttempts");
+                localStorage.removeItem("otpCooldownExpiry");
             } else {
-                setLoading(false);
-                toast.error("Failed to send reset link.");
+                toast.error("Failed to send OTP", {
+                    description: "Please try again later.",
+                });
             }
+        } finally {
+            setLoading(false);
         }
     };
+
     return (
         <Form {...form}>
             <form
@@ -93,7 +115,8 @@ export default function ForgotPasswordForm({ className }) {
                         Forgot your password?
                     </h1>
                     <p className="text-sm text-gray-600">
-                        Enter your email and we'll send you instructions to reset your password.
+                        Enter your email and we'll send you a verification code to reset your
+                        password.
                     </p>
                 </div>
 
@@ -125,17 +148,26 @@ export default function ForgotPasswordForm({ className }) {
                     >
                         {loading ? (
                             <div className="flex items-center gap-2">
-                                <span className="animate-spin">⏳</span> Sending reset link...
+                                <span className="animate-spin">⏳</span> Sending verification
+                                code...
                             </div>
                         ) : (
-                            "Send reset link"
+                            "Send verification code"
                         )}
                     </Button>
                 </div>
 
                 <div className="text-center text-sm text-gray-600">
                     Remember your password?{" "}
-                    <Link to="/sign-in" className="font-medium text-green-600 hover:text-green-500">
+                    <Link
+                        to="/sign-in"
+                        className="font-medium text-green-600 hover:text-green-500"
+                        onClick={() => {
+                            localStorage.removeItem("email");
+                            localStorage.removeItem("otpAttempts");
+                            localStorage.removeItem("otpCooldownExpiry");
+                        }}
+                    >
                         Back to login
                     </Link>
                 </div>
