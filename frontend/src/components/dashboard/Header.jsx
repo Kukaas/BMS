@@ -33,10 +33,13 @@ import {
 } from "@/components/ui/form";
 
 const profileSchema = z.object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
+    firstName: z.string().min(2, "First name must be at least 2 characters"),
+    middleName: z.string().optional(),
+    lastName: z.string().min(2, "Last name must be at least 2 characters"),
     email: z.string().email("Invalid email").optional(),
     contactNumber: z.string().min(10, "Contact number must be at least 10 characters"),
-    dateOfBirth: z.string().optional(),
+    dateOfBirth: z.string().min(1, "Date of birth is required"),
+    purok: z.string().min(1, "Purok is required"),
 });
 
 export function Header() {
@@ -51,12 +54,15 @@ export function Header() {
     const form = useForm({
         resolver: zodResolver(profileSchema),
         defaultValues: {
-            name: currentUser?.name || "",
+            firstName: currentUser?.firstName || "",
+            middleName: currentUser?.middleName || "",
+            lastName: currentUser?.lastName || "",
             email: currentUser?.email || "",
             contactNumber: currentUser?.contactNumber || "",
             dateOfBirth: currentUser?.dateOfBirth
                 ? new Date(currentUser.dateOfBirth).toISOString().split("T")[0]
                 : "",
+            purok: currentUser?.purok || "",
         },
     });
 
@@ -116,10 +122,13 @@ export function Header() {
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                                 <Avatar className="h-8 w-8">
-                                    <AvatarImage src="/avatars/01.png" alt={currentUser?.name} />
+                                    <AvatarImage
+                                        src="/avatars/01.png"
+                                        alt={`${currentUser?.firstName} ${currentUser?.lastName}`}
+                                    />
                                     <AvatarFallback>
-                                        {currentUser?.name
-                                            ? currentUser.name[0].toUpperCase()
+                                        {currentUser?.firstName && currentUser?.lastName
+                                            ? `${currentUser.firstName[0]}${currentUser.lastName[0]}`
                                             : "U"}
                                     </AvatarFallback>
                                 </Avatar>
@@ -129,7 +138,9 @@ export function Header() {
                             <DropdownMenuLabel className="font-normal">
                                 <div className="flex flex-col space-y-1">
                                     <p className="text-sm font-medium leading-none">
-                                        {currentUser?.name}
+                                        {currentUser
+                                            ? `${currentUser.firstName} ${currentUser.middleName ? currentUser.middleName + " " : ""}${currentUser.lastName}`
+                                            : ""}
                                     </p>
                                     <p className="text-xs leading-none text-muted-foreground">
                                         {currentUser?.email}
@@ -159,9 +170,14 @@ export function Header() {
                     <div className="relative h-32 bg-gradient-to-r from-green-600 to-green-700 rounded-t-lg">
                         <div className="absolute -bottom-16 left-6">
                             <Avatar className="h-32 w-32 border-4 border-white shadow-lg">
-                                <AvatarImage src="/avatars/01.png" alt={currentUser?.name} />
+                                <AvatarImage
+                                    src="/avatars/01.png"
+                                    alt={`${currentUser?.firstName} ${currentUser?.lastName}`}
+                                />
                                 <AvatarFallback className="text-4xl bg-green-100 text-green-700">
-                                    {currentUser?.name ? currentUser.name[0].toUpperCase() : "U"}
+                                    {currentUser?.firstName && currentUser?.lastName
+                                        ? `${currentUser.firstName[0]}${currentUser.lastName[0]}`
+                                        : "U"}
                                 </AvatarFallback>
                             </Avatar>
                         </div>
@@ -175,19 +191,63 @@ export function Header() {
                                     onSubmit={form.handleSubmit(handleUpdateProfile)}
                                     className="space-y-4"
                                 >
-                                    <FormField
-                                        control={form.control}
-                                        name="name"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Name</FormLabel>
-                                                <FormControl>
-                                                    <Input {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="firstName"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>First Name</FormLabel>
+                                                    <FormControl>
+                                                        <Input {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        <FormField
+                                            control={form.control}
+                                            name="middleName"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Middle Name (Optional)</FormLabel>
+                                                    <FormControl>
+                                                        <Input {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        <FormField
+                                            control={form.control}
+                                            name="lastName"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Last Name</FormLabel>
+                                                    <FormControl>
+                                                        <Input {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        <FormField
+                                            control={form.control}
+                                            name="purok"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Purok</FormLabel>
+                                                    <FormControl>
+                                                        <Input {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
 
                                     {currentUser?.role === "superAdmin" && (
                                         <FormField
@@ -260,7 +320,9 @@ export function Header() {
                                 {/* User Name and Role */}
                                 <div className="mb-6">
                                     <h2 className="text-2xl font-semibold text-gray-900">
-                                        {currentUser?.name}
+                                        {currentUser
+                                            ? `${currentUser.firstName} ${currentUser.middleName ? currentUser.middleName + " " : ""}${currentUser.lastName}`
+                                            : ""}
                                     </h2>
                                     <div className="flex items-center mt-1">
                                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
