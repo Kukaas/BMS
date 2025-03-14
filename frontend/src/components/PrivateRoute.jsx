@@ -30,8 +30,16 @@ const PrivateRoute = () => {
         "residents",
         "blotterreports",
         "transactions",
+        "userlist",
     ];
-    const secretaryTabs = ["overview", "requestdocs", "incidents", "residents", "blotterreports"];
+    const secretaryTabs = [
+        "overview",
+        "requestdocs",
+        "incidents",
+        "residents",
+        "blotterreports",
+        "userlist",
+    ];
     const superAdminTabs = ["overview", "register", "allusers", "logs", "transactions"];
     const userTabs = ["overview", "requests", "reports", "blotter"  ];
 

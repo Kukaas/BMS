@@ -56,6 +56,7 @@ const componentMap = {
     register: RegisterBarangayUserPage,
     logs: SuperAdminLogViewerPage,
     transactions: TransactionHistoryPage,
+    userlist: UserList,
     // settings: Settings,
     // help: Help,
 };
@@ -192,16 +193,21 @@ function Dashboard({ tab }) {
             label: "Residents",
             href: "/dashboard?tab=residents",
         },
+        {
+            icon: User2Icon,
+            label: "Users List",
+            href: "/dashboard?tab=userlist",
+        },
     ];
 
     const sidebarItems =
         currentUser?.role === "superAdmin"
             ? superAdminItems
             : currentUser?.role === "chairman"
-                ? chairmanItems
-                : currentUser?.role === "secretary"
-                    ? secretaryItems
-                    : userItems;
+              ? chairmanItems
+              : currentUser?.role === "secretary"
+                ? secretaryItems
+                : userItems;
 
     return (
         <SidebarProvider defaultOpen={true}>
@@ -225,7 +231,7 @@ function Dashboard({ tab }) {
                                         className={cn(
                                             "text-white hover:bg-green-600 transition-colors rounded-lg p-2",
                                             tab === item.href.split("=")[1] &&
-                                            "bg-green-600 text-white font-semibold"
+                                                "bg-green-600 text-white font-semibold"
                                         )}
                                     >
                                         <Link to={item.href} className="flex items-center gap-3">

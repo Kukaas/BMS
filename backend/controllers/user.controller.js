@@ -25,6 +25,8 @@ export const getUsersByBarangay = async (req, res, next) => {
             role: { $nin: ["admin"] },
         })
             .select("-password")
+            .select("+validId.front.data +validId.front.contentType +validId.front.filename")
+            .select("+validId.back.data +validId.back.contentType +validId.back.filename")
             .sort({ createdAt: -1 });
 
         res.status(200).json({
@@ -54,7 +56,10 @@ export const getUserById = async (req, res, next) => {
         const user = await User.findOne({
             _id: userId,
             barangay, // Ensure user belongs to same barangay
-        }).select("-password");
+        })
+            .select("-password")
+            .select("+validId.front.data +validId.front.contentType +validId.front.filename")
+            .select("+validId.back.data +validId.back.contentType +validId.back.filename");
 
         if (!user) {
             return res.status(404).json({
