@@ -1,5 +1,12 @@
 import mongoose from "mongoose";
-import { STATUS_TYPES } from "./barangay.clearance.model.js";
+
+const STATUS_TYPES = {
+    PENDING: "Pending",
+    APPROVED: "Approved",
+    FOR_PICKUP: "For Pickup",
+    COMPLETED: "Completed",
+    REJECTED: "Rejected",
+};
 
 const businessClearanceSchema = new mongoose.Schema(
     {
@@ -17,6 +24,14 @@ const businessClearanceSchema = new mongoose.Schema(
             required: true,
         },
         barangay: {
+            type: String,
+            required: true,
+        },
+        municipality: {
+            type: String,
+            required: true,
+        },
+        province: {
             type: String,
             required: true,
         },
@@ -70,9 +85,19 @@ const businessClearanceSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+        isVerified: {
+            type: Boolean,
+            default: false,
+        },
+        dateOfIssuance: {
+            type: Date,
+            default: null,
+        },
     },
     { timestamps: true }
 );
 
-// Create and export the model in one line with default export
-export default mongoose.model("BusinessClearance", businessClearanceSchema);
+const BusinessClearance = mongoose.model("BusinessClearance", businessClearanceSchema);
+
+export { STATUS_TYPES };
+export default BusinessClearance;

@@ -1,16 +1,22 @@
 import BusinessClearance from "../models/business.clearance.model.js";
-import { createNotification } from "../utils/notifications.js";
+import {
+    createNotification,
+    sendNotificationToBarangaySecretaries,
+} from "../utils/notifications.js";
 import User from "../models/user.model.js";
 import { createLog } from "./log.controller.js";
 import { createTransactionHistory } from "./transaction.history.controller.js";
-import { STATUS_TYPES } from "../models/barangay.clearance.model.js";
+import { STATUS_TYPES } from "../models/business.clearance.model.js";
 
 export const createBusinessClearance = async (req, res, next) => {
     try {
         const {
+            userId,
             ownerName,
             businessName,
             barangay,
+            municipality,
+            province,
             businessType,
             businessNature,
             ownerAddress,
@@ -30,6 +36,8 @@ export const createBusinessClearance = async (req, res, next) => {
             !ownerName ||
             !businessName ||
             !barangay ||
+            !municipality ||
+            !province ||
             !businessType ||
             !businessNature ||
             !ownerAddress ||
@@ -45,11 +53,13 @@ export const createBusinessClearance = async (req, res, next) => {
             });
         }
 
-        const businessClearanceRequest = new BusinessClearance({
-            userId: req.user.id,
+        const businessClearance = new BusinessClearance({
+            userId,
             ownerName,
             businessName,
             barangay,
+            municipality,
+            province,
             businessType,
             businessNature,
             ownerAddress,
@@ -65,67 +75,45 @@ export const createBusinessClearance = async (req, res, next) => {
         });
 
         await createLog(
-            req.user.id,
+            userId,
             "Business Clearance Request",
             "Business Clearance",
             `${ownerName} has requested a business clearance for ${businessName}`
         );
 
+        const savedClearance = await businessClearance.save();
+
+        // Create transaction history
         await createTransactionHistory({
-            userId: req.user.id,
-            transactionId: businessClearanceRequest._id,
+            userId,
+            transactionId: savedClearance._id,
             residentName: ownerName,
             requestedDocument: "Business Clearance",
             dateRequested: new Date(),
             barangay,
             action: "created",
-            status: "Pending",
+            status: STATUS_TYPES.PENDING,
         });
 
-        await businessClearanceRequest.save();
-
-        // Create notifications
-        const userNotification = createNotification(
-            "Business Clearance Request Created",
-            `Your business clearance request for ${businessName} has been submitted successfully.`,
-            "request",
-            businessClearanceRequest._id,
-            "BusinessClearance"
-        );
-
+        // Create and send notification to secretaries
         const staffNotification = createNotification(
             "New Business Clearance Request",
-            `A new business clearance request has been submitted by ${ownerName} for ${businessName}.`,
+            `${ownerName} has requested a business clearance for ${businessName}`,
             "request",
-            businessClearanceRequest._id,
+            savedClearance._id,
             "BusinessClearance"
         );
 
-        // Update user's notifications
-        await User.findByIdAndUpdate(req.user.id, {
-            $push: { notifications: userNotification },
-            $inc: { unreadNotifications: 1 },
-        });
-
-        // Notify barangay staff
-        const barangayStaff = await User.find({
-            barangay,
-            role: { $in: ["secretary", "chairman"] },
-        });
-
-        for (const staff of barangayStaff) {
-            staff.notifications.push(staffNotification);
-            staff.unreadNotifications += 1;
-            await staff.save();
-        }
+        await sendNotificationToBarangaySecretaries(barangay, staffNotification);
 
         res.status(201).json({
             success: true,
-            message: "Business clearance request submitted successfully",
-            data: businessClearanceRequest,
+            message: "Business clearance request created successfully",
+            data: savedClearance,
         });
     } catch (error) {
-        next(error);
+        console.error("Error creating business clearance:", error);
+        res.status(500).json({ message: "Error creating business clearance" });
     }
 };
 
@@ -159,82 +147,71 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
-        const { name: secretaryName } = req.user;
+        const { name: secretaryName, barangay } = req.user;
 
-        // Validate status using shared STATUS_TYPES
-        if (!Object.values(STATUS_TYPES).includes(status)) {
-            return res.status(400).json({
+        // Validate user role
+        if (!["secretary", "chairman"].includes(req.user.role)) {
+            return res.status(403).json({
                 success: false,
-                message: "Invalid status value",
+                message: "Not authorized to verify business clearance requests",
             });
         }
 
-        const businessClearance = await BusinessClearance.findById(id);
+        const businessClearance = await BusinessClearance.findOne({
+            _id: id,
+            barangay,
+        });
 
         if (!businessClearance) {
             return res.status(404).json({
                 success: false,
-                message: "Business clearance request not found",
+                message: "Business clearance not found",
             });
         }
 
-        // Update document fields
+        const currentDate = new Date();
+
+        // Update status-related fields
+        businessClearance.status = status;
         businessClearance.isVerified = [
             STATUS_TYPES.APPROVED,
             STATUS_TYPES.FOR_PICKUP,
             STATUS_TYPES.COMPLETED,
         ].includes(status);
 
-        businessClearance.status = status;
-
-        // Handle dates based on status
-        const currentDate = new Date();
-        switch (status) {
-            case STATUS_TYPES.APPROVED:
-                if (!businessClearance.dateApproved) {
-                    businessClearance.dateApproved = currentDate;
-                }
-                break;
-            case STATUS_TYPES.FOR_PICKUP:
-                if (!businessClearance.dateApproved) {
-                    businessClearance.dateApproved = currentDate;
-                }
-                break;
-            case STATUS_TYPES.COMPLETED:
-                businessClearance.dateCompleted = currentDate;
-                if (!businessClearance.dateApproved) {
-                    businessClearance.dateApproved = currentDate;
-                }
-                break;
+        // Update date fields based on status
+        if (status === STATUS_TYPES.APPROVED) {
+            businessClearance.dateApproved = currentDate;
+            businessClearance.dateOfIssuance = currentDate;
+        } else if (status === STATUS_TYPES.COMPLETED) {
+            businessClearance.dateCompleted = currentDate;
         }
 
         await businessClearance.save();
 
-        // Create status update notification with secretary info
-        const statusNotification = createNotification(
-            "Business Clearance Status Update",
-            `Your business clearance request for ${
-                businessClearance.businessName
-            } has been ${status.toLowerCase()} by ${secretaryName}`,
-            "status_update",
-            businessClearance._id,
-            "BusinessClearance"
-        );
+        // Notify the requestor
+        const user = await User.findById(businessClearance.userId);
+        if (user) {
+            const notification = createNotification(
+                "Business Clearance Status Update",
+                `Your business clearance request has been ${status.toLowerCase()} by ${secretaryName}`,
+                "status_update",
+                businessClearance._id,
+                "BusinessClearance"
+            );
 
-        // Update requestor's notifications
-        if (businessClearance.userId) {
-            await User.findByIdAndUpdate(businessClearance.userId, {
-                $push: { notifications: statusNotification },
-                $inc: { unreadNotifications: 1 },
-            });
+            user.notifications.push(notification);
+            user.unreadNotifications += 1;
+            await user.save();
         }
 
         res.status(200).json({
             success: true,
-            message: "Business clearance status updated successfully",
+            message: `Business clearance ${status.toLowerCase()} successfully`,
             data: businessClearance,
         });
     } catch (error) {
+        console.error("Error updating business clearance:", error);
         next(error);
     }
 };
