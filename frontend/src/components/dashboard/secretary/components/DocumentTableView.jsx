@@ -50,7 +50,7 @@ export function DocumentTableView({
             </TableHeader>
             <TableBody>
                 {currentRequests.map((request) => (
-                    <TableRow key={request.id}>
+                    <TableRow key={request.id || request._id}>
                         <TableCell>
                             {formatDate(request.requestDate || request.createdAt)}
                         </TableCell>

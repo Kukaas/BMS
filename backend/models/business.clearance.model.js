@@ -72,6 +72,34 @@ const businessClearanceSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        amount: {
+            type: Number,
+            required: true,
+            default: 100,
+        },
+        paymentMethod: {
+            type: String,
+            enum: ["Cash", "GCash", "Paymaya"],
+            required: true,
+        },
+        referenceNumber: {
+            type: String,
+            required: function () {
+                return ["GCash", "Paymaya"].includes(this.paymentMethod);
+            },
+        },
+        dateOfPayment: {
+            type: Date,
+            required: true,
+        },
+        receipt: {
+            type: {
+                filename: String,
+                contentType: String,
+                data: String,
+            },
+            required: true,
+        },
         status: {
             type: String,
             enum: Object.values(STATUS_TYPES),

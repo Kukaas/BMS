@@ -107,30 +107,8 @@ export default function Officials() {
                 <div className="flex justify-between items-center">
                     <div>
                         <CardTitle className="text-2xl">Barangay Officials</CardTitle>
-                        <p className="text-muted-foreground mt-1">
-                            Manage and view barangay officials
-                        </p>
+                        <p className="text-muted-foreground mt-1">View barangay officials</p>
                     </div>
-                    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                        <DialogTrigger asChild>
-                            <Button className="px-6">
-                                <User2 className="mr-2 h-4 w-4" />
-                                Add Official
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-[800px]">
-                            <DialogHeader>
-                                <DialogTitle>Add New Official</DialogTitle>
-                                <DialogDescription>
-                                    Fill in the details to add a new official.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <AddOfficialForm
-                                onComplete={handleAddSuccess}
-                                onCancel={() => setIsOpen(false)}
-                            />
-                        </DialogContent>
-                    </Dialog>
                 </div>
             </CardHeader>
 
