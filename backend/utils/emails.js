@@ -3,7 +3,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import UserVerification from "../models/user.verification.model.js";
 
-export const sendVerificationEmail = async (user, res) => {
+export const sendVerificationEmail = async (user, res, generatedPassword = null) => {
     const userId = user._id;
     const uniqueString = crypto.randomBytes(15).toString("hex");
     const hashedString = await bcrypt.hash(uniqueString, 10);
@@ -19,6 +19,22 @@ export const sendVerificationEmail = async (user, res) => {
         const savedVerification = await verification.save();
         const url = `http://localhost:5000/api/auth/verify/${uniqueString}/${userId}`;
 
+        // Password section for specific roles
+        const passwordSection =
+            (user.role === "secretary" || user.role === "chairman" || user.role === "superAdmin") &&
+            generatedPassword
+                ? `
+                <div style="margin: 30px 0; padding: 20px; background-color: #fef3c7; border-radius: 8px; border: 1px solid #f59e0b;">
+                    <p style="margin: 0; color: #92400e; font-size: 14px;">
+                        <strong>Your Account Credentials:</strong><br>
+                        Email: ${user.email}<br>
+                        Password: ${generatedPassword}<br><br>
+                        Please change this password after your first login for security purposes.
+                    </p>
+                </div>
+            `
+                : "";
+
         const mailOptions = {
             from: {
                 name: "GASAN BMS",
@@ -33,8 +49,9 @@ export const sendVerificationEmail = async (user, res) => {
                     </div>
                     <div style="padding: 20px; border: 1px solid #e5e7eb;">
                         <h2 style="color: #166534; margin-bottom: 20px;">Email Verification</h2>
-                        <p>Hello ${user.name},</p>
+                        <p>Hello ${user.firstName} ${user.lastName},</p>
                         <p>Thank you for registering on our Barangay Management System. Please verify your account to continue:</p>
+                        ${passwordSection}
                         <div style="margin: 30px 0; text-align: center;">
                             <a href="${url}" 
                                style="display: inline-block; background-color: #166534; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
