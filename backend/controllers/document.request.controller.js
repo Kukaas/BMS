@@ -148,8 +148,7 @@ export const getAllDocumentRequests = async (req, res, next) => {
         // Transform and combine all requests
         const allRequests = [
             ...clearances.map((doc) => ({
-                _id: doc._id.toString(),
-                id: doc._id.toString(),
+                id: doc._id,
                 type: "Barangay Clearance",
                 name: doc.name,
                 residentName: doc.name,
@@ -167,24 +166,21 @@ export const getAllDocumentRequests = async (req, res, next) => {
                 amount: doc.amount,
                 dateOfPayment: doc.dateOfPayment,
                 referenceNumber: doc.referenceNumber,
-                receipt: doc.receipt
-                    ? {
-                          filename: doc.receipt.filename,
-                          contentType: doc.receipt.contentType,
-                          data: doc.receipt.data,
-                      }
-                    : null,
+                receipt: doc.receipt ? {
+                    filename: doc.receipt.filename,
+                    contentType: doc.receipt.contentType,
+                    data: doc.receipt.data,
+                } : null,
                 status: doc.status,
                 requestDate: doc.createdAt,
                 createdAt: doc.createdAt,
                 updatedAt: doc.updatedAt,
                 dateApproved: doc.dateApproved,
                 dateCompleted: doc.dateCompleted,
-                isVerified: doc.isVerified,
+                isVerified: doc.isVerified
             })),
             ...indigency.map((doc) => ({
-                _id: doc._id.toString(),
-                id: doc._id.toString(),
+                id: doc._id,
                 type: "Barangay Indigency",
                 name: doc.name,
                 residentName: doc.name,
@@ -196,21 +192,18 @@ export const getAllDocumentRequests = async (req, res, next) => {
                 amount: doc.amount,
                 dateOfPayment: doc.dateOfPayment,
                 referenceNumber: doc.referenceNumber,
-                receipt: doc.receipt
-                    ? {
-                          filename: doc.receipt.filename,
-                          contentType: doc.receipt.contentType,
-                          data: doc.receipt.data,
-                      }
-                    : null,
+                receipt: doc.receipt ? {
+                    filename: doc.receipt.filename,
+                    contentType: doc.receipt.contentType,
+                    data: doc.receipt.data,
+                } : null,
                 status: doc.status,
                 requestDate: doc.createdAt,
                 createdAt: doc.createdAt,
-                updatedAt: doc.updatedAt,
+                updatedAt: doc.updatedAt
             })),
             ...business.map((doc) => ({
-                _id: doc._id.toString(),
-                id: doc._id.toString(),
+                id: doc._id,
                 type: "Business Clearance",
                 name: doc.name,
                 residentName: doc.name,
@@ -222,21 +215,18 @@ export const getAllDocumentRequests = async (req, res, next) => {
                 amount: doc.amount,
                 dateOfPayment: doc.dateOfPayment,
                 referenceNumber: doc.referenceNumber,
-                receipt: doc.receipt
-                    ? {
-                          filename: doc.receipt.filename,
-                          contentType: doc.receipt.contentType,
-                          data: doc.receipt.data,
-                      }
-                    : null,
+                receipt: doc.receipt ? {
+                    filename: doc.receipt.filename,
+                    contentType: doc.receipt.contentType,
+                    data: doc.receipt.data,
+                } : null,
                 status: doc.status,
                 requestDate: doc.createdAt,
                 createdAt: doc.createdAt,
-                updatedAt: doc.updatedAt,
+                updatedAt: doc.updatedAt
             })),
             ...cedulas.map((doc) => ({
-                _id: doc._id.toString(),
-                id: doc._id.toString(),
+                id: doc._id,
                 type: "Cedula",
                 name: doc.name,
                 residentName: doc.name,
@@ -249,18 +239,16 @@ export const getAllDocumentRequests = async (req, res, next) => {
                 amount: doc.amount,
                 dateOfPayment: doc.dateOfPayment,
                 referenceNumber: doc.referenceNumber,
-                receipt: doc.receipt
-                    ? {
-                          filename: doc.receipt.filename,
-                          contentType: doc.receipt.contentType,
-                          data: doc.receipt.data,
-                      }
-                    : null,
+                receipt: doc.receipt ? {
+                    filename: doc.receipt.filename,
+                    contentType: doc.receipt.contentType,
+                    data: doc.receipt.data,
+                } : null,
                 status: doc.status,
                 requestDate: doc.createdAt,
                 createdAt: doc.createdAt,
-                updatedAt: doc.updatedAt,
-            })),
+                updatedAt: doc.updatedAt
+            }))
         ];
 
         // Sort by creation date
@@ -270,12 +258,6 @@ export const getAllDocumentRequests = async (req, res, next) => {
 
         // Apply pagination
         const paginatedRequests = sortedRequests.slice(skip, skip + limit);
-
-        // Debug log
-        console.log(
-            "Sending requests with IDs:",
-            paginatedRequests.map((r) => ({ id: r.id, _id: r._id, type: r.type }))
-        );
 
         res.status(200).json({
             success: true,

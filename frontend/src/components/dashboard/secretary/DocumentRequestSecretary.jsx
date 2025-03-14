@@ -49,28 +49,11 @@ export function DocumentRequestSecretary() {
 
             if (res.data.success) {
                 const transformedRequests = res.data.data.map((request) => {
-                    // Debug log for incoming request
-                    console.log("Processing request:", {
-                        originalId: request._id,
-                        originalType: request.type,
-                    });
-
                     // Ensure name is properly set
-                    const name =
-                        request.name ||
-                        request.ownerName ||
-                        (request.user
-                            ? `${request.user.firstName} ${request.user.middleName ? request.user.middleName + " " : ""}${request.user.lastName}`
-                            : "N/A");
-
-                    // Ensure we have an ID
-                    if (!request._id && !request.id) {
-                        console.error("Request missing ID:", request);
-                    }
+                    const name = request.name || request.ownerName || (request.user ? `${request.user.firstName} ${request.user.middleName ? request.user.middleName + ' ' : ''}${request.user.lastName}` : 'N/A');
 
                     return {
-                        id: request._id || request.id, // Primary ID field
-                        _id: request._id || request.id, // Backup ID field
+                        id: request._id,
                         requestDate: request.createdAt,
                         type: request.type || request.documentType,
                         name: name,
@@ -96,13 +79,11 @@ export function DocumentRequestSecretary() {
                         dateOfPayment: request.dateOfPayment,
                         referenceNumber: request.referenceNumber,
                         // Receipt with proper structure
-                        receipt: request.receipt
-                            ? {
-                                  filename: request.receipt.filename,
-                                  contentType: request.receipt.contentType,
-                                  data: request.receipt.data,
-                              }
-                            : null,
+                        receipt: request.receipt ? {
+                            filename: request.receipt.filename,
+                            contentType: request.receipt.contentType,
+                            data: request.receipt.data,
+                        } : null,
                         // Business clearance specific fields
                         businessName: request.businessName,
                         businessType: request.businessType,
@@ -120,15 +101,8 @@ export function DocumentRequestSecretary() {
                     };
                 });
 
-                // Debug log transformed requests
-                console.log(
-                    "Transformed requests with IDs:",
-                    transformedRequests.map((r) => ({
-                        id: r.id,
-                        _id: r._id,
-                        type: r.type,
-                    }))
-                );
+                // Debug log to check transformed data
+                console.log("Transformed requests:", transformedRequests);
 
                 setRequests(transformedRequests);
             }
@@ -181,26 +155,8 @@ export function DocumentRequestSecretary() {
     const handleStatusChange = async (requestId, requestType, newStatus) => {
         try {
             setUpdating(true);
-
-            // Debug log to check values
-            console.log("Request details:", { requestId, requestType, newStatus });
-
-            if (!requestId) {
-                throw new Error("Request ID is required");
-            }
-
             // Convert document type to route format
-            const typeToRoute = {
-                "Barangay Clearance": "barangay-clearance",
-                "Barangay Indigency": "barangay-indigency",
-                "Business Clearance": "business-clearance",
-                Cedula: "cedula",
-            };
-
-            const typeSlug = typeToRoute[requestType];
-            if (!typeSlug) {
-                throw new Error(`Invalid document type: ${requestType}`);
-            }
+            const typeSlug = requestType.toLowerCase().replace(/\s+/g, "-");
 
             // Normalize the status value
             const normalizedStatus = normalizeStatus(newStatus);
@@ -219,7 +175,7 @@ export function DocumentRequestSecretary() {
 
             if (res.data.success) {
                 await fetchRequests();
-                toast.success("Status updated successfully");
+                toast.success("Status and transaction history updated successfully");
             }
         } catch (error) {
             console.error("Error updating status:", error);
