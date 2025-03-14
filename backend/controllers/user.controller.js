@@ -411,7 +411,8 @@ export const changePassword = async (req, res) => {
 export const updateProfile = async (req, res) => {
     try {
         const { userId } = req.params;
-        const { name, email, contactNumber, dateOfBirth } = req.body;
+        const { firstName, middleName, lastName, email, contactNumber, dateOfBirth, purok } =
+            req.body;
         const { role } = req.user;
 
         // Find user
@@ -432,7 +433,7 @@ export const updateProfile = async (req, res) => {
         }
 
         // Check if email is being changed and if it's already taken
-        if (email !== user.email) {
+        if (email && email !== user.email) {
             const emailExists = await User.findOne({ email, _id: { $ne: userId } });
             if (emailExists) {
                 return res.status(400).json({
@@ -442,20 +443,28 @@ export const updateProfile = async (req, res) => {
             }
         }
 
-        // Update fields based on role
+        // Prepare update fields
         const updateFields = {};
 
-        if (role === "superAdmin") {
-            // SuperAdmin can update all fields
-            if (name) updateFields.name = name;
-            if (email) updateFields.email = email;
-            if (contactNumber) updateFields.contactNumber = contactNumber;
-            if (dateOfBirth) updateFields.dateOfBirth = dateOfBirth;
-        } else {
-            // All other users can update these fields
-            if (name) updateFields.name = name;
-            if (contactNumber) updateFields.contactNumber = contactNumber;
-            if (dateOfBirth) updateFields.dateOfBirth = dateOfBirth;
+        // Required fields validation
+        if (!firstName || !lastName || !contactNumber || !dateOfBirth || !purok) {
+            return res.status(400).json({
+                success: false,
+                message: "Required fields are missing",
+            });
+        }
+
+        // Update basic fields
+        updateFields.firstName = firstName;
+        updateFields.lastName = lastName;
+        updateFields.middleName = middleName || ""; // Optional field
+        updateFields.contactNumber = contactNumber;
+        updateFields.dateOfBirth = dateOfBirth;
+        updateFields.purok = purok;
+
+        // Update email only if user is superAdmin
+        if (role === "superAdmin" && email) {
+            updateFields.email = email;
         }
 
         // Update user
@@ -464,6 +473,13 @@ export const updateProfile = async (req, res) => {
             { $set: updateFields },
             { new: true }
         ).select("-password");
+
+        if (!updatedUser) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to update profile",
+            });
+        }
 
         res.status(200).json({
             success: true,
