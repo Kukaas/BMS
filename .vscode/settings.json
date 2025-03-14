@@ -3,5 +3,6 @@
     "editor.formatOnSave": true,
     "editor.tabSize": 4,
     "prettier.configPath": ".prettierrc",
-    "prettier.useEditorConfig": false
+    "prettier.useEditorConfig": false,
+    "workbench.editor.wrapTabs": true
 }
