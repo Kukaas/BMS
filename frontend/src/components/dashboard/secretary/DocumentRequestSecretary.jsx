@@ -48,32 +48,61 @@ export function DocumentRequestSecretary() {
             });
 
             if (res.data.success) {
-                const transformedRequests = res.data.data.map((request) => ({
-                    id: request._id,
-                    requestDate: request.createdAt,
-                    type: request.documentType,
-                    residentName: request.name || request.ownerName,
-                    status: request.status,
-                    purpose: request.purpose,
-                    email: request.email,
-                    contactNumber: request.contactNumber,
-                    // Make sure age is included
-                    age: request.age,
-                    // Add new Barangay Clearance fields
-                    purok: request.purok,
-                    dateOfBirth: request.dateOfBirth,
-                    sex: request.sex,
-                    placeOfBirth: request.placeOfBirth,
-                    civilStatus: request.civilStatus,
-                    // Business clearance specific fields
-                    businessName: request.businessName,
-                    businessType: request.businessType,
-                    businessNature: request.businessNature,
-                    ownerAddress: request.ownerAddress,
-                    // Cedula specific fields
-                    occupation: request.occupation,
-                    salary: request.salary,
-                }));
+                const transformedRequests = res.data.data.map((request) => {
+                    // Ensure name is properly set
+                    const name = request.name || request.ownerName || (request.user ? `${request.user.firstName} ${request.user.middleName ? request.user.middleName + ' ' : ''}${request.user.lastName}` : 'N/A');
+
+                    return {
+                        id: request._id,
+                        requestDate: request.createdAt,
+                        type: request.type || request.documentType,
+                        name: name,
+                        residentName: name,
+                        status: request.status,
+                        // Basic Information
+                        email: request.email,
+                        contactNumber: request.contactNumber,
+                        // Personal Information
+                        age: request.age,
+                        sex: request.sex,
+                        dateOfBirth: request.dateOfBirth,
+                        civilStatus: request.civilStatus,
+                        // Address Information
+                        purok: request.purok,
+                        placeOfBirth: request.placeOfBirth,
+                        barangay: request.barangay,
+                        // Request Details
+                        purpose: request.purpose,
+                        // Payment Details
+                        paymentMethod: request.paymentMethod,
+                        amount: request.amount,
+                        dateOfPayment: request.dateOfPayment,
+                        referenceNumber: request.referenceNumber,
+                        // Receipt with proper structure
+                        receipt: request.receipt ? {
+                            filename: request.receipt.filename,
+                            contentType: request.receipt.contentType,
+                            data: request.receipt.data,
+                        } : null,
+                        // Business clearance specific fields
+                        businessName: request.businessName,
+                        businessType: request.businessType,
+                        businessNature: request.businessNature,
+                        ownerAddress: request.ownerAddress,
+                        // Cedula specific fields
+                        occupation: request.occupation,
+                        salary: request.salary,
+                        // Additional fields
+                        createdAt: request.createdAt,
+                        updatedAt: request.updatedAt,
+                        isVerified: request.isVerified,
+                        dateApproved: request.dateApproved,
+                        dateCompleted: request.dateCompleted,
+                    };
+                });
+
+                // Debug log to check transformed data
+                console.log("Transformed requests:", transformedRequests);
 
                 setRequests(transformedRequests);
             }
