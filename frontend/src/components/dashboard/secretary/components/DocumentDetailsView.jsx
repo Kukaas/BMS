@@ -19,6 +19,7 @@ import {
     ZoomIn,
     ZoomOut,
     RotateCw,
+    MapPin,
 } from "lucide-react";
 import {
     Dialog,
@@ -46,14 +47,14 @@ export function DocumentDetailsView({
     const containerRef = useRef(null);
 
     // Add zoom controls
-    const zoomIn = () => setScale(prev => Math.min(prev + 0.5, 8));
-    const zoomOut = () => setScale(prev => Math.max(prev - 0.5, 0.25));
+    const zoomIn = () => setScale((prev) => Math.min(prev + 0.5, 8));
+    const zoomOut = () => setScale((prev) => Math.max(prev - 0.5, 0.25));
     const resetZoom = () => {
         setScale(1);
         setRotation(0);
         setPosition({ x: 0, y: 0 });
     };
-    const rotate = () => setRotation(prev => (prev + 90) % 360);
+    const rotate = () => setRotation((prev) => (prev + 90) % 360);
 
     // Add drag handlers
     const handleMouseDown = (e) => {
@@ -61,16 +62,16 @@ export function DocumentDetailsView({
         setIsDragging(true);
         setDragStart({
             x: e.clientX - position.x,
-            y: e.clientY - position.y
+            y: e.clientY - position.y,
         });
     };
 
     const handleMouseMove = (e) => {
         if (!isDragging) return;
-        
+
         setPosition({
             x: e.clientX - dragStart.x,
-            y: e.clientY - dragStart.y
+            y: e.clientY - dragStart.y,
         });
     };
 
@@ -83,7 +84,7 @@ export function DocumentDetailsView({
         if (e.ctrlKey) {
             e.preventDefault();
             const delta = e.deltaY * -0.005;
-            setScale(prev => Math.min(Math.max(0.25, prev + delta), 8));
+            setScale((prev) => Math.min(Math.max(0.25, prev + delta), 8));
         }
     };
 
@@ -111,63 +112,75 @@ export function DocumentDetailsView({
 
     return (
         <div className="space-y-8 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
-            {/* Basic Information */}
-            <div className="space-y-3">
-                <h3 className="text-sm font-medium text-muted-foreground">Basic Information</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-                    {renderField(<User className="h-4 w-4 text-primary" />, "Name", request.name)}
-                    {renderField(<Mail className="h-4 w-4 text-primary" />, "Email", request.email)}
-                    {renderField(
-                        <Phone className="h-4 w-4 text-primary" />,
-                        "Contact",
-                        request.contactNumber
-                    )}
+            {/* Combined Basic & Personal Information for Business Clearance */}
+            {request.type === "Business Clearance" ? (
+                <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                        Personal Information
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                        {renderField(
+                            <User className="h-4 w-4 text-primary" />,
+                            "Owner Name",
+                            request.ownerName
+                        )}
+                        {renderField(
+                            <Mail className="h-4 w-4 text-primary" />,
+                            "Email",
+                            request.email
+                        )}
+                        {renderField(
+                            <Phone className="h-4 w-4 text-primary" />,
+                            "Contact Number",
+                            request.contactNumber
+                        )}
+                        {renderField(
+                            <FileText className="h-4 w-4 text-primary" />,
+                            "Barangay",
+                            request.barangay
+                        )}
+                        {renderField(
+                            <FileText className="h-4 w-4 text-primary" />,
+                            "Municipality",
+                            request.municipality
+                        )}
+                        {renderField(
+                            <FileText className="h-4 w-4 text-primary" />,
+                            "Province",
+                            request.province
+                        )}
+                        {renderField(
+                            <FileText className="h-4 w-4 text-primary" />,
+                            "Owner Address",
+                            request.ownerAddress
+                        )}
+                    </div>
                 </div>
-            </div>
-
-            {/* Personal Information */}
-            <div className="space-y-3">
-                <h3 className="text-sm font-medium text-muted-foreground">Personal Information</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-                    {renderField(<FileText className="h-4 w-4 text-primary" />, "Age", request.age)}
-                    {renderField(<FileText className="h-4 w-4 text-primary" />, "Sex", request.sex)}
-                    {renderField(
-                        <Calendar className="h-4 w-4 text-primary" />,
-                        "Date of Birth",
-                        request.dateOfBirth,
-                        formatDate
-                    )}
-                    {renderField(
-                        <FileText className="h-4 w-4 text-primary" />,
-                        "Civil Status",
-                        request.civilStatus
-                    )}
+            ) : (
+                // Original Basic Information section for other document types
+                <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground">Basic Information</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                        {renderField(
+                            <User className="h-4 w-4 text-primary" />,
+                            "Name",
+                            request.name
+                        )}
+                        {renderField(
+                            <Mail className="h-4 w-4 text-primary" />,
+                            "Email",
+                            request.email
+                        )}
+                        {renderField(
+                            <Phone className="h-4 w-4 text-primary" />,
+                            "Contact",
+                            request.contactNumber
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
 
-            {/* Address Information */}
-            <div className="space-y-3">
-                <h3 className="text-sm font-medium text-muted-foreground">Address Information</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-                    {renderField(
-                        <FileText className="h-4 w-4 text-primary" />,
-                        "Purok",
-                        request.purok
-                    )}
-                    {renderField(
-                        <FileText className="h-4 w-4 text-primary" />,
-                        "Place of Birth",
-                        request.placeOfBirth
-                    )}
-                    {renderField(
-                        <FileText className="h-4 w-4 text-primary" />,
-                        "Barangay",
-                        request.barangay
-                    )}
-                </div>
-            </div>
-
-            {/* Business Information (if applicable) */}
+            {/* Business Information */}
             {request.type === "Business Clearance" && (
                 <div className="space-y-3">
                     <h3 className="text-sm font-medium text-muted-foreground">
@@ -189,26 +202,55 @@ export function DocumentDetailsView({
                             "Business Nature",
                             request.businessNature
                         )}
-                        {renderField(
-                            <FileText className="h-4 w-4 text-primary" />,
-                            "Owner Address",
-                            request.ownerAddress
-                        )}
                     </div>
                 </div>
             )}
 
-            {/* Request Details */}
-            <div className="space-y-3">
-                <h3 className="text-sm font-medium text-muted-foreground">Request Details</h3>
-                <div className="grid grid-cols-1 gap-4 bg-muted p-4 rounded-lg">
-                    {renderField(
-                        <FileText className="h-4 w-4 text-primary" />,
-                        "Purpose",
-                        request.purpose
-                    )}
+            {/* Documents Information */}
+            {request.type === "Business Clearance" && (
+                <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                        Required Documents
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                        {renderField(
+                            <FileText className="h-4 w-4 text-primary" />,
+                            "DTI/SEC Registration",
+                            request.dtiSecRegistration
+                        )}
+                        {renderField(
+                            <FileText className="h-4 w-4 text-primary" />,
+                            "Mayor's Permit",
+                            request.mayorsPermit || "Not provided"
+                        )}
+                        {renderField(
+                            <FileText className="h-4 w-4 text-primary" />,
+                            "Lease Contract",
+                            request.leaseContract || "Not provided"
+                        )}
+                        {renderField(
+                            <FileText className="h-4 w-4 text-primary" />,
+                            "Barangay Clearance",
+                            request.barangayClearance
+                        )}
+                        {renderField(
+                            <FileText className="h-4 w-4 text-primary" />,
+                            "Fire Safety Certificate",
+                            request.fireSafetyCertificate || "Not provided"
+                        )}
+                        {renderField(
+                            <FileText className="h-4 w-4 text-primary" />,
+                            "Sanitary Permit",
+                            request.sanitaryPermit || "Not provided"
+                        )}
+                        {renderField(
+                            <FileText className="h-4 w-4 text-primary" />,
+                            "Valid ID",
+                            request.validId
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Payment Information */}
             <div className="space-y-3">
@@ -238,7 +280,7 @@ export function DocumentDetailsView({
                         formatDate
                     )}
 
-                    {/* Receipt */}
+                    {/* Receipt Section */}
                     <div className="col-span-2 space-y-2">
                         <div className="flex items-center gap-2">
                             <CreditCard className="h-4 w-4 text-primary" />
@@ -269,9 +311,6 @@ export function DocumentDetailsView({
                                         <DialogContent className="max-w-4xl">
                                             <DialogHeader>
                                                 <DialogTitle>Receipt Image</DialogTitle>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {request.receipt.filename}
-                                                </p>
                                             </DialogHeader>
                                             <div className="mt-4">
                                                 {/* Zoom controls */}
@@ -402,13 +441,11 @@ export function DocumentDetailsView({
                     <Select
                         onValueChange={(value) => {
                             const requestId = request.id || request._id;
-
                             if (!requestId) {
                                 console.error("Missing request ID:", request);
                                 toast.error("Cannot update status: Request ID is missing");
                                 return;
                             }
-
                             handleStatusChange(requestId.toString(), request.type, value);
                         }}
                         defaultValue={request.status}

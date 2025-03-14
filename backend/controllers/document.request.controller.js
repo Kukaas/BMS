@@ -212,12 +212,28 @@ export const getAllDocumentRequests = async (req, res, next) => {
                 id: doc._id.toString(),
                 _id: doc._id.toString(),
                 type: "Business Clearance",
-                name: doc.name,
-                residentName: doc.name,
+                // Owner Information
+                ownerName: doc.ownerName,
+                email: doc.email,
+                contactNumber: doc.contactNumber,
+                ownerAddress: doc.ownerAddress,
+                // Business Location
+                barangay: doc.barangay,
+                municipality: doc.municipality,
+                province: doc.province,
+                // Business Details
                 businessName: doc.businessName,
                 businessType: doc.businessType,
                 businessNature: doc.businessNature,
-                ownerAddress: doc.ownerAddress,
+                // Required Documents
+                dtiSecRegistration: doc.dtiSecRegistration,
+                mayorsPermit: doc.mayorsPermit,
+                leaseContract: doc.leaseContract,
+                barangayClearance: doc.barangayClearance,
+                fireSafetyCertificate: doc.fireSafetyCertificate,
+                sanitaryPermit: doc.sanitaryPermit,
+                validId: doc.validId,
+                // Payment Information
                 paymentMethod: doc.paymentMethod,
                 amount: doc.amount,
                 dateOfPayment: doc.dateOfPayment,
@@ -229,7 +245,13 @@ export const getAllDocumentRequests = async (req, res, next) => {
                           data: doc.receipt.data,
                       }
                     : null,
+                // Status Information
                 status: doc.status,
+                isVerified: doc.isVerified,
+                dateApproved: doc.dateApproved,
+                dateCompleted: doc.dateCompleted,
+                dateOfIssuance: doc.dateOfIssuance,
+                // Timestamps
                 requestDate: doc.createdAt,
                 createdAt: doc.createdAt,
                 updatedAt: doc.updatedAt,

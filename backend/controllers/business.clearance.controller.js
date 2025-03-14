@@ -29,6 +29,11 @@ export const createBusinessClearance = async (req, res, next) => {
             fireSafetyCertificate,
             sanitaryPermit,
             validId,
+            amount,
+            paymentMethod,
+            referenceNumber,
+            dateOfPayment,
+            receipt,
         } = req.body;
 
         // Validate required fields
@@ -45,11 +50,22 @@ export const createBusinessClearance = async (req, res, next) => {
             !email ||
             !dtiSecRegistration ||
             !barangayClearance ||
-            !validId
+            !validId ||
+            !paymentMethod ||
+            !dateOfPayment ||
+            !receipt
         ) {
             return res.status(400).json({
                 success: false,
                 message: "Please provide all required fields",
+            });
+        }
+
+        // Validate reference number for digital payments
+        if (["GCash", "Paymaya"].includes(paymentMethod) && !referenceNumber) {
+            return res.status(400).json({
+                success: false,
+                message: "Reference number is required for digital payments",
             });
         }
 
@@ -72,6 +88,17 @@ export const createBusinessClearance = async (req, res, next) => {
             fireSafetyCertificate,
             sanitaryPermit,
             validId,
+            amount: amount || 100,
+            paymentMethod,
+            referenceNumber,
+            dateOfPayment: new Date(dateOfPayment),
+            receipt: receipt
+                ? {
+                      filename: receipt.filename,
+                      contentType: receipt.contentType,
+                      data: receipt.data,
+                  }
+                : null,
         });
 
         await createLog(

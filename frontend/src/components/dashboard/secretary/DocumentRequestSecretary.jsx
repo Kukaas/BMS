@@ -73,17 +73,24 @@ export function DocumentRequestSecretary() {
                         // Basic Information
                         email: request.email,
                         contactNumber: request.contactNumber,
-                        // Personal Information
-                        age: request.age,
-                        sex: request.sex,
-                        dateOfBirth: request.dateOfBirth,
-                        civilStatus: request.civilStatus,
                         // Address Information
-                        purok: request.purok,
-                        placeOfBirth: request.placeOfBirth,
                         barangay: request.barangay,
-                        // Request Details
-                        purpose: request.purpose,
+                        municipality: request.municipality,
+                        province: request.province,
+                        // Business clearance specific fields
+                        businessName: request.businessName,
+                        businessType: request.businessType,
+                        businessNature: request.businessNature,
+                        ownerName: request.ownerName,
+                        ownerAddress: request.ownerAddress,
+                        // Required Documents
+                        dtiSecRegistration: request.dtiSecRegistration,
+                        mayorsPermit: request.mayorsPermit,
+                        leaseContract: request.leaseContract,
+                        barangayClearance: request.barangayClearance,
+                        fireSafetyCertificate: request.fireSafetyCertificate,
+                        sanitaryPermit: request.sanitaryPermit,
+                        validId: request.validId,
                         // Payment Details
                         paymentMethod: request.paymentMethod,
                         amount: request.amount,
@@ -97,14 +104,6 @@ export function DocumentRequestSecretary() {
                                   data: request.receipt.data,
                               }
                             : null,
-                        // Business clearance specific fields
-                        businessName: request.businessName,
-                        businessType: request.businessType,
-                        businessNature: request.businessNature,
-                        ownerAddress: request.ownerAddress,
-                        // Cedula specific fields
-                        occupation: request.occupation,
-                        salary: request.salary,
                         // Additional fields
                         createdAt: request.createdAt,
                         updatedAt: request.updatedAt,

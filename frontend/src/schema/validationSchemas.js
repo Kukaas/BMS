@@ -120,6 +120,23 @@ export const businessClearanceSchema = z.object({
     fireSafetyCertificate: z.string().optional(),
     sanitaryPermit: z.string().optional(),
     validId: z.string().min(1, "Valid ID information is required"),
+    amount: z.number().min(100).max(100, "Amount must be exactly PHP 100"),
+    paymentMethod: z.enum(["Cash", "GCash", "Paymaya"], {
+        required_error: "Payment method is required",
+    }),
+    referenceNumber: z
+        .string()
+        .optional()
+        .refine((val) => {
+            if (!val) return true;
+            return val.length > 0;
+        }, "Reference number is required for digital payments"),
+    dateOfPayment: z.string().min(1, "Date of payment is required"),
+    receipt: z.object({
+        filename: z.string().min(1, "Receipt is required"),
+        contentType: z.string().min(1, "Receipt is required"),
+        data: z.string().min(1, "Receipt is required"),
+    }),
 });
 
 export const blotterReportSchema = z.object({
