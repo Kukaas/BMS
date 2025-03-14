@@ -50,10 +50,21 @@ export function DocumentRequestSecretary() {
             if (res.data.success) {
                 const transformedRequests = res.data.data.map((request) => {
                     // Ensure name is properly set
-                    const name = request.name || request.ownerName || (request.user ? `${request.user.firstName} ${request.user.middleName ? request.user.middleName + ' ' : ''}${request.user.lastName}` : 'N/A');
+                    const name =
+                        request.name ||
+                        request.ownerName ||
+                        (request.user
+                            ? `${request.user.firstName} ${request.user.middleName ? request.user.middleName + " " : ""}${request.user.lastName}`
+                            : "N/A");
+
+                    // Ensure we have a valid ID
+                    if (!request._id) {
+                        console.error("Request missing ID:", request);
+                    }
 
                     return {
-                        id: request._id,
+                        id: request._id.toString(), // Ensure ID is a string
+                        _id: request._id.toString(), // Keep backup ID
                         requestDate: request.createdAt,
                         type: request.type || request.documentType,
                         name: name,
@@ -79,11 +90,13 @@ export function DocumentRequestSecretary() {
                         dateOfPayment: request.dateOfPayment,
                         referenceNumber: request.referenceNumber,
                         // Receipt with proper structure
-                        receipt: request.receipt ? {
-                            filename: request.receipt.filename,
-                            contentType: request.receipt.contentType,
-                            data: request.receipt.data,
-                        } : null,
+                        receipt: request.receipt
+                            ? {
+                                  filename: request.receipt.filename,
+                                  contentType: request.receipt.contentType,
+                                  data: request.receipt.data,
+                              }
+                            : null,
                         // Business clearance specific fields
                         businessName: request.businessName,
                         businessType: request.businessType,
@@ -100,9 +113,6 @@ export function DocumentRequestSecretary() {
                         dateCompleted: request.dateCompleted,
                     };
                 });
-
-                // Debug log to check transformed data
-                console.log("Transformed requests:", transformedRequests);
 
                 setRequests(transformedRequests);
             }
@@ -154,9 +164,25 @@ export function DocumentRequestSecretary() {
 
     const handleStatusChange = async (requestId, requestType, newStatus) => {
         try {
+            if (!requestId) {
+                toast.error("Cannot update status: Invalid request ID");
+                return;
+            }
+
             setUpdating(true);
+            
             // Convert document type to route format
-            const typeSlug = requestType.toLowerCase().replace(/\s+/g, "-");
+            const typeToRoute = {
+                "Barangay Clearance": "barangay-clearance",
+                "Barangay Indigency": "barangay-indigency",
+                "Business Clearance": "business-clearance",
+                "Cedula": "cedula"
+            };
+
+            const typeSlug = typeToRoute[requestType];
+            if (!typeSlug) {
+                throw new Error(`Invalid document type: ${requestType}`);
+            }
 
             // Normalize the status value
             const normalizedStatus = normalizeStatus(newStatus);
@@ -175,7 +201,7 @@ export function DocumentRequestSecretary() {
 
             if (res.data.success) {
                 await fetchRequests();
-                toast.success("Status and transaction history updated successfully");
+                toast.success("Status updated successfully");
             }
         } catch (error) {
             console.error("Error updating status:", error);

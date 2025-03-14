@@ -400,9 +400,17 @@ export function DocumentDetailsView({
                         </p>
                     </div>
                     <Select
-                        onValueChange={(value) =>
-                            handleStatusChange(request.id, request.type, value)
-                        }
+                        onValueChange={(value) => {
+                            const requestId = request.id || request._id;
+
+                            if (!requestId) {
+                                console.error("Missing request ID:", request);
+                                toast.error("Cannot update status: Request ID is missing");
+                                return;
+                            }
+
+                            handleStatusChange(requestId.toString(), request.type, value);
+                        }}
                         defaultValue={request.status}
                         disabled={
                             updating ||
