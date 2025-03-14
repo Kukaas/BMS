@@ -22,21 +22,54 @@ import { Grid, List, Loader2, Search } from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ResidentsTableView } from "./components/ResidentsTableView";
+import { useSelector } from "react-redux";
+import { AddResidentForm } from "@/components/forms/AddResidentForm";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { User, Calendar, MapPin } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
+import { ResidentDetailsView } from "./components/ResidentDetailsView";
+import { EditResidentForm } from "@/components/forms/EditResidentForm";
 
 export function SecretaryResidentsDashboard() {
     const [residents, setResidents] = useState([]);
     const [selectedResident, setSelectedResident] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
-    const [viewMode, setViewMode] = useState("grid");
+    const [viewMode, setViewMode] = useState("list");
     const [loading, setLoading] = useState(true);
+    const { currentUser } = useSelector((state) => state.user);
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(6);
 
+    // Add state for edit and delete dialogs
+    const [editDialog, setEditDialog] = useState({ isOpen: false, resident: null });
+    const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, resident: null });
+    const [viewDialog, setViewDialog] = useState({ isOpen: false, resident: null });
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [addDialogOpen, setAddDialogOpen] = useState(false);
+
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        if (currentUser?.barangay) {
+            fetchUsers();
+        }
+    }, [currentUser]);
 
     useEffect(() => {
         // Reset to first page when search term changes
@@ -45,24 +78,25 @@ export function SecretaryResidentsDashboard() {
 
     const fetchUsers = async () => {
         try {
-            const response = await api.get("/users/residents");
+            const response = await api.get(`/residents/${currentUser.barangay}`);
             if (response.data.success) {
                 setResidents(response.data.data);
             }
         } catch (error) {
-            console.error("Error fetching users:", error);
-            toast.error(error.response?.data?.message || "Failed to fetch users");
+            console.error("Error fetching residents:", error);
+            toast.error(error.response?.data?.message || "Failed to fetch residents");
         } finally {
             setLoading(false);
         }
     };
 
     // Filter residents based on search term
-    const filteredResidents = residents.filter((user) => {
-        const fullName = `${user.firstName} ${user.middleName} ${user.lastName}`.toLowerCase();
+    const filteredResidents = residents.filter((resident) => {
+        const fullName =
+            `${resident.firstName} ${resident.middleName} ${resident.lastName}`.toLowerCase();
         return (
             fullName.includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase())
+            resident.purok.toLowerCase().includes(searchTerm.toLowerCase())
         );
     });
 
@@ -78,7 +112,7 @@ export function SecretaryResidentsDashboard() {
     };
 
     const toggleViewMode = () => {
-        setViewMode(viewMode === "grid" ? "list" : "grid");
+        setViewMode(viewMode === "list" ? "grid" : "list");
     };
 
     // Pagination handlers
@@ -89,6 +123,41 @@ export function SecretaryResidentsDashboard() {
     const handlePageSizeChange = (value) => {
         setPageSize(Number(value));
         setCurrentPage(1); // Reset to first page when changing page size
+    };
+
+    const handleAddSuccess = () => {
+        fetchUsers();
+    };
+
+    const handleResidentDeleted = (deletedId) => {
+        setResidents(residents.filter((resident) => resident._id !== deletedId));
+        toast.success("Resident deleted successfully");
+    };
+
+    const handleResidentUpdated = (updatedResident) => {
+        setResidents(
+            residents.map((resident) =>
+                resident._id === updatedResident._id ? updatedResident : resident
+            )
+        );
+        toast.success("Resident updated successfully");
+    };
+
+    // Update handleDelete function
+    const handleDelete = async () => {
+        try {
+            setIsDeleting(true);
+            const response = await api.delete(`/residents/${deleteDialog.resident._id}`);
+
+            if (response.data.success) {
+                handleResidentDeleted(deleteDialog.resident._id);
+                setDeleteDialog({ isOpen: false, resident: null });
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to delete resident");
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     if (loading) {
@@ -119,30 +188,45 @@ export function SecretaryResidentsDashboard() {
     return (
         <Card className="w-full">
             <CardHeader>
-                <CardTitle className="mb-2">Residents Information</CardTitle>
-                <div className="flex items-center justify-between mt-4">
-                    <div className="relative flex-1 max-w-sm">
+                <CardTitle className="text-2xl font-bold mb-4">Residents Information</CardTitle>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="relative w-full sm:max-w-sm">
                         <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
-                            placeholder="Search by name or email"
+                            placeholder="Search residents by name or purok"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-8"
                         />
                     </div>
-                    <div className="flex items-center gap-2">
-                        <div className="flex space-x-2">
-                            <Button onClick={toggleViewMode}>
-                                {viewMode === "grid" ? (
-                                    <List className="h-4 w-4" />
-                                ) : (
-                                    <Grid className="h-4 w-4" />
-                                )}
-                                <span className="ml-2">
-                                    {viewMode === "grid" ? "List View" : "Grid View"}
-                                </span>
-                            </Button>
-                        </div>
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button>Add Resident</Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[600px]">
+                                <DialogHeader>
+                                    <DialogTitle>Add New Resident</DialogTitle>
+                                </DialogHeader>
+                                <AddResidentForm
+                                    onSuccess={handleAddSuccess}
+                                    onClose={() => setAddDialogOpen(false)}
+                                />
+                            </DialogContent>
+                        </Dialog>
+                        <Button variant="outline" onClick={toggleViewMode}>
+                            {viewMode === "list" ? (
+                                <>
+                                    <Grid className="h-4 w-4 mr-2" />
+                                    Grid View
+                                </>
+                            ) : (
+                                <>
+                                    <List className="h-4 w-4 mr-2" />
+                                    List View
+                                </>
+                            )}
+                        </Button>
                         <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
                             <SelectTrigger className="w-[130px]">
                                 <SelectValue />
@@ -163,150 +247,221 @@ export function SecretaryResidentsDashboard() {
                     {viewMode === "list" ? (
                         <ResidentsTableView
                             currentResidents={getCurrentPageResidents()}
-                            setSelectedResident={setSelectedResident}
-                            selectedResident={selectedResident}
+                            onResidentDeleted={handleResidentDeleted}
+                            onResidentUpdated={handleResidentUpdated}
                         />
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {getCurrentPageResidents().map((resident) => (
-                                <Card
-                                    key={resident._id}
-                                    className="hover:shadow-lg transition-shadow duration-300"
-                                >
-                                    <CardContent className="p-4">
-                                        <div className="flex items-start space-x-4 mb-4">
-                                            <Avatar className="h-12 w-12 shrink-0">
-                                                <AvatarFallback>
-                                                    {`${resident.firstName?.[0]}${resident.lastName?.[0]}`}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="min-w-0 flex-1">
-                                                <h3 className="text-sm font-semibold truncate">
-                                                    {`${resident.firstName} ${resident.middleName} ${resident.lastName}`}
-                                                </h3>
-                                                <p className="text-xs text-muted-foreground truncate">
-                                                    {resident.email}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between text-sm">
-                                                <span className="text-muted-foreground">
-                                                    Joined:
-                                                </span>
-                                                <span>
-                                                    {new Date(
-                                                        resident.createdAt
-                                                    ).toLocaleDateString()}
-                                                </span>
-                                            </div>
-
-                                            <div className="flex items-center justify-between text-sm">
-                                                <span className="text-muted-foreground">
-                                                    Status:
-                                                </span>
-                                                <Badge
-                                                    className={getStatusColor(resident.status)}
-                                                    variant={resident.statusVariant}
-                                                >
-                                                    {resident.status}
-                                                </Badge>
-                                            </div>
-
-                                            <div className="flex items-center justify-between text-sm">
-                                                <span className="text-muted-foreground">
-                                                    Verification:
-                                                </span>
-                                                <Badge
-                                                    className={getVerificationColor(
-                                                        resident.isVerified
-                                                    )}
-                                                    variant={
-                                                        resident.isVerified ? "success" : "warning"
-                                                    }
-                                                >
-                                                    {resident.isVerified ? "Verified" : "Pending"}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                        <div className="mt-4 flex justify-end">
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            setSelectedResident(resident)
-                                                        }
-                                                    >
-                                                        View Details
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent className="sm:max-w-[425px]">
-                                                    <DialogHeader>
-                                                        <DialogTitle>Resident Details</DialogTitle>
-                                                    </DialogHeader>
-                                                    {selectedResident && (
-                                                        <div className="grid gap-4 py-4">
-                                                            <div className="flex items-center space-x-4">
-                                                                <Avatar className="h-20 w-20">
-                                                                    <AvatarFallback>
-                                                                        {`${selectedResident.firstName?.[0]}${selectedResident.lastName?.[0]}`}
-                                                                    </AvatarFallback>
-                                                                </Avatar>
-                                                                <div className="flex-1 min-w-0">
-                                                                    <h3 className="text-xl font-semibold truncate">
-                                                                        {`${selectedResident.firstName} ${selectedResident.middleName} ${selectedResident.lastName}`}
-                                                                    </h3>
-                                                                    <p className="text-sm text-muted-foreground truncate">
-                                                                        {selectedResident.email}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="grid gap-2">
-                                                                <p className="text-sm font-medium">
-                                                                    Account Status
-                                                                </p>
-                                                                <Badge
-                                                                    variant={
-                                                                        selectedResident.statusVariant
-                                                                    }
-                                                                >
-                                                                    {selectedResident.status}
-                                                                </Badge>
-                                                            </div>
-
-                                                            <div className="grid gap-2">
-                                                                <p className="text-sm font-medium">
-                                                                    Joined Date
-                                                                </p>
-                                                                <p className="text-sm">
-                                                                    {new Date(
-                                                                        selectedResident.createdAt
-                                                                    ).toLocaleDateString()}
-                                                                </p>
-                                                            </div>
-
-                                                            <div className="grid gap-2">
-                                                                <p className="text-sm font-medium">
-                                                                    Last Updated
-                                                                </p>
-                                                                <p className="text-sm">
-                                                                    {new Date(
-                                                                        selectedResident.updatedAt
-                                                                    ).toLocaleDateString()}
-                                                                </p>
-                                                            </div>
+                        <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {getCurrentPageResidents().map((resident) => (
+                                    <Card
+                                        key={resident._id}
+                                        className="hover:shadow-lg transition-shadow duration-300"
+                                    >
+                                        <CardContent className="p-6">
+                                            <div className="space-y-6">
+                                                {/* Basic Information */}
+                                                <div>
+                                                    <h3 className="text-xl font-semibold text-primary mb-4">
+                                                        {`${resident.firstName} ${resident.middleName || ""} ${resident.lastName}`}
+                                                    </h3>
+                                                    <div className="grid grid-cols-2 gap-6">
+                                                        <div className="space-y-1.5">
+                                                            <p className="text-sm font-medium text-muted-foreground">
+                                                                Age
+                                                            </p>
+                                                            <p className="text-base font-medium">
+                                                                {resident.age}
+                                                            </p>
                                                         </div>
-                                                    )}
-                                                </DialogContent>
-                                            </Dialog>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <p className="text-sm font-medium text-muted-foreground">
+                                                                Purok
+                                                            </p>
+                                                            <p className="text-base font-medium">
+                                                                {resident.purok}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Additional Details */}
+                                                <div className="space-y-1.5">
+                                                    <p className="text-sm font-medium text-muted-foreground">
+                                                        Birth Date
+                                                    </p>
+                                                    <p className="text-base font-medium">
+                                                        {new Date(
+                                                            resident.birthDate
+                                                        ).toLocaleDateString("en-US", {
+                                                            year: "numeric",
+                                                            month: "long",
+                                                            day: "numeric",
+                                                        })}
+                                                    </p>
+                                                </div>
+
+                                                {/* Family Information */}
+                                                {(resident.fathersName || resident.mothersName) && (
+                                                    <div className="grid grid-cols-2 gap-6">
+                                                        {resident.fathersName && (
+                                                            <div className="space-y-1.5">
+                                                                <p className="text-sm font-medium text-muted-foreground">
+                                                                    Father's Name
+                                                                </p>
+                                                                <p className="text-base font-medium">
+                                                                    {resident.fathersName}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                        {resident.mothersName && (
+                                                            <div className="space-y-1.5">
+                                                                <p className="text-sm font-medium text-muted-foreground">
+                                                                    Mother's Name
+                                                                </p>
+                                                                <p className="text-base font-medium">
+                                                                    {resident.mothersName}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                <div className="pt-4 flex justify-end">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="sm">
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                                Actions
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem
+                                                                onSelect={(e) => {
+                                                                    e.preventDefault();
+                                                                    setViewDialog({
+                                                                        isOpen: true,
+                                                                        resident,
+                                                                    });
+                                                                }}
+                                                                className="text-blue-600 focus:text-blue-600"
+                                                            >
+                                                                <Eye className="mr-2 h-4 w-4" />
+                                                                View Details
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                onSelect={(e) => {
+                                                                    e.preventDefault();
+                                                                    setEditDialog({
+                                                                        isOpen: true,
+                                                                        resident,
+                                                                    });
+                                                                }}
+                                                                className="text-yellow-600 focus:text-yellow-600"
+                                                            >
+                                                                <Pencil className="mr-2 h-4 w-4" />
+                                                                Edit
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                onSelect={(e) => {
+                                                                    e.preventDefault();
+                                                                    setDeleteDialog({
+                                                                        isOpen: true,
+                                                                        resident,
+                                                                    });
+                                                                }}
+                                                                className="text-red-600 focus:text-red-600"
+                                                            >
+                                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                                Delete
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+
+                            {/* View Details Dialog */}
+                            <Dialog
+                                open={viewDialog.isOpen}
+                                onOpenChange={(open) =>
+                                    setViewDialog({
+                                        isOpen: open,
+                                        resident: open ? viewDialog.resident : null,
+                                    })
+                                }
+                            >
+                                <DialogContent className="max-w-[600px]">
+                                    {viewDialog.resident && (
+                                        <ResidentDetailsView resident={viewDialog.resident} />
+                                    )}
+                                </DialogContent>
+                            </Dialog>
+
+                            {/* Edit Dialog */}
+                            {editDialog.resident && (
+                                <EditResidentForm
+                                    resident={editDialog.resident}
+                                    isOpen={editDialog.isOpen}
+                                    onClose={() => setEditDialog({ isOpen: false, resident: null })}
+                                    onSuccess={(updatedResident) => {
+                                        handleResidentUpdated(updatedResident);
+                                        setEditDialog({ isOpen: false, resident: null });
+                                    }}
+                                />
+                            )}
+
+                            {/* Delete Confirmation Dialog */}
+                            <AlertDialog
+                                open={deleteDialog.isOpen}
+                                onOpenChange={(open) => {
+                                    if (!isDeleting) {
+                                        setDeleteDialog({
+                                            isOpen: open,
+                                            resident: open ? deleteDialog.resident : null,
+                                        });
+                                    }
+                                }}
+                            >
+                                <AlertDialogContent className="max-w-[400px]">
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete Resident</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Are you sure you want to delete this resident? This
+                                            action cannot be undone.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel
+                                            onClick={() =>
+                                                !isDeleting &&
+                                                setDeleteDialog({ isOpen: false, resident: null })
+                                            }
+                                            disabled={isDeleting}
+                                        >
+                                            Cancel
+                                        </AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={handleDelete}
+                                            className="bg-red-600 hover:bg-red-700"
+                                            disabled={isDeleting}
+                                        >
+                                            {isDeleting ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Deleting...
+                                                </>
+                                            ) : (
+                                                "Delete"
+                                            )}
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </>
                     )}
 
                     {/* Pagination Controls */}
