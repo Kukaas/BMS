@@ -5,7 +5,31 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { User, Mail, Phone, Calendar, FileText } from "lucide-react";
+import {
+    User,
+    Mail,
+    Phone,
+    Calendar,
+    FileText,
+    CreditCard,
+    Wallet,
+    Building2,
+    Eye,
+    Download,
+    ZoomIn,
+    ZoomOut,
+    RotateCw,
+} from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useState, useRef } from "react";
+import { toast } from "sonner";
 
 export function DocumentDetailsView({
     request,
@@ -13,150 +37,358 @@ export function DocumentDetailsView({
     updating,
     getAvailableStatuses,
 }) {
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [scale, setScale] = useState(1);
+    const [rotation, setRotation] = useState(0);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+    const containerRef = useRef(null);
+
+    // Add zoom controls
+    const zoomIn = () => setScale(prev => Math.min(prev + 0.5, 8));
+    const zoomOut = () => setScale(prev => Math.max(prev - 0.5, 0.25));
+    const resetZoom = () => {
+        setScale(1);
+        setRotation(0);
+        setPosition({ x: 0, y: 0 });
+    };
+    const rotate = () => setRotation(prev => (prev + 90) % 360);
+
+    // Add drag handlers
+    const handleMouseDown = (e) => {
+        e.preventDefault();
+        setIsDragging(true);
+        setDragStart({
+            x: e.clientX - position.x,
+            y: e.clientY - position.y
+        });
+    };
+
+    const handleMouseMove = (e) => {
+        if (!isDragging) return;
+        
+        setPosition({
+            x: e.clientX - dragStart.x,
+            y: e.clientY - dragStart.y
+        });
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
+    // Add wheel handler for zoom with finer control
+    const handleWheel = (e) => {
+        if (e.ctrlKey) {
+            e.preventDefault();
+            const delta = e.deltaY * -0.005;
+            setScale(prev => Math.min(Math.max(0.25, prev + delta), 8));
+        }
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return "N/A";
+        return new Date(dateStr).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        });
+    };
+
+    const renderField = (icon, label, value, formatter = (v) => v) => {
+        const displayValue = value ? formatter(value) : "N/A";
+        return (
+            <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                    {icon}
+                    <span className="text-sm text-muted-foreground">{label}</span>
+                </div>
+                <p className="font-medium">{displayValue}</p>
+            </div>
+        );
+    };
+
     return (
         <div className="space-y-8 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
-            {/* Resident Information */}
+            {/* Basic Information */}
             <div className="space-y-3">
                 <h3 className="text-sm font-medium text-muted-foreground">Basic Information</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-primary" />
-                            <span className="text-sm text-muted-foreground">Name</span>
-                        </div>
-                        <p className="font-medium">{request.residentName}</p>
-                    </div>
-                    {request.email && (
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                                <Mail className="h-4 w-4 text-primary" />
-                                <span className="text-sm text-muted-foreground">Email</span>
-                            </div>
-                            <p className="font-medium">{request.email}</p>
-                        </div>
-                    )}
-                    {request.contactNumber && (
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                                <Phone className="h-4 w-4 text-primary" />
-                                <span className="text-sm text-muted-foreground">Contact</span>
-                            </div>
-                            <p className="font-medium">{request.contactNumber}</p>
-                        </div>
+                    {renderField(<User className="h-4 w-4 text-primary" />, "Name", request.name)}
+                    {renderField(<Mail className="h-4 w-4 text-primary" />, "Email", request.email)}
+                    {renderField(
+                        <Phone className="h-4 w-4 text-primary" />,
+                        "Contact",
+                        request.contactNumber
                     )}
                 </div>
             </div>
 
-            {/* Document Details with Sections */}
-            {request.type === "Barangay Clearance" && (
-                <>
-                    {/* Personal Information Section */}
-                    <div className="space-y-3">
-                        <h3 className="text-sm font-medium text-muted-foreground">
-                            Personal Information
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <FileText className="h-4 w-4 text-primary" />
-                                    <span className="text-sm text-muted-foreground">Age</span>
-                                </div>
-                                <p className="font-medium">
-                                    {request.age !== undefined ? request.age : "N/A"}
-                                </p>
-                            </div>
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <FileText className="h-4 w-4 text-primary" />
-                                    <span className="text-sm text-muted-foreground">Sex</span>
-                                </div>
-                                <p className="font-medium">{request.sex}</p>
-                            </div>
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4 text-primary" />
-                                    <span className="text-sm text-muted-foreground">
-                                        Date of Birth
-                                    </span>
-                                </div>
-                                <p className="font-medium">
-                                    {new Date(request.dateOfBirth).toLocaleDateString()}
-                                </p>
-                            </div>
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <FileText className="h-4 w-4 text-primary" />
-                                    <span className="text-sm text-muted-foreground">
-                                        Civil Status
-                                    </span>
-                                </div>
-                                <p className="font-medium">{request.civilStatus}</p>
-                            </div>
-                        </div>
-                    </div>
+            {/* Personal Information */}
+            <div className="space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground">Personal Information</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                    {renderField(<FileText className="h-4 w-4 text-primary" />, "Age", request.age)}
+                    {renderField(<FileText className="h-4 w-4 text-primary" />, "Sex", request.sex)}
+                    {renderField(
+                        <Calendar className="h-4 w-4 text-primary" />,
+                        "Date of Birth",
+                        request.dateOfBirth,
+                        formatDate
+                    )}
+                    {renderField(
+                        <FileText className="h-4 w-4 text-primary" />,
+                        "Civil Status",
+                        request.civilStatus
+                    )}
+                </div>
+            </div>
 
-                    {/* Address Information Section */}
-                    <div className="space-y-3">
-                        <h3 className="text-sm font-medium text-muted-foreground">
-                            Address Information
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <FileText className="h-4 w-4 text-primary" />
-                                    <span className="text-sm text-muted-foreground">Purok</span>
-                                </div>
-                                <p className="font-medium">{request.purok}</p>
-                            </div>
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <FileText className="h-4 w-4 text-primary" />
-                                    <span className="text-sm text-muted-foreground">
-                                        Place of Birth
-                                    </span>
-                                </div>
-                                <p className="font-medium">{request.placeOfBirth}</p>
-                            </div>
-                        </div>
-                    </div>
+            {/* Address Information */}
+            <div className="space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground">Address Information</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                    {renderField(
+                        <FileText className="h-4 w-4 text-primary" />,
+                        "Purok",
+                        request.purok
+                    )}
+                    {renderField(
+                        <FileText className="h-4 w-4 text-primary" />,
+                        "Place of Birth",
+                        request.placeOfBirth
+                    )}
+                    {renderField(
+                        <FileText className="h-4 w-4 text-primary" />,
+                        "Barangay",
+                        request.barangay
+                    )}
+                </div>
+            </div>
 
-                    {/* Request Details Section */}
-                    <div className="space-y-3">
-                        <h3 className="text-sm font-medium text-muted-foreground">
-                            Request Details
-                        </h3>
-                        <div className="grid grid-cols-1 gap-4 bg-muted p-4 rounded-lg">
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <FileText className="h-4 w-4 text-primary" />
-                                    <span className="text-sm text-muted-foreground">Purpose</span>
-                                </div>
-                                <p className="font-medium">{request.purpose}</p>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
-
-            {/* Other document types remain unchanged */}
-            {request.type === "Barangay Indigency" && (
+            {/* Business Information (if applicable) */}
+            {request.type === "Business Clearance" && (
                 <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-muted-foreground">Document Details</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                        Business Information
+                    </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-                        {getDocumentSpecificDetails(request).map((detail, index) => (
-                            <div key={index} className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    {detail.icon}
-                                    <span className="text-sm text-muted-foreground">
-                                        {detail.label}
-                                    </span>
-                                </div>
-                                <p className="font-medium">{detail.value}</p>
-                            </div>
-                        ))}
+                        {renderField(
+                            <Building2 className="h-4 w-4 text-primary" />,
+                            "Business Name",
+                            request.businessName
+                        )}
+                        {renderField(
+                            <Building2 className="h-4 w-4 text-primary" />,
+                            "Business Type",
+                            request.businessType
+                        )}
+                        {renderField(
+                            <Building2 className="h-4 w-4 text-primary" />,
+                            "Business Nature",
+                            request.businessNature
+                        )}
+                        {renderField(
+                            <FileText className="h-4 w-4 text-primary" />,
+                            "Owner Address",
+                            request.ownerAddress
+                        )}
                     </div>
                 </div>
             )}
+
+            {/* Request Details */}
+            <div className="space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground">Request Details</h3>
+                <div className="grid grid-cols-1 gap-4 bg-muted p-4 rounded-lg">
+                    {renderField(
+                        <FileText className="h-4 w-4 text-primary" />,
+                        "Purpose",
+                        request.purpose
+                    )}
+                </div>
+            </div>
+
+            {/* Payment Information */}
+            <div className="space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground">Payment Information</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                    {renderField(
+                        <Wallet className="h-4 w-4 text-primary" />,
+                        "Payment Method",
+                        request.paymentMethod
+                    )}
+                    {renderField(
+                        <Wallet className="h-4 w-4 text-primary" />,
+                        "Amount",
+                        request.amount,
+                        (value) => `₱${value}`
+                    )}
+                    {request.referenceNumber &&
+                        renderField(
+                            <FileText className="h-4 w-4 text-primary" />,
+                            "Reference Number",
+                            request.referenceNumber
+                        )}
+                    {renderField(
+                        <Calendar className="h-4 w-4 text-primary" />,
+                        "Date of Payment",
+                        request.dateOfPayment,
+                        formatDate
+                    )}
+
+                    {/* Receipt */}
+                    <div className="col-span-2 space-y-2">
+                        <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4 text-primary" />
+                            <span className="text-sm text-muted-foreground">Receipt</span>
+                        </div>
+                        {request.receipt?.data ? (
+                            <div className="bg-muted/50 rounded-lg p-6">
+                                <div className="flex items-center gap-4 mb-2">
+                                    <div className="flex-1 truncate">
+                                        <p className="text-sm text-muted-foreground truncate">
+                                            {request.receipt.filename}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Dialog
+                                        onOpenChange={() => {
+                                            resetZoom();
+                                            setPosition({ x: 0, y: 0 });
+                                        }}
+                                    >
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" size="sm">
+                                                <Eye className="h-4 w-4 mr-2" />
+                                                Preview
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="max-w-4xl">
+                                            <DialogHeader>
+                                                <DialogTitle>Receipt Image</DialogTitle>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {request.receipt.filename}
+                                                </p>
+                                            </DialogHeader>
+                                            <div className="mt-4">
+                                                {/* Zoom controls */}
+                                                <div className="flex items-center justify-end gap-2 mb-4">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={zoomOut}
+                                                        disabled={scale <= 0.25}
+                                                    >
+                                                        <ZoomOut className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={resetZoom}
+                                                    >
+                                                        {Math.round(scale * 100)}%
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={zoomIn}
+                                                        disabled={scale >= 8}
+                                                    >
+                                                        <ZoomIn className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={rotate}
+                                                    >
+                                                        <RotateCw className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                                {/* Image container */}
+                                                <div
+                                                    ref={containerRef}
+                                                    className="relative bg-black/5 rounded-lg overflow-hidden"
+                                                    style={{
+                                                        height: "calc(80vh - 200px)",
+                                                        width: "100%",
+                                                    }}
+                                                    onWheel={handleWheel}
+                                                >
+                                                    <div
+                                                        className="absolute inset-0 flex items-center justify-center"
+                                                        style={{
+                                                            cursor: isDragging
+                                                                ? "grabbing"
+                                                                : "grab",
+                                                            transform: `translate(${position.x}px, ${position.y}px)`,
+                                                        }}
+                                                        onMouseDown={handleMouseDown}
+                                                        onMouseMove={handleMouseMove}
+                                                        onMouseUp={handleMouseUp}
+                                                        onMouseLeave={handleMouseUp}
+                                                    >
+                                                        <img
+                                                            src={
+                                                                request.receipt.data.startsWith(
+                                                                    "data:"
+                                                                )
+                                                                    ? request.receipt.data
+                                                                    : `data:${request.receipt.contentType};base64,${request.receipt.data}`
+                                                            }
+                                                            alt="Receipt"
+                                                            className="select-none transition-transform duration-200"
+                                                            style={{
+                                                                transform: `scale(${scale}) rotate(${rotation}deg)`,
+                                                                maxWidth: "none",
+                                                                maxHeight: "none",
+                                                                transformOrigin: "center center",
+                                                                pointerEvents: "none",
+                                                            }}
+                                                            draggable="false"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            try {
+                                                const imageUrl = request.receipt.data.startsWith(
+                                                    "data:"
+                                                )
+                                                    ? request.receipt.data
+                                                    : `data:${request.receipt.contentType};base64,${request.receipt.data}`;
+                                                const link = document.createElement("a");
+                                                link.href = imageUrl;
+                                                link.download = request.receipt.filename;
+                                                document.body.appendChild(link);
+                                                link.click();
+                                                document.body.removeChild(link);
+                                            } catch (error) {
+                                                console.error("Download error:", error);
+                                                toast.error("Failed to download receipt");
+                                            }
+                                        }}
+                                    >
+                                        <Download className="h-4 w-4 mr-2" />
+                                        Download
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-center h-32 bg-muted rounded-lg">
+                                <p className="text-sm text-muted-foreground">No receipt image</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
 
             {/* Status Update Section */}
             <div className="sticky bottom-0 bg-background border-t pt-6">
@@ -205,6 +437,36 @@ export function DocumentDetailsView({
                     </Select>
                 </div>
             </div>
+
+            {/* Image Preview Dialog */}
+            <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+                <DialogContent className="max-w-[800px] w-[95%] p-0 overflow-hidden">
+                    <DialogHeader className="p-4">
+                        <DialogTitle className="text-center">{selectedImage?.title}</DialogTitle>
+                        <p className="text-sm text-muted-foreground text-center">
+                            {selectedImage?.filename}
+                        </p>
+                    </DialogHeader>
+                    <div
+                        className="relative overflow-auto p-4"
+                        style={{ maxHeight: "calc(85vh - 100px)" }}
+                    >
+                        <div className="flex items-center justify-center min-h-[300px] bg-black/5 rounded-lg p-2">
+                            {selectedImage && (
+                                <img
+                                    src={selectedImage.url}
+                                    alt={selectedImage.title}
+                                    className="max-w-full h-auto object-contain rounded-lg"
+                                    style={{
+                                        maxHeight: "calc(85vh - 140px)",
+                                        boxShadow: "0 0 0 1px rgba(0,0,0,0.05)",
+                                    }}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
