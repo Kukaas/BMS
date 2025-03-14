@@ -1,28 +1,14 @@
 import { z } from "zod";
 
 export const barangayClearanceSchema = z.object({
-    userId: z.string().optional(),
-    name: z.string().optional(),
-    firstName: z.string().optional(),
+    userId: z.string().min(1, "User ID is required"),
+    name: z.string().min(1, "Full name is required"),
+    firstName: z.string().min(1, "First name is required"),
     middleName: z.string().optional(),
-    lastName: z.string().optional(),
-    age: z.number().optional(),
-    email: z.string().optional(),
-    contactNumber: z.string().optional(),
-    barangay: z.string().optional(),
-    purok: z.string().optional(),
-    dateOfBirth: z.string().optional(),
-    amount: z.number().min(50).max(50, "Amount must be exactly PHP 50"),
-    paymentMethod: z.enum(["Cash", "GCash", "Paymaya"], {
-        required_error: "Payment method is required",
-    }),
-    referenceNumber: z.string().optional().or(z.literal("")),
-    dateOfPayment: z.string().min(1, "Date of payment is required"),
-    receipt: z.object({
-        filename: z.string().min(1, "Receipt is required"),
-        contentType: z.string().min(1, "Receipt is required"),
-        data: z.string().min(1, "Receipt is required"),
-    }),
+    lastName: z.string().min(1, "Last name is required"),
+    age: z.number().min(1, "Age is required").max(150, "Invalid age"),
+    email: z.string().email("Invalid email format"),
+    barangay: z.string().min(1, "Barangay is required"),
     purpose: z.enum(
         [
             "Employment",
@@ -38,7 +24,11 @@ export const barangayClearanceSchema = z.object({
             required_error: "Purpose is required",
         }
     ),
-    sex: z.enum(["Male", "Female"]).optional(),
+    contactNumber: z.string().min(1, "Contact number is required"),
+    dateOfBirth: z.string().min(1, "Date of birth is required"),
+    sex: z.enum(["Male", "Female"], {
+        required_error: "Sex is required",
+    }),
     placeOfBirth: z.string().min(1, "Place of birth is required"),
     civilStatus: z.enum(["Single", "Married", "Widowed", "Separated"], {
         required_error: "Civil status is required",

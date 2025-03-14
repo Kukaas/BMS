@@ -22,163 +22,87 @@ export const createBarangayClearance = async (req, res, next) => {
             sex,
             placeOfBirth,
             civilStatus,
-            paymentMethod,
-            referenceNumber,
-            dateOfPayment,
-            receipt,
-            amount,
         } = req.body;
 
-        console.log("Received data:", {
-            userId,
-            name,
-            purpose,
-            paymentMethod,
-            dateOfPayment,
-            placeOfBirth,
-            civilStatus,
-            receipt: receipt ? "Present" : "Missing",
-            referenceNumber,
-            age,
-            sex,
-        });
-
-        // Validate only the essential required fields
+        // Validate required fields
         if (
+            !name ||
             !purpose ||
-            !paymentMethod ||
-            !dateOfPayment ||
+            !age ||
+            !purok ||
+            !dateOfBirth ||
+            !sex ||
             !placeOfBirth ||
-            !civilStatus ||
-            !receipt
+            !civilStatus
         ) {
-            console.log("Missing required fields:", {
-                purpose: !purpose,
-                paymentMethod: !paymentMethod,
-                dateOfPayment: !dateOfPayment,
-                placeOfBirth: !placeOfBirth,
-                civilStatus: !civilStatus,
-                receipt: !receipt,
-            });
             return res.status(400).json({
                 success: false,
                 message: "Please provide all required fields",
-                missingFields: {
-                    purpose: !purpose,
-                    paymentMethod: !paymentMethod,
-                    dateOfPayment: !dateOfPayment,
-                    placeOfBirth: !placeOfBirth,
-                    civilStatus: !civilStatus,
-                    receipt: !receipt,
-                },
             });
         }
 
-        // Validate reference number for digital payments
-        if (["GCash", "Paymaya"].includes(paymentMethod) && !referenceNumber) {
-            return res.status(400).json({
-                success: false,
-                message: "Reference number is required for digital payments",
-            });
-        }
+        // Create new clearance document
+        const barangayClearance = new BarangayClearance({
+            userId,
+            name,
+            email,
+            age,
+            contactNumber,
+            barangay,
+            purpose,
+            purok,
+            dateOfBirth,
+            sex,
+            placeOfBirth,
+            civilStatus,
+            type: "Barangay Clearance",
+        });
 
-        try {
-            // Get user data to ensure we have complete information
-            const user = await User.findById(userId);
-            if (!user) {
-                return res.status(404).json({
-                    success: false,
-                    message: "User not found",
-                });
-            }
+        // Create log entry
+        await createLog(
+            userId,
+            "Barangay Clearance Request",
+            "Barangay Clearance",
+            `${name} has requested a barangay clearance for ${purpose}`
+        );
 
-            // Create new clearance document with complete user data
-            const barangayClearance = new BarangayClearance({
-                userId,
-                name: user.firstName + (user.middleName ? ` ${user.middleName} ` : " ") + user.lastName,
-                email: user.email,
-                age: user.age || age,
-                contactNumber: user.contactNumber,
-                barangay: user.barangay,
-                purpose,
-                purok: user.purok,
-                dateOfBirth: user.dateOfBirth,
-                sex: user.sex || sex,
-                placeOfBirth,
-                civilStatus,
-                paymentMethod,
-                referenceNumber,
-                dateOfPayment: new Date(dateOfPayment),
-                amount,
-                receipt: receipt ? {
-                    filename: receipt.filename,
-                    contentType: receipt.contentType,
-                    data: receipt.data,
-                } : null,
-            });
+        await barangayClearance.save();
 
-            // Create log entry
-            await createLog(
-                userId,
-                "Barangay Clearance Request",
-                "Barangay Clearance",
-                `${name} has requested a barangay clearance for ${purpose}`
-            );
+        // Create transaction history
+        await createTransactionHistory({
+            userId,
+            transactionId: barangayClearance._id,
+            residentName: name,
+            requestedDocument: "Barangay Clearance",
+            dateRequested: new Date(),
+            barangay,
+            action: "created",
+            status: "Pending",
+        });
 
-            const savedClearance = await barangayClearance.save();
-            console.log("Clearance saved successfully:", savedClearance._id);
+        // Create and send notification to secretaries
+        const staffNotification = createNotification(
+            "New Barangay Clearance Request",
+            `${name} has requested a barangay clearance for ${purpose}`,
+            "request",
+            barangayClearance._id,
+            "BarangayClearance"
+        );
 
-            // Create transaction history
-            await createTransactionHistory({
-                userId,
-                transactionId: savedClearance._id,
-                residentName: name,
-                requestedDocument: "Barangay Clearance",
-                dateRequested: new Date(),
-                barangay,
-                action: "created",
-                status: "Pending",
-            });
+        // Send notification to secretaries of the user's barangay
+        await sendNotificationToBarangaySecretaries(barangay, staffNotification);
 
-            // Create and send notification to secretaries
-            const staffNotification = createNotification(
-                "New Barangay Clearance Request",
-                `${name} has requested a barangay clearance for ${purpose}`,
-                "request",
-                savedClearance._id,
-                "BarangayClearance"
-            );
-
-            // Send notification to secretaries of the user's barangay
-            await sendNotificationToBarangaySecretaries(barangay, staffNotification);
-
-            res.status(201).json({
-                success: true,
-                message: "Barangay clearance request created successfully",
-                data: {
-                    ...savedClearance.toObject(),
-                    type: "Barangay Clearance",
-                },
-            });
-        } catch (saveError) {
-            console.error("Error saving barangay clearance:", {
-                error: saveError.message,
-                stack: saveError.stack,
-                validationErrors: saveError.errors,
-            });
-            throw saveError;
-        }
+        res.status(201).json({
+            success: true,
+            message: "Barangay clearance request created successfully",
+            data: {
+                ...barangayClearance.toObject(),
+                type: "Barangay Clearance",
+            },
+        });
     } catch (error) {
-        console.error("Error creating barangay clearance:", {
-            error: error.message,
-            stack: error.stack,
-            validationErrors: error.errors,
-        });
-        res.status(500).json({
-            success: false,
-            message: "Error creating barangay clearance",
-            error: error.message,
-        });
+        console.error("Error creating barangay clearance:", error);
+        res.status(500).json({ message: "Error creating barangay clearance" });
     }
 };
 

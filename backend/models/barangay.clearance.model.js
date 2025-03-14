@@ -13,58 +13,30 @@ const barangayClearanceSchema = new mongoose.Schema(
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-            required: false,
+            required: true,
         },
         name: {
             type: String,
-            required: false,
+            required: true,
         },
         age: {
             type: Number,
-            required: false,
+            required: true,
         },
         email: {
             type: String,
-            required: false,
+            required: true,
         },
         contactNumber: {
             type: String,
-            required: false,
+            required: true,
         },
         barangay: {
             type: String,
-            required: false,
+            required: true,
         },
         purpose: {
             type: String,
-            required: true,
-        },
-        amount: {
-            type: Number,
-            required: true,
-            default: 50,
-        },
-        paymentMethod: {
-            type: String,
-            enum: ["Cash", "GCash", "Paymaya"],
-            required: true,
-        },
-        referenceNumber: {
-            type: String,
-            required: function () {
-                return ["GCash", "Paymaya"].includes(this.paymentMethod);
-            },
-        },
-        dateOfPayment: {
-            type: Date,
-            required: true,
-        },
-        receipt: {
-            type: {
-                filename: String,
-                contentType: String,
-                data: String,
-            },
             required: true,
         },
         dateOfIssuance: {
@@ -90,16 +62,16 @@ const barangayClearanceSchema = new mongoose.Schema(
         },
         purok: {
             type: String,
-            required: false,
+            required: true,
         },
         dateOfBirth: {
             type: Date,
-            required: false,
+            required: true,
         },
         sex: {
             type: String,
+            required: true,
             enum: ["Male", "Female"],
-            required: false,
         },
         placeOfBirth: {
             type: String,

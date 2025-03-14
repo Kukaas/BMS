@@ -28,15 +28,6 @@ export function DocumentTableView({
     handlePrint,
     printingStates,
 }) {
-    const formatDate = (dateStr) => {
-        if (!dateStr) return "N/A";
-        return new Date(dateStr).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-        });
-    };
-
     return (
         <Table>
             <TableHeader>
@@ -52,10 +43,12 @@ export function DocumentTableView({
                 {currentRequests.map((request) => (
                     <TableRow key={request.id}>
                         <TableCell>
-                            {formatDate(request.requestDate || request.createdAt)}
+                            {request.requestDate
+                                ? new Date(request.requestDate).toLocaleDateString()
+                                : "N/A"}
                         </TableCell>
                         <TableCell>{request.type}</TableCell>
-                        <TableCell>{request.name || request.residentName || "N/A"}</TableCell>
+                        <TableCell>{request.residentName}</TableCell>
                         <TableCell>
                             <Badge className={getStatusColor(request.status)}>
                                 {request.status}
@@ -92,7 +85,10 @@ export function DocumentTableView({
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => setSelectedRequest(request)}
+                                            onClick={() => {
+                                                console.log("Selected request:", request);
+                                                setSelectedRequest(request);
+                                            }}
                                         >
                                             View Details
                                         </Button>
@@ -103,10 +99,15 @@ export function DocumentTableView({
                                                 {request.type}
                                                 <span className="block text-sm font-normal text-muted-foreground mt-1">
                                                     Requested on{" "}
-                                                    {formatDate(
-                                                        request.requestDate || request.createdAt
-                                                    )}
+                                                    {request.requestDate
+                                                        ? new Date(
+                                                              request.requestDate
+                                                          ).toLocaleDateString()
+                                                        : "N/A"}
                                                 </span>
+                                                <Badge className={getStatusColor(request.status)}>
+                                                    {request.status}
+                                                </Badge>
                                             </DialogTitle>
                                         </DialogHeader>
                                         <DocumentDetailsView
@@ -114,6 +115,7 @@ export function DocumentTableView({
                                             handleStatusChange={handleStatusChange}
                                             updating={updating}
                                             getAvailableStatuses={getAvailableStatuses}
+                                            getStatusColor={getStatusColor}
                                         />
                                     </DialogContent>
                                 </Dialog>
