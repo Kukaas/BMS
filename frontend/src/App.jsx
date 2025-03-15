@@ -45,6 +45,14 @@ const DashboardWrapper = () => {
 
     const userTabs = ["overview", "requests", "reports", "blotter"];
 
+    const treasurerTabs = [
+        "overview",
+        "barangayclearance",
+        "businesspermit",
+        "blotterreport",
+        "transactions",
+    ];
+
     // Determine valid tabs based on user role
     let validTabs;
     if (currentUser?.role === "superAdmin") {
@@ -53,6 +61,8 @@ const DashboardWrapper = () => {
         validTabs = chairmanTabs;
     } else if (currentUser?.role === "secretary") {
         validTabs = secretaryTabs;
+    } else if (currentUser?.role === "treasurer") {
+        validTabs = treasurerTabs;
     } else {
         validTabs = userTabs;
     }

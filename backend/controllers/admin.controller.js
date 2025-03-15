@@ -227,3 +227,74 @@ export const createSuperAdminAccount = async (req, res, next) => {
         next(error);
     }
 };
+
+export const createTreasurerAccount = async (req, res, next) => {
+    try {
+        const {
+            firstName,
+            middleName,
+            lastName,
+            contactNumber,
+            dateOfBirth,
+            email,
+            barangay,
+            purok,
+        } = req.body;
+
+        if (
+            !firstName ||
+            !lastName ||
+            !contactNumber ||
+            !dateOfBirth ||
+            !email ||
+            !barangay ||
+            !purok
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Please fill in all fields!",
+            });
+        }
+
+        // Check if user email already exists
+        const emailExist = await User.findOne({ email });
+        if (emailExist) {
+            return res.status(400).json({
+                success: false,
+                message: "Email already exists!",
+            });
+        }
+
+        const generatedPassword = generateSecurePassword();
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(generatedPassword, salt);
+
+        const newUser = new User({
+            firstName,
+            middleName,
+            lastName,
+            contactNumber,
+            dateOfBirth,
+            email,
+            barangay,
+            purok,
+            password: hashedPassword,
+            role: "treasurer",
+            isVerified: false,
+            isActive: true,
+        });
+
+        const savedUser = await newUser.save();
+
+        // Send verification email with password
+        await sendVerificationEmail(savedUser, res, generatedPassword);
+
+        return res.status(201).json({
+            success: true,
+            message: "Treasurer account created successfully! Please check email for verification.",
+            data: savedUser,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
