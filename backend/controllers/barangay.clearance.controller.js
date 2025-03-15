@@ -95,7 +95,10 @@ export const createBarangayClearance = async (req, res, next) => {
             // Create new clearance document with complete user data
             const barangayClearance = new BarangayClearance({
                 userId,
-                name: user.firstName + (user.middleName ? ` ${user.middleName} ` : " ") + user.lastName,
+                name:
+                    user.firstName +
+                    (user.middleName ? ` ${user.middleName} ` : " ") +
+                    user.lastName,
                 email: user.email,
                 age: user.age || age,
                 contactNumber: user.contactNumber,
@@ -110,11 +113,13 @@ export const createBarangayClearance = async (req, res, next) => {
                 referenceNumber,
                 dateOfPayment: new Date(dateOfPayment),
                 amount,
-                receipt: receipt ? {
-                    filename: receipt.filename,
-                    contentType: receipt.contentType,
-                    data: receipt.data,
-                } : null,
+                receipt: receipt
+                    ? {
+                          filename: receipt.filename,
+                          contentType: receipt.contentType,
+                          data: receipt.data,
+                      }
+                    : null,
             });
 
             // Create log entry
@@ -185,8 +190,9 @@ export const createBarangayClearance = async (req, res, next) => {
 export const approveBarangayClearance = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
-        const { name: secretaryName } = req.user;
+        const { status, orNumber, treasurerName } = req.body;
+
+        console.log("Received status update request:", { id, status, orNumber, treasurerName });
 
         const barangayClearance = await BarangayClearance.findById(id);
 
@@ -197,14 +203,24 @@ export const approveBarangayClearance = async (req, res, next) => {
             });
         }
 
+        // Validate OR number is provided when approving
+        if (status === "Approved" && !orNumber) {
+            return res.status(400).json({
+                success: false,
+                message: "OR number is required when approving a clearance",
+            });
+        }
+
         const currentDate = new Date();
 
         // Update status-related fields
         barangayClearance.status = status;
         barangayClearance.isVerified = status === "Approved";
 
-        // Update date fields based on status
+        // Add OR Number when approving
         if (status === "Approved") {
+            barangayClearance.orNumber = orNumber;
+            barangayClearance.treasurerName = treasurerName || (req.user ? req.user.name : null);
             barangayClearance.dateApproved = currentDate;
             barangayClearance.dateOfIssuance = currentDate;
         } else if (status === "Completed") {
@@ -213,30 +229,81 @@ export const approveBarangayClearance = async (req, res, next) => {
 
         await barangayClearance.save();
 
-        // Create and send notification to the requestor with secretary info
-        const user = await User.findOne({ email: barangayClearance.email });
-        if (user) {
-            const notification = createNotification(
-                "Barangay Clearance Status Update",
-                `Your barangay clearance request has been ${status} by ${secretaryName}`,
-                "status_update",
-                barangayClearance._id,
-                "BarangayClearance"
-            );
+        // Create log entry for the status update
+        try {
+            if (req.user && req.user._id) {
+                const logMessage = `Barangay clearance request ID: ${id} status updated to ${status}${
+                    orNumber ? ` with OR Number: ${orNumber}` : ""
+                }`;
 
-            // Update user's notifications
-            user.notifications.push(notification);
-            user.unreadNotifications += 1;
-            await user.save();
+                await createLog(
+                    req.user._id,
+                    "Barangay Clearance Status Update",
+                    "Status Update",
+                    logMessage
+                );
+            }
+        } catch (logError) {
+            console.error("Error creating log entry:", logError);
+            // Continue even if log creation fails
+        }
+
+        // Create and send notification to the requestor
+        try {
+            const user = await User.findOne({ email: barangayClearance.email });
+            if (user) {
+                const staffInfo = treasurerName || (req.user ? req.user.name : "staff");
+
+                const notification = createNotification(
+                    "Barangay Clearance Status Update",
+                    `Your barangay clearance request has been ${status} by ${staffInfo}${
+                        orNumber ? ` with OR Number: ${orNumber}` : ""
+                    }`,
+                    "status_update",
+                    barangayClearance._id,
+                    "BarangayClearance"
+                );
+
+                // Update user's notifications
+                user.notifications.push(notification);
+                user.unreadNotifications += 1;
+                await user.save();
+            }
+        } catch (notificationError) {
+            console.error("Error sending notification:", notificationError);
+            // Continue even if notification fails
+        }
+
+        // Update transaction history
+        try {
+            await createTransactionHistory({
+                userId: barangayClearance.userId,
+                transactionId: barangayClearance._id,
+                residentName: barangayClearance.name,
+                requestedDocument: "Barangay Clearance",
+                dateRequested: barangayClearance.createdAt,
+                barangay: barangayClearance.barangay,
+                action: "updated",
+                status: status,
+                orNumber: orNumber || null,
+            });
+        } catch (historyError) {
+            console.error("Error updating transaction history:", historyError);
+            // Continue even if history update fails
         }
 
         res.status(200).json({
             success: true,
+            message: `Barangay clearance status updated to ${status} successfully`,
             data: barangayClearance,
         });
     } catch (error) {
-        console.error("Error updating barangay clearance:", error);
-        next(error);
+        console.error("Error updating barangay clearance status:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error updating barangay clearance status",
+            error: error.message,
+        });
     }
 };
 

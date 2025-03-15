@@ -43,6 +43,8 @@ export const barangayClearanceSchema = z.object({
     civilStatus: z.enum(["Single", "Married", "Widowed", "Separated"], {
         required_error: "Civil status is required",
     }),
+    orNumber: z.string().optional(),
+    treasurerName: z.string().optional(),
 });
 
 export const barangayIndigencySchema = z.object({
@@ -218,6 +220,27 @@ export const officialSchema = z.object({
         })
         .optional()
         .nullable(),
+});
+
+// Add schema specifically for Barangay Clearance status updates with OR number
+export const clearanceStatusUpdateSchema = z.object({
+    status: z.string().min(1, "Status is required"),
+    treasurerName: z.string().optional(),
+    orNumber: z
+        .string()
+        .optional()
+        .refine(
+            (val, ctx) => {
+                if (ctx.parent.status === "Approved" && (!val || !val.trim())) {
+                    return false;
+                }
+                return true;
+            },
+            {
+                message: "OR Number is required when approving a clearance",
+                path: ["orNumber"],
+            }
+        ),
 });
 
 // Add more schemas for other document types as needed

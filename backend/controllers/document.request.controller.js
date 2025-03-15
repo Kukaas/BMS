@@ -167,6 +167,7 @@ export const getAllDocumentRequests = async (req, res, next) => {
                 amount: doc.amount,
                 dateOfPayment: doc.dateOfPayment,
                 referenceNumber: doc.referenceNumber,
+                orNumber: doc.orNumber,
                 receipt: doc.receipt
                     ? {
                           filename: doc.receipt.filename,
