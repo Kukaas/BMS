@@ -73,7 +73,9 @@ export function DocumentTableView({
                                             "Barangay Indigency",
                                             "Barangay Clearance",
                                             "Business Clearance",
-                                        ].includes(request.type)
+                                        ].includes(request.type) ||
+                                        request.status === "Pending" ||
+                                        request.status === "Rejected"
                                     }
                                     className="flex items-center gap-2"
                                 >
