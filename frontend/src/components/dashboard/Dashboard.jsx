@@ -40,6 +40,10 @@ import { UserList } from "./secretary/UserList";
 import SuperAdminLogViewerPage from "@/pages/SuperAdminLogsPage";
 import { UserManagementDashboard } from "./superAdmin/AllUsers";
 import TransactionHistoryPage from "@/pages/Transaction";
+import BarangayClearance from "./treasurer/BarangayClearance";
+import TransactionHistory from "./treasurer/TransactionHistory";
+import BusinessPermit from "./treasurer/BusinessPermit";
+import BlotterReport from "./treasurer/BlotterReport";
 
 const componentMap = {
     overview: Overview,
@@ -57,8 +61,10 @@ const componentMap = {
     logs: SuperAdminLogViewerPage,
     transactions: TransactionHistoryPage,
     userlist: UserList,
-    // settings: Settings,
-    // help: Help,
+    barangayclearance: BarangayClearance,
+    businesspermit: BusinessPermit,
+    blotterreport: BlotterReport,
+    transactions: TransactionHistory,
 };
 
 function Dashboard({ tab }) {
@@ -200,6 +206,34 @@ function Dashboard({ tab }) {
         },
     ];
 
+    const treasurerItems = [
+        {
+            icon: LayoutDashboard,
+            label: "Dashboard",
+            href: "/dashboard?tab=overview",
+        },
+        {
+            icon: FileText,
+            label: "Barangay Clearance",
+            href: "/dashboard?tab=barangayclearance",
+        },
+        {
+            icon: FileText,
+            label: "Business Permit",
+            href: "/dashboard?tab=businesspermit",
+        },
+        {
+            icon: FileText,
+            label: "Blotter Report",
+            href: "/dashboard?tab=blotterreport",
+        },
+        {
+            icon: FileText,
+            label: "Transaction History",
+            href: "/dashboard?tab=transactions",
+        },
+    ];
+
     const sidebarItems =
         currentUser?.role === "superAdmin"
             ? superAdminItems
@@ -207,7 +241,9 @@ function Dashboard({ tab }) {
               ? chairmanItems
               : currentUser?.role === "secretary"
                 ? secretaryItems
-                : userItems;
+                : currentUser?.role === "treasurer"
+                  ? treasurerItems
+                  : userItems;
 
     return (
         <SidebarProvider defaultOpen={true}>

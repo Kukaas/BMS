@@ -204,7 +204,6 @@ export function UserManagementDashboard() {
                     email,
                     barangay,
                     purok,
-                    password: "secretary",
                 });
             } else if (role === "superAdmin") {
                 res = await axios.post(
@@ -218,9 +217,19 @@ export function UserManagementDashboard() {
                         email,
                         barangay,
                         purok,
-                        password: "superAdmin",
                     }
                 );
+            } else if (role === "treasurer") {
+                res = await axios.post("http://localhost:5000/api/admin/create-treasurer-account", {
+                    firstName,
+                    middleName,
+                    lastName,
+                    contactNumber,
+                    dateOfBirth,
+                    email,
+                    barangay,
+                    purok,
+                });
             } else {
                 res = await axios.post("http://localhost:5000/api/admin/create-chairman-account", {
                     firstName,
@@ -231,7 +240,6 @@ export function UserManagementDashboard() {
                     email,
                     barangay,
                     purok,
-                    password: "chairman",
                 });
             }
 
@@ -589,6 +597,9 @@ export function UserManagementDashboard() {
                                                                         </SelectItem>
                                                                         <SelectItem value="secretary">
                                                                             Secretary
+                                                                        </SelectItem>
+                                                                        <SelectItem value="treasurer">
+                                                                            Treasurer
                                                                         </SelectItem>
                                                                         <SelectItem value="superAdmin">
                                                                             Super Admin
