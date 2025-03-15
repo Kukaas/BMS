@@ -69,9 +69,11 @@ export function DocumentTableView({
                                     onClick={() => handlePrint(request)}
                                     disabled={
                                         printingStates[request.id] ||
-                                        !["Barangay Indigency", "Barangay Clearance"].includes(
-                                            request.type
-                                        )
+                                        ![
+                                            "Barangay Indigency",
+                                            "Barangay Clearance",
+                                            "Business Clearance",
+                                        ].includes(request.type)
                                     }
                                     className="flex items-center gap-2"
                                 >
