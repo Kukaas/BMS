@@ -64,7 +64,7 @@ const componentMap = {
     barangayclearance: BarangayClearance,
     businesspermit: BusinessPermit,
     blotterreport: BlotterReport,
-    transactions: TransactionHistory,
+    transactionss: TransactionHistory,
 };
 
 function Dashboard({ tab }) {
@@ -230,7 +230,7 @@ function Dashboard({ tab }) {
         {
             icon: FileText,
             label: "Transaction History",
-            href: "/dashboard?tab=transactions",
+            href: "/dashboard?tab=transactionss",
         },
     ];
 

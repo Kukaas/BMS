@@ -50,7 +50,7 @@ const DashboardWrapper = () => {
         "barangayclearance",
         "businesspermit",
         "blotterreport",
-        "transactions",
+        "transactionss",
     ];
 
     // Determine valid tabs based on user role
