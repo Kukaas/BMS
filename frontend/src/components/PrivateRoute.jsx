@@ -47,7 +47,7 @@ const PrivateRoute = () => {
         "barangayclearance",
         "businesspermit",
         "blotterreport",
-        "transactions",
+        "transactionss",
     ];
 
     // Check if current tab is valid for user's role
