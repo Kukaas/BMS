@@ -20,7 +20,7 @@ const PrivateRoute = () => {
     const [showExpiredDialog, setShowExpiredDialog] = useState(false);
     const token = localStorage.getItem("token");
     const location = useLocation();
-    const tab = new URLSearchParams(location.search).get("tab");
+    const tab = new URLSearchParams(location.search).get("tab") || "overview";
 
     // Define valid tabs for each role
     const chairmanTabs = [
@@ -41,7 +41,14 @@ const PrivateRoute = () => {
         "userlist",
     ];
     const superAdminTabs = ["overview", "register", "allusers", "logs", "transactions"];
-    const userTabs = ["overview", "requests", "reports", "blotter"  ];
+    const userTabs = ["overview", "requests", "reports", "blotter"];
+    const treasurerTabs = [
+        "overview",
+        "barangayclearance",
+        "businesspermit",
+        "blotterreport",
+        "transactions",
+    ];
 
     // Check if current tab is valid for user's role
     const isValidTab = () => {
@@ -54,6 +61,8 @@ const PrivateRoute = () => {
                 return chairmanTabs.includes(tab);
             case "secretary":
                 return secretaryTabs.includes(tab);
+            case "treasurer":
+                return treasurerTabs.includes(tab);
             default:
                 return userTabs.includes(tab);
         }
@@ -61,6 +70,7 @@ const PrivateRoute = () => {
 
     // Get default path based on role
     const getDefaultPath = () => {
+        if (!currentUser) return "/sign-in";
         return "/dashboard?tab=overview";
     };
 
@@ -71,7 +81,7 @@ const PrivateRoute = () => {
         navigate("/sign-in");
     };
 
-    // Check for token expiration
+    // Check for token expiration and user authentication
     useEffect(() => {
         if (!currentUser) {
             navigate("/sign-in");
@@ -80,13 +90,19 @@ const PrivateRoute = () => {
 
         if (token && isTokenExpired(token)) {
             setShowExpiredDialog(true);
+            return;
         }
-    }, [currentUser, token, navigate]);
+
+        // Ensure user is redirected to overview if no tab is specified
+        if (!tab) {
+            navigate("/dashboard?tab=overview", { replace: true });
+        }
+    }, [currentUser, token, navigate, tab]);
 
     // Redirect to appropriate dashboard if tab is invalid
     useEffect(() => {
-        if (currentUser && tab && !isValidTab()) {
-            navigate(getDefaultPath());
+        if (currentUser && !isValidTab()) {
+            navigate(getDefaultPath(), { replace: true });
         }
     }, [currentUser, tab]);
 
