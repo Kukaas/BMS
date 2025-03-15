@@ -1,5 +1,8 @@
 import express from "express";
-import { getTreasurerDashboardData } from "../controllers/treasurer.controller.js";
+import {
+    getTreasurerDashboardData,
+    getTransactionHistory,
+} from "../controllers/treasurer.controller.js";
 import verifyToken from "../utils/verifyToken.js";
 
 const router = express.Router();
@@ -18,5 +21,8 @@ const verifyTreasurer = (req, res, next) => {
 
 // Get treasurer dashboard data - protected route for treasurers only
 router.get("/dashboard", verifyToken, verifyTreasurer, getTreasurerDashboardData);
+
+// Get transaction history with date filtering
+router.get("/transactions", verifyToken, verifyTreasurer, getTransactionHistory);
 
 export default router;

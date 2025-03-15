@@ -168,3 +168,149 @@ export const getTreasurerDashboardData = async (req, res) => {
         });
     }
 };
+
+// Get transaction history with date filtering
+export const getTransactionHistory = async (req, res) => {
+    try {
+        const { barangay } = req.user;
+        const { startDate, endDate } = req.query;
+
+        if (!barangay) {
+            return res.status(400).json({
+                success: false,
+                message: "Barangay information is required",
+            });
+        }
+
+        const dateFilter = {};
+        if (startDate && endDate) {
+            dateFilter.createdAt = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate),
+            };
+        }
+
+        // Fetch all document types with date filtering
+        const [barangayClearances, businessClearances, blotterReports] = await Promise.all([
+            BarangayClearance.find({
+                barangay,
+                ...dateFilter,
+            }).populate("userId", "firstName lastName"),
+            BusinessClearance.find({
+                barangay,
+                ...dateFilter,
+            }).populate("userId", "firstName lastName"),
+            BlotterReport.find({
+                barangay,
+                ...dateFilter,
+            }).populate("userId", "firstName lastName"),
+        ]);
+
+        // Combine and format all transactions
+        const allTransactions = [
+            ...barangayClearances.map((doc) => ({
+                id: doc._id,
+                requestedDocument: "Barangay Clearance",
+                amount: doc.amount || 0,
+                requestedBy: `${doc.userId.firstName} ${doc.userId.lastName}`,
+                dateRequested: doc.createdAt,
+                status: doc.status,
+                paymentDetails: {
+                    method: doc.paymentMethod,
+                    referenceNumber: doc.referenceNumber,
+                    date: doc.dateOfPayment,
+                    status: doc.paymentStatus || "Pending",
+                },
+                receipt: doc.receipt ? {
+                    filename: doc.receipt.filename,
+                    contentType: doc.receipt.contentType,
+                    data: doc.receipt.data,
+                    url: doc.receipt.data.startsWith('data:') 
+                        ? doc.receipt.data 
+                        : `data:${doc.receipt.contentType};base64,${doc.receipt.data}`
+                } : null,
+                purpose: doc.purpose,
+                address: {
+                    barangay: doc.barangay,
+                    municipality: doc.municipality,
+                    province: doc.province
+                }
+            })),
+            ...businessClearances.map((doc) => ({
+                id: doc._id,
+                requestedDocument: "Business Clearance",
+                amount: doc.amount || 0,
+                requestedBy: `${doc.userId.firstName} ${doc.userId.lastName}`,
+                dateRequested: doc.createdAt,
+                status: doc.status,
+                paymentDetails: {
+                    method: doc.paymentMethod,
+                    referenceNumber: doc.referenceNumber,
+                    date: doc.dateOfPayment,
+                    status: doc.paymentStatus || "Pending",
+                },
+                receipt: doc.receipt ? {
+                    filename: doc.receipt.filename,
+                    contentType: doc.receipt.contentType,
+                    data: doc.receipt.data,
+                    url: doc.receipt.data.startsWith('data:') 
+                        ? doc.receipt.data 
+                        : `data:${doc.receipt.contentType};base64,${doc.receipt.data}`
+                } : null,
+                businessDetails: {
+                    name: doc.businessName,
+                    type: doc.businessType,
+                    nature: doc.businessNature,
+                    address: doc.businessAddress
+                }
+            })),
+            ...blotterReports.map((doc) => ({
+                id: doc._id,
+                requestedDocument: "Blotter Report",
+                amount: doc.amount || 0,
+                requestedBy: `${doc.userId.firstName} ${doc.userId.lastName}`,
+                dateRequested: doc.createdAt,
+                status: doc.status,
+                paymentDetails: {
+                    method: doc.paymentMethod,
+                    referenceNumber: doc.referenceNumber,
+                    date: doc.dateOfPayment,
+                    status: doc.paymentStatus || "Pending",
+                },
+                receipt: doc.receipt ? {
+                    filename: doc.receipt.filename,
+                    contentType: doc.receipt.contentType,
+                    data: doc.receipt.data,
+                    url: doc.receipt.data.startsWith('data:') 
+                        ? doc.receipt.data 
+                        : `data:${doc.receipt.contentType};base64,${doc.receipt.data}`
+                } : null,
+                incidentDetails: {
+                    type: doc.incidentType,
+                    location: doc.incidentLocation,
+                    date: doc.incidentDate,
+                    description: doc.description
+                }
+            })),
+        ].sort((a, b) => b.dateRequested - a.dateRequested);
+
+        // Calculate total amount
+        const totalAmount = allTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                transactions: allTransactions,
+                totalAmount,
+                totalCount: allTransactions.length,
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching transaction history:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching transaction history",
+            error: error.message,
+        });
+    }
+};
