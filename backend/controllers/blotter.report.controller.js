@@ -6,12 +6,29 @@ import { createLog } from "./log.controller.js";
 // Create a new blotter report
 export const createBlotterReport = async (req, res, next) => {
     try {
-        const { name, evidenceFile, ...otherData } = req.body;
+        const { name, evidenceFile, receipt, ...otherData } = req.body;
+
+        console.log("Received receipt data:", receipt); // Debug log
+
+        // Validate payment info for digital payments
+        if (["GCash", "Paymaya"].includes(otherData.paymentMethod) && !otherData.referenceNumber) {
+            return res.status(400).json({
+                success: false,
+                message: "Reference number is required for digital payments",
+            });
+        }
+
+        // Check receipt data
+        if (!receipt || !receipt.data) {
+            return res.status(400).json({
+                success: false,
+                message: "Receipt image is required",
+            });
+        }
 
         // Create report object with all required fields
         const blotterReport = new BlotterReport({
             ...otherData,
-            // Store the evidence file directly
             evidenceFile: evidenceFile
                 ? {
                       filename: evidenceFile.filename,
@@ -19,10 +36,14 @@ export const createBlotterReport = async (req, res, next) => {
                       data: evidenceFile.data,
                   }
                 : null,
+            receipt: {
+                filename: receipt.filename,
+                contentType: receipt.contentType,
+                data: receipt.data,
+            },
             userId: req.user.id,
-            // Ensure date is properly formatted
             incidentDate: new Date(otherData.incidentDate),
-            // Set default actionRequested if not provided
+            dateOfPayment: otherData.dateOfPayment ? new Date(otherData.dateOfPayment) : new Date(),
             actionRequested: otherData.actionRequested || "Mediation",
         });
 

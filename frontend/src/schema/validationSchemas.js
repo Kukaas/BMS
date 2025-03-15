@@ -179,6 +179,28 @@ export const blotterReportSchema = z.object({
     actionRequested: z.enum(["Mediation", "Barangay Intervention", "Police/Court Action"], {
         required_error: "Please select an action",
     }),
+
+    // Add Payment Information validation
+    amount: z.number().min(100).max(100, "Amount must be exactly PHP 100"),
+    paymentMethod: z.enum(["Cash", "GCash", "Paymaya"], {
+        required_error: "Payment method is required",
+    }),
+    referenceNumber: z
+        .string()
+        .optional()
+        .refine((val) => {
+            if (!val) return true;
+            return val.length > 0;
+        }, "Reference number is required for digital payments"),
+    dateOfPayment: z.string().min(1, "Date of payment is required"),
+    receipt: z
+        .object({
+            filename: z.string().min(1, "Receipt filename is required"),
+            contentType: z.string().min(1, "Receipt content type is required"),
+            data: z.string().min(1, "Receipt data is required"),
+        })
+        .nullable()
+        .optional(),
 });
 
 export const officialSchema = z.object({

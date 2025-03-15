@@ -216,6 +216,72 @@ export function BlotterDetailsView({ blotter, handleDownload, handleStatusChange
                 </div>
             )}
 
+            {/* Payment Information Section */}
+            <div className="space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground">Payment Information</h3>
+                <div className="grid grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                    <div className="space-y-1">
+                        <span className="text-sm text-muted-foreground">Amount Paid</span>
+                        <p className="font-medium">PHP {blotter.amount?.toFixed(2)}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <span className="text-sm text-muted-foreground">Payment Method</span>
+                        <p className="font-medium">{blotter.paymentMethod}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <span className="text-sm text-muted-foreground">Date of Payment</span>
+                        <p className="font-medium">
+                            {new Date(blotter.dateOfPayment).toLocaleDateString()}
+                        </p>
+                    </div>
+                    {blotter.referenceNumber && (
+                        <div className="space-y-1">
+                            <span className="text-sm text-muted-foreground">Reference Number</span>
+                            <p className="font-medium">{blotter.referenceNumber}</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Receipt Preview */}
+                {blotter.receipt && (
+                    <div className="mt-4">
+                        <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                            Payment Receipt
+                        </h4>
+                        <div className="flex gap-2">
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm">
+                                        <Eye className="h-4 w-4 mr-2" />
+                                        View Receipt
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl">
+                                    <DialogHeader>
+                                        <DialogTitle>Payment Receipt</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="relative w-full aspect-video">
+                                        <img
+                                            src={blotter.receipt.data}
+                                            alt="Receipt"
+                                            className="w-full h-full object-contain rounded-md"
+                                        />
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => downloadEvidence(blotter.receipt)}
+                            >
+                                <Download className="h-4 w-4 mr-2" />
+                                Download Receipt
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
             {/* Status Update Section */}
             <div className="border-t pt-6">
                 <div className="flex items-center justify-between">
