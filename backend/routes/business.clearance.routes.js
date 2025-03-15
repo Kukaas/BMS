@@ -4,6 +4,7 @@ import {
     getUserBusinessClearances,
     getAllBusinessClearances,
     updateBusinessClearanceStatus,
+    printBusinessClearance,
 } from "../controllers/business.clearance.controller.js";
 import verifyToken from "../utils/verifyToken.js";
 
@@ -24,5 +25,8 @@ router.get("/all", verifyToken, getAllBusinessClearances);
 // Update business clearance status (admin only)
 // PUT /api/business-clearance/status/:id
 router.put("/status/:id", verifyToken, updateBusinessClearanceStatus);
+
+// Print business clearance
+router.get("/:id/print", verifyToken, printBusinessClearance);
 
 export default router;

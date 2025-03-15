@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STATUS_TYPES } from "@/lib/constants"; // Update import path
 import { generateIndigencyTemplate } from "@/components/templates/BarangayIndigencyTemplate";
 import { generateClearanceTemplate } from "@/components/templates/BarangayClearanceTemplate";
+import { generateBusinessClearanceTemplate } from "@/components/templates/BusinessClearanceTemplate";
 import { format } from "date-fns";
 
 export function DocumentRequestSecretary() {
@@ -172,13 +173,13 @@ export function DocumentRequestSecretary() {
             }
 
             setUpdating(true);
-            
+
             // Convert document type to route format
             const typeToRoute = {
                 "Barangay Clearance": "barangay-clearance",
                 "Barangay Indigency": "barangay-indigency",
                 "Business Clearance": "business-clearance",
-                "Cedula": "cedula"
+                Cedula: "cedula",
             };
 
             const typeSlug = typeToRoute[requestType];
@@ -294,9 +295,13 @@ export function DocumentRequestSecretary() {
             // Set printing state for this specific request
             setPrintingStates((prev) => ({ ...prev, [request.id]: true }));
 
-            if (!["Barangay Indigency", "Barangay Clearance"].includes(request.type)) {
+            if (
+                !["Barangay Indigency", "Barangay Clearance", "Business Clearance"].includes(
+                    request.type
+                )
+            ) {
                 toast.error(
-                    "Print functionality is only available for Barangay Indigency and Clearance"
+                    "Print functionality is only available for Barangay Indigency, Clearance, and Business Clearance"
                 );
                 return;
             }
@@ -330,6 +335,11 @@ export function DocumentRequestSecretary() {
                 });
             } else if (request.type === "Barangay Clearance") {
                 printContent = generateClearanceTemplate(document, officials, {
+                    ...currentUser,
+                    barangayCaptain: barangayChairman?.name || currentUser?.barangayCaptain,
+                });
+            } else if (request.type === "Business Clearance") {
+                printContent = generateBusinessClearanceTemplate(document, {
                     ...currentUser,
                     barangayCaptain: barangayChairman?.name || currentUser?.barangayCaptain,
                 });
