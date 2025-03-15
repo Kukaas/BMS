@@ -23,6 +23,7 @@ import dashboardRoutes from "./routes/dashboard.routes.js";
 import officialsRoutes from "./routes/official.routes.js";
 import upcomingEventsRoutes from "./routes/upcoming.events.routes.js";
 import residentRoutes from "./routes/resident.routes.js";
+import treasurerRoutes from "./routes/treasurer.routes.js";
 
 const app = express();
 dotenv.config();
@@ -133,5 +134,6 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/officials", officialsRoutes);
 app.use("/api/upcoming-events", upcomingEventsRoutes);
 app.use("/api/residents", residentRoutes);
+app.use("/api/treasurer", treasurerRoutes);
 
 export default app;
