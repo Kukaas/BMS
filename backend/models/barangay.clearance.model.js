@@ -110,6 +110,17 @@ const barangayClearanceSchema = new mongoose.Schema(
             required: true,
             enum: ["Single", "Married", "Widowed", "Separated"],
         },
+        // Add OR Number field
+        orNumber: {
+            type: String,
+            default: null,
+        },
+
+        // Add field to track who processed the request
+        treasurerName: {
+            type: String,
+            default: null,
+        },
     },
     { timestamps: true }
 );
