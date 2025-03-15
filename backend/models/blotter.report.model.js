@@ -49,6 +49,33 @@ const blotterReportSchema = new mongoose.Schema(
             enum: ["Mediation", "Barangay Intervention", "Police/Court Action"],
         },
 
+        // Payment Information
+        amount: {
+            type: Number,
+            required: true,
+            default: 100, // Fixed processing fee for blotter reports
+        },
+        paymentMethod: {
+            type: String,
+            required: true,
+            enum: ["Cash", "GCash", "Paymaya"],
+        },
+        referenceNumber: {
+            type: String,
+            required: function () {
+                return ["GCash", "Paymaya"].includes(this.paymentMethod);
+            },
+        },
+        dateOfPayment: {
+            type: Date,
+            required: true,
+        },
+        receipt: {
+            filename: String,
+            contentType: String,
+            data: String,
+        },
+
         // Status
         status: {
             type: String,
