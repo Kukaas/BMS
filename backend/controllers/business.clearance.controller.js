@@ -242,3 +242,37 @@ export const updateBusinessClearanceStatus = async (req, res, next) => {
         next(error);
     }
 };
+
+export const printBusinessClearance = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { barangay } = req.user;
+
+        const clearance = await BusinessClearance.findOne({
+            _id: id,
+            barangay,
+        }).populate("userId", "firstName middleName lastName");
+
+        if (!clearance) {
+            return res.status(404).json({
+                success: false,
+                message: "Business Clearance document not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                ...clearance.toObject(),
+                dateIssued: clearance.dateApproved || clearance.createdAt,
+                type: "Business Clearance",
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching business clearance document:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching business clearance document",
+        });
+    }
+};

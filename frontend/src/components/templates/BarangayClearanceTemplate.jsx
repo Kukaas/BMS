@@ -177,10 +177,9 @@ export const generateClearanceTemplate = (document, officials, currentUser) => {
 
                         <!-- Footer Section -->
                         <div class="space-y-1 mb-10">
-                            <p>CTC NO:____________</p>
                             <p class="text-base"><span class="font-bold">Issued at:</span> <u>${document.barangay}, Gasan, Marinduque</u></p>
                             <p class="text-base"><span class="font-bold">Issued on:</span> <u>${format(dateIssued, "MMMM dd, yyyy")}</u></p>
-                            <p>OR no:______________</p>
+                            <p>OR no: <span class="underline">${document.orNumber}</span></p>
                         </div>
 
                         <!-- Chairman Signature -->
