@@ -75,7 +75,7 @@ export const createSecretaryAccount = async (req, res, next) => {
         // Send verification email with password
         await sendVerificationEmail(savedUser, res, generatedPassword);
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             message: "Secretary account created successfully! Please check email for verification.",
             data: savedUser,
@@ -146,7 +146,7 @@ export const createCaptainAccount = async (req, res, next) => {
         // Send verification email with password
         await sendVerificationEmail(savedUser, res, generatedPassword);
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             message: "Chairman account created successfully! Please check email for verification.",
             data: savedUser,
@@ -217,7 +217,7 @@ export const createSuperAdminAccount = async (req, res, next) => {
         // Send verification email with password
         await sendVerificationEmail(savedUser, res, generatedPassword);
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             message:
                 "Super Admin account created successfully! Please check email for verification.",

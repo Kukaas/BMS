@@ -20,19 +20,19 @@ export const sendVerificationEmail = async (user, res, generatedPassword = null)
         const url = `http://localhost:5000/api/auth/verify/${uniqueString}/${userId}`;
 
         // Password section for specific roles
+        const allowedRoles = ["secretary", "superAdmin", "chairman", "treasurer"];
         const passwordSection =
-            (user.role === "secretary" || user.role === "chairman" || user.role === "superAdmin") &&
-            generatedPassword
+            allowedRoles.includes(user.role) && generatedPassword
                 ? `
-                <div style="margin: 30px 0; padding: 20px; background-color: #fef3c7; border-radius: 8px; border: 1px solid #f59e0b;">
-                    <p style="margin: 0; color: #92400e; font-size: 14px;">
-                        <strong>Your Account Credentials:</strong><br>
-                        Email: ${user.email}<br>
-                        Password: ${generatedPassword}<br><br>
-                        Please change this password after your first login for security purposes.
-                    </p>
-                </div>
-            `
+            <div style="margin: 30px 0; padding: 20px; background-color: #fef3c7; border-radius: 8px; border: 1px solid #f59e0b;">
+                <p style="margin: 0; color: #92400e; font-size: 14px;">
+                    <strong>Your Account Credentials:</strong><br>
+                    Email: ${user.email}<br>
+                    Password: ${generatedPassword}<br><br>
+                    Please change this password after your first login for security purposes.
+                </p>
+            </div>
+        `
                 : "";
 
         const mailOptions = {
@@ -82,7 +82,8 @@ export const sendVerificationEmail = async (user, res, generatedPassword = null)
         });
 
         await transporter.sendMail(mailOptions);
-        return res.status(201).json({ message: "Verification email sent successfully." });
+        // Don't send response here, just return
+        return true;
     } catch (error) {
         console.error("Error sending verification email:", error);
         try {
@@ -90,7 +91,7 @@ export const sendVerificationEmail = async (user, res, generatedPassword = null)
         } catch (cleanupError) {
             console.error("Error during cleanup:", cleanupError);
         }
-        return res.status(500).json({ message: "Failed to send verification email." });
+        throw error; // Throw the error to be handled by the calling function
     }
 };
 
