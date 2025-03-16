@@ -20,7 +20,6 @@ import BusinessClearanceForm from "./RequestForm/BusinessClearanceForm";
 const documentTypes = [
     "Barangay Clearance",
     "Barangay Indigency",
-    "Cedula",
     "Barangay Business Permit Clearance",
 ];
 
