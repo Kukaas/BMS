@@ -12,7 +12,7 @@ export const barangayClearanceSchema = z.object({
     barangay: z.string().optional(),
     purok: z.string().optional(),
     dateOfBirth: z.string().optional(),
-    amount: z.number().min(50).max(50, "Amount must be exactly PHP 50"),
+    amount: z.number(),
     paymentMethod: z.enum(["Cash", "GCash", "Paymaya"], {
         required_error: "Payment method is required",
     }),
