@@ -23,6 +23,41 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
     const [treasurer, setTreasurer] = useState(null);
     const [receiptPreview, setReceiptPreview] = useState(null);
 
+    const getAmountByBarangayAndPurpose = (barangay, purpose) => {
+        if (!barangay || !purpose) return 100; // Default amount
+
+        // Base amount for all barangays
+        const baseAmount = 100;
+        
+        // Special case for Mangiliol
+        if (barangay === "Mangiliol") {
+            return 350;
+        }
+
+        // Purpose multipliers
+        const purposeMultipliers = {
+            "Renewal of Permit": 1,
+            "New Business": 1.5,
+            "Change of Business Name": 1.2,
+            "Change of Location": 1.3,
+            "Additional Business Activity": 1.4,
+        };
+
+        // Calculate final amount
+        const multiplier = purposeMultipliers[purpose] || 1;
+        const calculatedAmount = Math.round(baseAmount * multiplier);
+        
+        console.log("Amount calculation:", {
+            barangay,
+            purpose,
+            baseAmount,
+            multiplier,
+            calculatedAmount
+        });
+
+        return calculatedAmount;
+    };
+
     const {
         register,
         handleSubmit,
@@ -34,25 +69,27 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
         defaultValues: {
             userId: currentUser?._id || "",
             // Business Owner Information
-            ownerName: `${currentUser?.firstName || ""} ${currentUser?.middleName ? currentUser?.middleName + " " : ""}${currentUser?.lastName || ""}`.trim(),
+            ownerName:
+                `${currentUser?.firstName || ""} ${currentUser?.middleName ? currentUser?.middleName + " " : ""}${currentUser?.lastName || ""}`.trim(),
             contactNumber: currentUser?.contactNumber || "",
             email: currentUser?.email || "",
-            
+
             // Business Information
             businessName: initialData?.businessName || "",
             businessType: initialData?.businessType || "",
             businessNature: initialData?.businessNature || "",
             businessLocation: initialData?.businessLocation || "",
-            operatorManager: `${currentUser?.firstName || ""} ${currentUser?.middleName ? currentUser?.middleName + " " : ""}${currentUser?.lastName || ""}`.trim(),
-            
+            operatorManager:
+                `${currentUser?.firstName || ""} ${currentUser?.middleName ? currentUser?.middleName + " " : ""}${currentUser?.lastName || ""}`.trim(),
+
             // Location
             barangay: currentUser?.barangay || "",
             municipality: "",
             province: "",
-            
+
             // Purpose
             purpose: initialData?.purpose || "",
-            
+
             // Required Documents
             dtiSecRegistration: initialData?.dtiSecRegistration || "",
             barangayClearance: initialData?.barangayClearance || "",
@@ -61,9 +98,9 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
             leaseContract: initialData?.leaseContract || "",
             fireSafetyCertificate: initialData?.fireSafetyCertificate || "",
             sanitaryPermit: initialData?.sanitaryPermit || "",
-            
+
             // Payment Information
-            amount: 100,
+            amount: getAmountByBarangayAndPurpose(currentUser?.barangay, initialData?.purpose) || 0,
             paymentMethod: "",
             referenceNumber: "",
             dateOfPayment: "",
@@ -72,6 +109,7 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
     });
 
     const paymentMethod = watch("paymentMethod");
+    const purpose = watch("purpose");
 
     useEffect(() => {
         const fetchTreasurer = async () => {
@@ -93,21 +131,28 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
     // Watch form values and notify parent component of changes
     const formValues = watch();
     useEffect(() => {
-        if (formValues) {
-            onDataChange?.(formValues);
-        }
-    }, [formValues, onDataChange]);
+        const subscription = watch((value) => {
+            onDataChange?.(value);
+        });
+        return () => subscription.unsubscribe();
+    }, [watch, onDataChange]);
 
     // Update form when user changes
     useEffect(() => {
         if (currentUser) {
             setValue("userId", currentUser._id || "");
-            setValue("ownerName", `${currentUser.firstName || ""} ${currentUser.middleName ? currentUser.middleName + " " : ""}${currentUser.lastName || ""}`.trim());
+            setValue(
+                "ownerName",
+                `${currentUser.firstName || ""} ${currentUser.middleName ? currentUser.middleName + " " : ""}${currentUser.lastName || ""}`.trim()
+            );
             setValue("email", currentUser.email || "");
             setValue("contactNumber", currentUser.contactNumber || "");
             setValue("barangay", currentUser.barangay || "");
             // Set initial value for operator/manager
-            setValue("operatorManager", `${currentUser.firstName || ""} ${currentUser.middleName ? currentUser.middleName + " " : ""}${currentUser.lastName || ""}`.trim());
+            setValue(
+                "operatorManager",
+                `${currentUser.firstName || ""} ${currentUser.middleName ? currentUser.middleName + " " : ""}${currentUser.lastName || ""}`.trim()
+            );
         }
     }, [currentUser, setValue]);
 
@@ -128,6 +173,20 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
         }
     }, [initialData, setValue]);
 
+    // Update the purpose effect to handle initialData
+    useEffect(() => {
+        if (purpose && currentUser?.barangay) {
+            const newAmount = getAmountByBarangayAndPurpose(currentUser.barangay, purpose);
+            setValue("amount", Number(newAmount));
+            console.log("Amount updated:", {
+                barangay: currentUser.barangay,
+                purpose,
+                newAmount,
+                timestamp: new Date().toISOString()
+            });
+        }
+    }, [purpose, currentUser?.barangay, setValue]);
+
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -136,7 +195,7 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                 const receiptData = {
                     filename: file.name,
                     contentType: file.type,
-                    data: reader.result.split(',')[1] // Remove the data URL prefix
+                    data: reader.result.split(",")[1], // Remove the data URL prefix
                 };
                 setValue("receipt", receiptData);
                 setReceiptPreview(reader.result);
@@ -145,38 +204,28 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
         }
     };
 
-    const handleFormSubmit = (data) => {
-        console.log("Submitting business clearance form with data:", data);
-        // Ensure receipt data is properly formatted
-        if (data.receipt) {
-            data.receipt = {
-                filename: data.receipt.filename,
-                contentType: data.receipt.contentType,
-                data: data.receipt.data
-            };
-        }
-        
-        // Construct owner's address from location fields
-        const ownerAddress = `${data.barangay}, ${data.municipality}, ${data.province}`;
-        
-        onSubmit(
-            {
-                ...data,
-                userId: currentUser._id,
-                ownerName: `${currentUser.firstName} ${currentUser.middleName ? currentUser.middleName + " " : ""}${currentUser.lastName}`.trim(),
-                ownerAddress,
-                email: currentUser.email,
-                contactNumber: currentUser.contactNumber,
-                barangay: currentUser.barangay,
-                type: "Business Clearance",
-                dateOfPayment: new Date(data.dateOfPayment).toISOString()
-            },
-            "business-clearance"
-        );
-    };
-
     return (
-        <form id="document-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
+        <form 
+            onSubmit={handleSubmit((data) => {
+                try {
+                    // Calculate final amount
+                    const finalAmount = getAmountByBarangayAndPurpose(currentUser?.barangay, data.purpose);
+                    
+                    // Create submission data with the calculated amount
+                    const submissionData = {
+                        ...data,
+                        amount: Number(finalAmount), // Ensure it's a number
+                        userId: currentUser?._id,
+                    };
+
+                    console.log("Submitting data:", submissionData);
+                    return onSubmit(submissionData, "business-clearance");
+                } catch (error) {
+                    console.error("Form submission error:", error);
+                }
+            })} 
+            className="space-y-8"
+        >
             {/* Hidden fields */}
             <div className="hidden">
                 <input type="hidden" {...register("userId")} />
@@ -275,7 +324,7 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                 {/* Basic Business Details */}
                 <div className="space-y-4">
                     <h4 className="text-md font-medium text-gray-700">Basic Details</h4>
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="businessName">Business Name</Label>
                             <Input
@@ -377,7 +426,7 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                 {/* Contact Information */}
                 <div className="space-y-4">
                     <h4 className="text-md font-medium text-gray-700">Contact Information</h4>
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="operatorManager">Operator/Manager</Label>
                             <Input
@@ -414,7 +463,7 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                     <h4 className="text-md font-medium text-gray-700">
                         Documents and Registration
                     </h4>
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="dtiSecRegistration">DTI/SEC Registration Number</Label>
                             <Input
@@ -499,19 +548,23 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                 <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
                     Payment Information
                 </h3>
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="amount">Amount (PHP)</Label>
                         <Input
                             type="number"
                             id="amount"
-                            {...register("amount", { valueAsNumber: true })}
-                            value="100"
-                            readOnly
+                            defaultValue={getAmountByBarangayAndPurpose(currentUser?.barangay, purpose)}
+                            {...register("amount", { 
+                                setValueAs: v => Number(v),
+                                value: getAmountByBarangayAndPurpose(currentUser?.barangay, purpose)
+                            })}
                             className="bg-gray-50"
-                            disabled
+                            readOnly
                         />
-                        <p className="text-sm text-muted-foreground">Fixed processing fee</p>
+                        <p className="text-sm text-muted-foreground">
+                            Processing fee for {currentUser?.barangay} - {purpose || "Not selected"}
+                        </p>
                     </div>
 
                     <div className="space-y-2">
@@ -531,16 +584,61 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                         )}
                     </div>
 
-                    {(paymentMethod === "GCash" || paymentMethod === "Paymaya") && treasurer && (
-                        <div className="col-span-2">
+                    {paymentMethod === "Cash" && treasurer && (
+                        <div className="w-full">
                             <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100">
                                 <CardContent className="p-6">
-                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                        <div className="space-y-2">
+                                    <div className="flex flex-col gap-6">
+                                        <div className="space-y-3">
                                             <h4 className="font-semibold text-lg text-blue-800">
-                                                Send Payment To:
+                                                Cash Payment Instructions:
                                             </h4>
-                                            <div className="space-y-1">
+                                            <div className="space-y-2">
+                                                <p className="text-blue-900">
+                                                    Please visit the Barangay Treasurer of{" "}
+                                                    {currentUser.barangay} to make your payment:
+                                                </p>
+                                                <p className="text-blue-900 font-medium text-lg">
+                                                    {treasurer.name}
+                                                </p>
+                                                <p className="text-sm text-blue-600">
+                                                    Barangay Treasurer
+                                                </p>
+                                            </div>
+                                            <div className="pt-3 border-t border-blue-100">
+                                                <p className="text-lg font-semibold text-blue-800">
+                                                    Amount to Pay:
+                                                    <span className="ml-2 text-xl text-blue-900">
+                                                        ₱
+                                                        {getAmountByBarangayAndPurpose(
+                                                            currentUser?.barangay,
+                                                            purpose
+                                                        )}
+                                                        .00
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
+                    {(paymentMethod === "GCash" || paymentMethod === "Paymaya") && treasurer && (
+                        <div className="w-full">
+                            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100">
+                                <CardContent className="p-6">
+                                    <div className="flex flex-col gap-6">
+                                        <div className="space-y-3">
+                                            <h4 className="font-semibold text-lg text-blue-800">
+                                                {paymentMethod} Payment Instructions:
+                                            </h4>
+                                            <div className="space-y-2">
+                                                <p className="text-blue-900">
+                                                    Please send your payment to the Barangay
+                                                    Treasurer of {currentUser.barangay}:
+                                                </p>
                                                 <p className="text-blue-900 font-medium text-lg">
                                                     {treasurer.name}
                                                 </p>
@@ -548,14 +646,47 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                                                     <Phone className="h-4 w-4" />
                                                     <p>{treasurer.contactNumber}</p>
                                                 </div>
+                                                <div className="pt-3 border-t border-blue-100">
+                                                    <p className="text-lg font-semibold text-blue-800">
+                                                        Amount to Send:
+                                                        <span className="ml-2 text-xl text-blue-900">
+                                                            ₱
+                                                            {getAmountByBarangayAndPurpose(
+                                                                currentUser?.barangay,
+                                                                purpose
+                                                            )}
+                                                            .00
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                                <div className="mt-4 space-y-2">
+                                                    <p className="text-blue-800 font-medium">
+                                                        Steps:
+                                                    </p>
+                                                    <ol className="list-decimal list-inside space-y-1 text-blue-700">
+                                                        <li>Open your {paymentMethod} app</li>
+                                                        <li>
+                                                            Send the exact amount to the number
+                                                            above
+                                                        </li>
+                                                        <li>
+                                                            Take a screenshot of the payment
+                                                            confirmation
+                                                        </li>
+                                                        <li>
+                                                            Upload the screenshot below as your
+                                                            receipt
+                                                        </li>
+                                                    </ol>
+                                                </div>
                                             </div>
-                                            <p className="text-sm text-blue-600">
-                                                Barangay Treasurer - {currentUser.barangay}
-                                            </p>
                                         </div>
 
                                         {treasurer.qrCode && (
-                                            <div className="flex-shrink-0">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <p className="text-blue-800 font-medium">
+                                                    Or scan QR code:
+                                                </p>
                                                 <img
                                                     src={treasurer.qrCode}
                                                     alt="Payment QR Code"
@@ -594,8 +725,10 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                         </div>
                     )}
 
-                    <div className="space-y-2 col-span-2">
-                        <Label htmlFor="receipt">Upload Receipt <span className="text-red-500">*</span></Label>
+                    <div className="space-y-2">
+                        <Label htmlFor="receipt">
+                            Upload Receipt <span className="text-red-500">*</span>
+                        </Label>
                         <div className="relative h-48 border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-gray-50">
                             <input
                                 id="receipt"

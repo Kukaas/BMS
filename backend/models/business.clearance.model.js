@@ -101,7 +101,7 @@ const businessClearanceSchema = new mongoose.Schema(
         amount: {
             type: Number,
             required: true,
-            default: 100,
+            min: 0,
         },
         paymentMethod: {
             type: String,
