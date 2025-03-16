@@ -108,6 +108,14 @@ const businessClearanceSchema = new mongoose.Schema(
             enum: ["Cash", "GCash", "Paymaya"],
             required: true,
         },
+        orNumber: {
+            type: String,
+            sparse: true, // Allows null/undefined but ensures uniqueness when present
+        },
+        treasurerName: {
+            type: String,
+            sparse: true,
+        },
         referenceNumber: {
             type: String,
             required: function () {
