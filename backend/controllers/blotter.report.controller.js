@@ -171,6 +171,7 @@ export const updateBlotterReport = async (req, res, next) => {
             req.user.role === "admin" ||
             req.user.role === "secretary" ||
             req.user.role === "chairman" ||
+            req.user.role === "treasurer" ||
             report.userId.toString() === req.user.id;
 
         if (!isAuthorized) {
@@ -179,10 +180,18 @@ export const updateBlotterReport = async (req, res, next) => {
                 .json({ message: "You are not authorized to update this report" });
         }
 
+        // Check if status is being updated to "Under Investigation"
+        if (req.body.status === "Under Investigation" && !req.body.orNumber) {
+            return res.status(400).json({
+                success: false,
+                message: "OR Number is required when setting status to Under Investigation",
+            });
+        }
+
         const updatedReport = await BlotterReport.findByIdAndUpdate(
             req.params.id,
             { $set: req.body },
-            { new: true }
+            { new: true, runValidators: true } // Added runValidators to ensure mongoose validations run
         );
 
         // Create status update notification if status was changed
@@ -233,7 +242,7 @@ export const deleteBlotterReport = async (req, res, next) => {
 export const getBarangayBlotterReports = async (req, res, next) => {
     try {
         // Check if user is secretary or chairman
-        if (!["secretary", "chairman"].includes(req.user.role)) {
+        if (!["secretary", "chairman", "treasurer"].includes(req.user.role)) {
             return res.status(403).json({
                 message: "Access denied. Only secretaries and chairmen can access barangay reports",
             });

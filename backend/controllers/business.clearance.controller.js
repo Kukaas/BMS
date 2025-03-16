@@ -49,6 +49,14 @@ export const createBusinessClearance = async (req, res, next) => {
             });
         }
 
+        // Remove amount validation - accept any positive amount
+        if (typeof data.amount !== "number" || data.amount < 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid amount value",
+            });
+        }
+
         // Construct owner's address from location fields
         const ownerAddress = `${data.barangay}, ${data.municipality}, ${data.province}`;
 
@@ -56,6 +64,7 @@ export const createBusinessClearance = async (req, res, next) => {
             ...data,
             ownerAddress,
             dateOfPayment: new Date(data.dateOfPayment),
+            amount: data.amount, // Accept the amount from the frontend
         });
 
         await createLog(

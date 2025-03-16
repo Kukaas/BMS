@@ -144,7 +144,7 @@ export const generateBusinessClearanceTemplate = (document, currentUser) => {
                 <div class="w-full mt-6 flex justify-between items-end">
                     <div class="space-y-0.5">
                         <p>OR #: ${document.orNumber || "_____________"}</p>
-                        <p>Fees: ₱100.00</p>
+                        <p>Fees: ₱${document.amount.toLocaleString()}</p>
                         <p>Date: ${currentDate.toLocaleDateString()}</p>
                     </div>
                     <div class="text-center">

@@ -4,4 +4,5 @@ export const STATUS_TYPES = {
     FOR_PICKUP: "For Pickup",
     COMPLETED: "Completed",
     REJECTED: "Rejected",
+    UNDER_INVESTIGATION: "Under Investigation",
 };

@@ -49,6 +49,13 @@ const blotterReportSchema = new mongoose.Schema(
             enum: ["Mediation", "Barangay Intervention", "Police/Court Action"],
         },
 
+        orNumber: {
+            type: String,
+            required: function () {
+                return this.status === "Under Investigation";
+            },
+        },
+
         // Payment Information
         amount: {
             type: Number,

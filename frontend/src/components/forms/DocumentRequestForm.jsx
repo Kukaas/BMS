@@ -102,17 +102,36 @@ export default function DocumentRequestForm() {
     };
 
     const handleDocumentChange = (value) => {
+        setSelectedDocument(value);
+        // Don't clear form data immediately to allow for persistence
         if (value !== selectedDocument) {
-            setSelectedDocument(value);
-            setFormData(null); // Clear form data when document type changes
+            const savedState = localStorage.getItem(FORM_STATE_KEY);
+            const parsedState = savedState ? JSON.parse(savedState) : null;
+
+            if (parsedState && parsedState.selectedDocument === value) {
+                setFormData(parsedState.formData);
+            } else {
+                setFormData(null);
+            }
         }
     };
 
     const handleFormDataChange = (data) => {
-        // Only update if data has actually changed
-        if (JSON.stringify(data) !== JSON.stringify(formData)) {
-            setFormData(data);
-        }
+        setFormData((prevData) => {
+            // Only update if data has actually changed
+            if (JSON.stringify(data) !== JSON.stringify(prevData)) {
+                const newData = { ...data };
+                localStorage.setItem(
+                    FORM_STATE_KEY,
+                    JSON.stringify({
+                        selectedDocument,
+                        formData: newData,
+                    })
+                );
+                return newData;
+            }
+            return prevData;
+        });
     };
 
     const getEndpointForFormType = (formType) => {
@@ -208,7 +227,16 @@ export default function DocumentRequestForm() {
                             >
                                 Cancel
                             </Button>
-                            <Button type="submit" form="document-form" disabled={isSubmitting}>
+                            <Button
+                                type="button"
+                                onClick={() => {
+                                    const form = document.querySelector("form");
+                                    if (form) {
+                                        form.requestSubmit();
+                                    }
+                                }}
+                                disabled={isSubmitting}
+                            >
                                 {isSubmitting ? "Submitting..." : "Submit Request"}
                             </Button>
                         </div>

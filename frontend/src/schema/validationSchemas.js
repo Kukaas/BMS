@@ -146,7 +146,12 @@ export const businessClearanceSchema = z.object({
     sanitaryPermit: z.string().optional(),
 
     // Payment Information
-    amount: z.number().min(100).max(100, "Amount must be exactly PHP 100"),
+    amount: z
+        .number({
+            required_error: "Amount is required",
+            invalid_type_error: "Amount must be a number",
+        })
+        .nonnegative("Amount must be a positive number"),
     paymentMethod: z.enum(["Cash", "GCash", "Paymaya"], {
         required_error: "Payment method is required",
     }),

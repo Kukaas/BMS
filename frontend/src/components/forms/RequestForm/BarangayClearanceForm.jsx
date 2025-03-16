@@ -23,6 +23,12 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
     const [treasurer, setTreasurer] = useState(null);
     const [receiptPreview, setReceiptPreview] = useState(null);
 
+    // Move the function definition before it's used
+    const getAmountByBarangay = (barangay) => {
+        const higherFeeBarangays = ["Antipolo", "Dili", "Pangi", "Bangbang", "Tapuyan", "Masiga"];
+        return higherFeeBarangays.includes(barangay) ? 100 : 50;
+    };
+
     const {
         register,
         handleSubmit,
@@ -48,7 +54,7 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
             civilStatus: "",
             paymentMethod: "",
             dateOfPayment: "",
-            amount: 50,
+            amount: getAmountByBarangay(currentUser?.barangay),
             name: `${currentUser?.firstName || ""} ${currentUser?.middleName ? currentUser?.middleName + " " : ""}${currentUser?.lastName || ""}`.trim(),
         },
     });
@@ -346,19 +352,21 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
             {/* Payment Section */}
             <div className="space-y-4">
                 <h3 className="text-lg font-medium">Payment Information</h3>
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <Label htmlFor="amount">Amount (PHP)</Label>
                         <Input
                             type="number"
                             id="amount"
                             {...register("amount", { valueAsNumber: true })}
-                            value="50"
+                            value={getAmountByBarangay(currentUser?.barangay)}
                             readOnly
                             className="bg-gray-50"
                             disabled
                         />
-                        <p className="text-sm text-muted-foreground">Fixed processing fee</p>
+                        <p className="text-sm text-muted-foreground">
+                            Processing fee for {currentUser?.barangay}
+                        </p>
                     </div>
 
                     <div className="space-y-2">
@@ -378,16 +386,58 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
                         )}
                     </div>
 
-                    {(paymentMethod === "GCash" || paymentMethod === "Paymaya") && treasurer && (
-                        <div className="col-span-2">
+                    {paymentMethod === "Cash" && treasurer && (
+                        <div className="col-span-1 md:col-span-2">
                             <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100">
                                 <CardContent className="p-6">
-                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                        <div className="space-y-2">
+                                    <div className="flex flex-col gap-4">
+                                        <div className="space-y-3">
                                             <h4 className="font-semibold text-lg text-blue-800">
-                                                Send Payment To:
+                                                Cash Payment Instructions:
                                             </h4>
-                                            <div className="space-y-1">
+                                            <div className="space-y-2">
+                                                <p className="text-blue-900">
+                                                    Please visit the Barangay Treasurer of{" "}
+                                                    {currentUser.barangay} to make your payment:
+                                                </p>
+                                                <p className="text-blue-900 font-medium text-lg">
+                                                    {treasurer.name}
+                                                </p>
+                                                <p className="text-sm text-blue-600">
+                                                    Barangay Treasurer
+                                                </p>
+                                            </div>
+                                            <div className="pt-3 border-t border-blue-100">
+                                                <p className="text-lg font-semibold text-blue-800">
+                                                    Amount to Pay:
+                                                    <span className="ml-2 text-xl text-blue-900">
+                                                        ₱
+                                                        {getAmountByBarangay(currentUser?.barangay)}
+                                                        .00
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
+                    {(paymentMethod === "GCash" || paymentMethod === "Paymaya") && treasurer && (
+                        <div className="col-span-1 md:col-span-2">
+                            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100">
+                                <CardContent className="p-6">
+                                    <div className="flex flex-col gap-6">
+                                        <div className="space-y-3">
+                                            <h4 className="font-semibold text-lg text-blue-800">
+                                                {paymentMethod} Payment Instructions:
+                                            </h4>
+                                            <div className="space-y-2">
+                                                <p className="text-blue-900">
+                                                    Please send your payment to the Barangay
+                                                    Treasurer of {currentUser.barangay}:
+                                                </p>
                                                 <p className="text-blue-900 font-medium text-lg">
                                                     {treasurer.name}
                                                 </p>
@@ -395,14 +445,46 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
                                                     <Phone className="h-4 w-4" />
                                                     <p>{treasurer.contactNumber}</p>
                                                 </div>
+                                                <div className="pt-3 border-t border-blue-100">
+                                                    <p className="text-lg font-semibold text-blue-800">
+                                                        Amount to Send:
+                                                        <span className="ml-2 text-xl text-blue-900">
+                                                            ₱
+                                                            {getAmountByBarangay(
+                                                                currentUser?.barangay
+                                                            )}
+                                                            .00
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                                <div className="mt-4 space-y-2">
+                                                    <p className="text-blue-800 font-medium">
+                                                        Steps:
+                                                    </p>
+                                                    <ol className="list-decimal list-inside space-y-1 text-blue-700">
+                                                        <li>Open your {paymentMethod} app</li>
+                                                        <li>
+                                                            Send the exact amount to the number
+                                                            above
+                                                        </li>
+                                                        <li>
+                                                            Take a screenshot of the payment
+                                                            confirmation
+                                                        </li>
+                                                        <li>
+                                                            Upload the screenshot below as your
+                                                            receipt
+                                                        </li>
+                                                    </ol>
+                                                </div>
                                             </div>
-                                            <p className="text-sm text-blue-600">
-                                                Barangay Treasurer - {currentUser.barangay}
-                                            </p>
                                         </div>
 
                                         {treasurer.qrCode && (
-                                            <div className="flex-shrink-0">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <p className="text-blue-800 font-medium">
+                                                    Or scan QR code:
+                                                </p>
                                                 <img
                                                     src={treasurer.qrCode}
                                                     alt="Payment QR Code"
@@ -441,7 +523,7 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
                         </div>
                     )}
 
-                    <div className="space-y-2 col-span-2">
+                    <div className="col-span-1 md:col-span-2">
                         <Label htmlFor="receipt">Upload Receipt</Label>
                         <div className="relative h-48 border-2 border-dashed rounded-lg p-4 flex items-center justify-center bg-gray-50">
                             <input
