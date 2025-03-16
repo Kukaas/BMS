@@ -215,8 +215,52 @@ export const getAllDocumentRequests = async (req, res, next) => {
                 id: doc._id.toString(),
                 _id: doc._id.toString(),
                 type: "Business Clearance",
-                ...doc.toObject(),
                 requestDate: doc.createdAt,
+                // Business Information
+                businessName: doc.businessName,
+                businessType: doc.businessType,
+                businessNature: doc.businessNature,
+                businessLocation: doc.businessLocation,
+                operatorManager: doc.operatorManager,
+                // Owner Information
+                ownerName: doc.ownerName,
+                contactNumber: doc.contactNumber,
+                email: doc.email,
+                // Location
+                barangay: doc.barangay,
+                municipality: doc.municipality,
+                province: doc.province,
+                // Purpose and Documents
+                purpose: doc.purpose,
+                dtiSecRegistration: doc.dtiSecRegistration,
+                barangayClearance: doc.barangayClearance,
+                validId: doc.validId,
+                mayorsPermit: doc.mayorsPermit,
+                leaseContract: doc.leaseContract,
+                fireSafetyCertificate: doc.fireSafetyCertificate,
+                sanitaryPermit: doc.sanitaryPermit,
+                // Payment Information
+                amount: doc.amount,
+                paymentMethod: doc.paymentMethod,
+                referenceNumber: doc.referenceNumber,
+                dateOfPayment: doc.dateOfPayment,
+                receipt: doc.receipt
+                    ? {
+                          filename: doc.receipt.filename,
+                          contentType: doc.receipt.contentType,
+                          data: doc.receipt.data,
+                      }
+                    : null,
+                orNumber: doc.orNumber,
+                treasurerName: doc.treasurerName,
+                // Status Information
+                status: doc.status,
+                isVerified: doc.isVerified,
+                dateApproved: doc.dateApproved,
+                dateCompleted: doc.dateCompleted,
+                dateOfIssuance: doc.dateOfIssuance,
+                createdAt: doc.createdAt,
+                updatedAt: doc.updatedAt,
             })),
             ...cedulas.map((doc) => ({
                 id: doc._id.toString(),
@@ -428,20 +472,54 @@ export const createCedula = async (req, res, next) => {
 
 export const updateBusinessClearanceStatus = async (req, res, next) => {
     try {
-        const { status, secretaryName } = req.body;
-        const approver = secretaryName || req.user.name;
+        const { id } = req.params;
+        const { status, treasurerName, orNumber } = req.body;
 
-        const document = await updateDocumentStatus(
-            BusinessClearance,
-            "Business Clearance",
-            req.params.id,
+        const businessClearance = await BusinessClearance.findById(id);
+        if (!businessClearance) {
+            return res.status(404).json({
+                success: false,
+                message: "Business clearance not found",
+            });
+        }
+
+        // Validate OR number when approving
+        if (status === STATUS_TYPES.APPROVED && !orNumber) {
+            return res.status(400).json({
+                success: false,
+                message: "OR number is required when approving a business clearance",
+            });
+        }
+
+        // Update the document fields
+        businessClearance.status = status;
+        businessClearance.isVerified = [
+            STATUS_TYPES.APPROVED,
+            STATUS_TYPES.FOR_PICKUP,
+            STATUS_TYPES.COMPLETED,
+        ].includes(status);
+
+        // Set OR number and treasurer name when approving
+        if (status === STATUS_TYPES.APPROVED) {
+            businessClearance.orNumber = orNumber;
+            businessClearance.treasurerName = treasurerName;
+            businessClearance.dateApproved = new Date();
+        }
+
+        await businessClearance.save();
+
+        // Create notification and update transaction history
+        await updateTransactionStatus(id, {
             status,
-            approver
-        );
+            dateApproved: businessClearance.dateApproved,
+            action: "updated",
+            approvedBy: treasurerName,
+            orNumber, // Include OR number in transaction history
+        });
 
         res.status(200).json({
             success: true,
-            data: document,
+            data: businessClearance,
         });
     } catch (error) {
         next(error);
