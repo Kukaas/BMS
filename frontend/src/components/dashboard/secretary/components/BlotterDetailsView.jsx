@@ -294,7 +294,7 @@ export function BlotterDetailsView({ blotter, handleDownload, handleStatusChange
                     <Select
                         onValueChange={(value) => handleStatusChange(blotter._id, value)}
                         defaultValue={blotter.status}
-                        disabled={updating}
+                        disabled={updating || blotter.status === "Pending"}
                     >
                         <SelectTrigger className="w-[200px]">
                             <SelectValue placeholder="Select status" />

@@ -763,7 +763,8 @@ export function DocumentDetailsView({
                         disabled={
                             updating ||
                             request.status === "Completed" ||
-                            request.status === "Rejected"
+                            request.status === "Rejected" ||
+                            request.status === "Pending"
                         }
                     >
                         <SelectTrigger className="w-full sm:w-[200px]">
