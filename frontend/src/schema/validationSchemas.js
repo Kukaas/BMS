@@ -156,12 +156,7 @@ export const businessClearanceSchema = z.object({
         required_error: "Payment method is required",
     }),
     referenceNumber: z
-        .string()
-        .optional()
-        .refine((val) => {
-            if (!val) return true;
-            return val.length > 0;
-        }, "Reference number is required for digital payments"),
+        .string(),
     dateOfPayment: z.string().min(1, "Date of payment is required"),
     receipt: z.object({
         filename: z.string().min(1, "Receipt filename is required"),
