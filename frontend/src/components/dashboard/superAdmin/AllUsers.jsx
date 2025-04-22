@@ -270,7 +270,15 @@ export function UserManagementDashboard() {
                 .sort((a, b) => a.name.localeCompare(b.name));
             setBarangays(filteredBarangays);
         } catch (error) {
-            console.error(error);
+            console.error("Failed to fetch from API, using fallback data:", error);
+            // Create fallback data using the allowedBarangays array
+            const fallbackBarangays = allowedBarangays
+                .map((name) => ({
+                    name,
+                    code: name.toLowerCase().replace(/\s+/g, "-"),
+                }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+            setBarangays(fallbackBarangays);
         }
     };
 

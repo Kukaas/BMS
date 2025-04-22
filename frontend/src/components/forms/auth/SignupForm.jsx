@@ -108,6 +108,13 @@ export function SignupForm({ className }) {
             setBarangays(filteredBarangays);
         } catch (error) {
             console.error(error);
+            const fallbackBarangays = allowedBarangays
+                .map((name) => ({
+                    name,
+                    code: name.toLowerCase().replace(/\s+/g, "-"),
+                }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+            setBarangays(fallbackBarangays);
         }
     };
 
