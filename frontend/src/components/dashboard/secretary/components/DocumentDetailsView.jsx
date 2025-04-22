@@ -15,6 +15,7 @@ import {
     CreditCard,
     Wallet,
     Building2,
+    Loader2,
     Eye,
     Download,
     ZoomIn,
@@ -46,6 +47,16 @@ import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { STATUS_TYPES } from "@/lib/constants";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function DocumentDetailsView({
     request,
@@ -60,6 +71,8 @@ export function DocumentDetailsView({
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [activeTab, setActiveTab] = useState("details");
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [pendingStatus, setPendingStatus] = useState(null);
     const containerRef = useRef(null);
 
     // Image manipulation functions
@@ -189,6 +202,22 @@ export function DocumentDetailsView({
         }
 
         return tabs;
+    };
+
+    const handleStatusUpdate = (value) => {
+        setPendingStatus(value);
+        setShowConfirmation(true);
+    };
+
+    const confirmStatusChange = () => {
+        const requestId = request.id || request._id;
+        if (!requestId) {
+            console.error("Missing request ID:", request);
+            toast.error("Cannot update status: Request ID is missing");
+            return;
+        }
+        handleStatusChange(requestId.toString(), request.type, pendingStatus);
+        setShowConfirmation(false);
     };
 
     return (
@@ -750,19 +779,15 @@ export function DocumentDetailsView({
                         </p>
                     </div>
                     <Select
-                        onValueChange={(value) => {
-                            const requestId = request.id || request._id;
-                            if (!requestId) {
-                                console.error("Missing request ID:", request);
-                                toast.error("Cannot update status: Request ID is missing");
-                                return;
-                            }
-                            handleStatusChange(requestId.toString(), request.type, value);
-                        }}
+                        onValueChange={handleStatusUpdate}
                         defaultValue={request.status}
                         disabled={
                             updating ||
-                            (request.type === "Barangay Clearance" && request.status === "Pending") || (request.type === "Business Clearance" && request.status === "Pending") || request.status === "Completed"
+                            (request.type === "Barangay Clearance" &&
+                                request.status === "Pending") ||
+                            (request.type === "Business Clearance" &&
+                                request.status === "Pending") ||
+                            request.status === "Completed"
                         }
                     >
                         <SelectTrigger className="w-full sm:w-[200px]">
@@ -792,6 +817,54 @@ export function DocumentDetailsView({
                     </Select>
                 </div>
             </motion.div>
+
+            {/* Confirmation Dialog */}
+            <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+                <AlertDialogContent className="max-w-[500px] mx-auto">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Status Change</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to change the status to "{pendingStatus}"? This
+                            action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel
+                            onClick={() => !updating && setShowConfirmation(false)}
+                            disabled={updating}
+                        >
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                confirmStatusChange();
+                            }}
+                            disabled={updating}
+                            className={
+                                pendingStatus === "Rejected"
+                                    ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    : pendingStatus === "Approved"
+                                      ? "bg-green-600 text-white hover:bg-green-700"
+                                      : pendingStatus === "For Pickup"
+                                        ? "bg-blue-600 text-white hover:bg-blue-700"
+                                        : pendingStatus === "Completed"
+                                          ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                                          : ""
+                            }
+                        >
+                            {updating ? (
+                                <div className="flex items-center gap-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Updating...
+                                </div>
+                            ) : (
+                                "Confirm"
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
