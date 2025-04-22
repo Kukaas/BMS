@@ -13,7 +13,17 @@ import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import api from "@/lib/axios";
 import { logout, updateUser } from "@/redux/user/userSlice";
-import { Lock, Menu, User, Edit2 } from "lucide-react";
+import {
+    Lock,
+    Menu,
+    User,
+    Edit2,
+    Shield,
+    KeyRound,
+    CheckCircle2,
+    ShieldOff,
+    Mail,
+} from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -39,6 +49,7 @@ import {
     AlertDialogCancel,
     AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { MFAVerificationDialog } from "@/components/forms/auth/MFAVerificationDialog";
 
 const profileSchema = z.object({
     firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -59,6 +70,11 @@ export function Header() {
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+    const [verifyMFADialog, setVerifyMFADialog] = useState({ isOpen: false, onVerify: null });
+    const [mfaConfirmDialog, setMfaConfirmDialog] = useState({
+        isOpen: false,
+        type: null, // 'enable' or 'disable'
+    });
 
     const form = useForm({
         resolver: zodResolver(profileSchema),
@@ -358,10 +374,13 @@ export function Header() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* Contact Information Section */}
                                     <div className="space-y-4">
-                                        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                                            Contact Information
-                                        </h3>
-                                        <div className="space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <Mail className="h-4 w-4 text-green-600" />
+                                            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                                Contact Information
+                                            </h3>
+                                        </div>
+                                        <div className="bg-white rounded-lg p-4 border border-gray-200 space-y-3">
                                             <div className="flex flex-col">
                                                 <span className="text-sm text-gray-500">Email</span>
                                                 <span className="text-sm font-medium text-gray-900">
@@ -381,10 +400,13 @@ export function Header() {
 
                                     {/* Personal Information Section */}
                                     <div className="space-y-4">
-                                        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                                            Personal Information
-                                        </h3>
-                                        <div className="space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <User className="h-4 w-4 text-green-600" />
+                                            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                                Personal Information
+                                            </h3>
+                                        </div>
+                                        <div className="bg-white rounded-lg p-4 border border-gray-200 space-y-3">
                                             <div className="flex flex-col">
                                                 <span className="text-sm text-gray-500">
                                                     Date of Birth
@@ -414,7 +436,92 @@ export function Header() {
                                     </div>
                                 </div>
 
-                                {/* Move edit button to bottom */}
+                                <div className="mt-8 border-t pt-8">
+                                    <div className="flex items-center gap-2 mb-6">
+                                        <Shield className="h-5 w-5 text-green-600" />
+                                        <h3 className="text-base font-semibold text-gray-900">
+                                            Security Settings
+                                        </h3>
+                                    </div>
+                                    <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                                        <div className="flex items-start justify-between">
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <KeyRound className="h-5 w-5 text-green-600" />
+                                                    <h4 className="text-base font-medium text-gray-900">
+                                                        Two-Factor Authentication
+                                                    </h4>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {currentUser?.mfaEnabled ? (
+                                                        <div className="flex items-center gap-2 text-sm text-green-600">
+                                                            <CheckCircle2 className="h-4 w-4" />
+                                                            <span>
+                                                                Your account is protected with 2FA
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-sm text-gray-600">
+                                                            Add additional security to your account
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            {currentUser?.mfaEnabled ? (
+                                                <Button
+                                                    onClick={() =>
+                                                        setMfaConfirmDialog({
+                                                            isOpen: true,
+                                                            type: "disable",
+                                                        })
+                                                    }
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    className="h-9"
+                                                    disabled={isLoading}
+                                                >
+                                                    {isLoading ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                                            <span>Disabling...</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-2">
+                                                            <ShieldOff className="h-4 w-4" />
+                                                            <span>Disable 2FA</span>
+                                                        </div>
+                                                    )}
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    onClick={() =>
+                                                        setMfaConfirmDialog({
+                                                            isOpen: true,
+                                                            type: "enable",
+                                                        })
+                                                    }
+                                                    size="sm"
+                                                    className="h-9 bg-green-600 hover:bg-green-700 text-white"
+                                                    disabled={isLoading}
+                                                >
+                                                    {isLoading ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                                            <span>Enabling...</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-2">
+                                                            <Shield className="h-4 w-4" />
+                                                            <span>Enable 2FA</span>
+                                                        </div>
+                                                    )}
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Edit Profile Button */}
                                 <div className="mt-8 flex justify-end">
                                     <Button
                                         onClick={() => setIsEditing(true)}
@@ -458,6 +565,147 @@ export function Header() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* MFA Confirmation Dialog */}
+            <AlertDialog
+                open={mfaConfirmDialog.isOpen}
+                onOpenChange={(open) => setMfaConfirmDialog((prev) => ({ ...prev, isOpen: open }))}
+            >
+                <AlertDialogContent className="max-w-[400px]">
+                    <AlertDialogHeader>
+                        <h2 className="text-lg font-semibold">
+                            {mfaConfirmDialog.type === "enable"
+                                ? "Enable Two-Factor Authentication"
+                                : "Disable Two-Factor Authentication"}
+                        </h2>
+                        <p className="text-sm text-gray-500">
+                            {mfaConfirmDialog.type === "enable"
+                                ? "Are you sure you want to enable two-factor authentication? This will add an extra layer of security to your account."
+                                : "Are you sure you want to disable two-factor authentication? This will reduce the security of your account."}
+                        </p>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel
+                            onClick={() =>
+                                setMfaConfirmDialog((prev) => ({ ...prev, isOpen: false }))
+                            }
+                        >
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={async () => {
+                                if (mfaConfirmDialog.type === "enable") {
+                                    try {
+                                        setIsLoading(true);
+                                        await api.post("/mfa/enable");
+                                        toast.success(
+                                            "Verification code sent. Please check your email."
+                                        );
+                                        setVerifyMFADialog({
+                                            isOpen: true,
+                                            onVerify: async (code) => {
+                                                try {
+                                                    setIsLoading(true);
+                                                    await api.post("/mfa/verify", {
+                                                        code,
+                                                    });
+                                                    dispatch(
+                                                        updateUser({
+                                                            ...currentUser,
+                                                            mfaEnabled: true,
+                                                        })
+                                                    );
+                                                    toast.success(
+                                                        "Two-factor authentication enabled successfully"
+                                                    );
+                                                    setVerifyMFADialog({
+                                                        isOpen: false,
+                                                    });
+                                                } catch (error) {
+                                                    toast.error(
+                                                        error.response?.data?.message ||
+                                                            "Failed to verify code"
+                                                    );
+                                                } finally {
+                                                    setIsLoading(false);
+                                                }
+                                            },
+                                        });
+                                    } catch (error) {
+                                        toast.error(
+                                            error.response?.data?.message ||
+                                                "Failed to enable two-factor authentication"
+                                        );
+                                    } finally {
+                                        setIsLoading(false);
+                                        setMfaConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+                                    }
+                                } else {
+                                    try {
+                                        setIsLoading(true);
+                                        await api.post("/mfa/initiate-disable");
+                                        toast.success(
+                                            "Verification code sent. Please check your email."
+                                        );
+                                        setVerifyMFADialog({
+                                            isOpen: true,
+                                            onVerify: async (code) => {
+                                                try {
+                                                    setIsLoading(true);
+                                                    await api.post("/mfa/disable", {
+                                                        code,
+                                                    });
+                                                    dispatch(
+                                                        updateUser({
+                                                            ...currentUser,
+                                                            mfaEnabled: false,
+                                                        })
+                                                    );
+                                                    toast.success(
+                                                        "Two-factor authentication disabled successfully"
+                                                    );
+                                                    setVerifyMFADialog({
+                                                        isOpen: false,
+                                                    });
+                                                } catch (error) {
+                                                    toast.error(
+                                                        error.response?.data?.message ||
+                                                            "Failed to verify code"
+                                                    );
+                                                } finally {
+                                                    setIsLoading(false);
+                                                }
+                                            },
+                                        });
+                                    } catch (error) {
+                                        toast.error(
+                                            error.response?.data?.message ||
+                                                "Failed to initiate two-factor authentication disable"
+                                        );
+                                    } finally {
+                                        setIsLoading(false);
+                                        setMfaConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+                                    }
+                                }
+                            }}
+                            className={
+                                mfaConfirmDialog.type === "enable"
+                                    ? "bg-green-600 text-white hover:bg-green-700"
+                                    : "bg-red-600 text-white hover:bg-red-700"
+                            }
+                        >
+                            {mfaConfirmDialog.type === "enable" ? "Enable" : "Disable"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* MFA Verification Dialog */}
+            <MFAVerificationDialog
+                isOpen={verifyMFADialog.isOpen}
+                onClose={() => setVerifyMFADialog({ isOpen: false })}
+                onVerify={verifyMFADialog.onVerify}
+            />
         </header>
     );
 }

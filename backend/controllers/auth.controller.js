@@ -112,7 +112,7 @@ export const signUp = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, mfaCode } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({
@@ -155,6 +155,35 @@ export const login = async (req, res, next) => {
             });
         }
 
+        // If MFA is enabled, handle MFA verification
+        if (user.mfaEnabled) {
+            if (!mfaCode) {
+                // If no MFA code provided, return partial success and require MFA
+                return res.status(200).json({
+                    success: true,
+                    requireMFA: true,
+                    userId: user._id,
+                    message: "MFA verification required",
+                });
+            }
+
+            // Verify MFA code
+            const otpVerification = await OTPVerification.findOne({ userId: user._id });
+            if (
+                !otpVerification ||
+                otpVerification.otp !== mfaCode ||
+                otpVerification.expiresAt < new Date()
+            ) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Invalid or expired MFA code",
+                });
+            }
+
+            // Clean up used OTP
+            await OTPVerification.deleteOne({ userId: user._id });
+        }
+
         const userData = {
             _id: user._id,
             firstName: user.firstName,
@@ -168,6 +197,7 @@ export const login = async (req, res, next) => {
             role: user.role,
             barangay: user.barangay,
             isVerified: user.isVerified,
+            mfaEnabled: user.mfaEnabled,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
         };
@@ -183,7 +213,7 @@ export const login = async (req, res, next) => {
             { expiresIn: "1d" }
         );
 
-        // Modified logging section - handle different user roles
+        // Log user activity
         if (user.role !== "superAdmin") {
             const logMessage =
                 user.role === "user"
