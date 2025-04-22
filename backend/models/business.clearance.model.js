@@ -94,7 +94,6 @@ const businessClearanceSchema = new mongoose.Schema(
         },
         mayorsPermit: String,
         leaseContract: String,
-        fireSafetyCertificate: String,
         sanitaryPermit: String,
 
         // Payment Information

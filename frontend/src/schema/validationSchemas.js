@@ -142,7 +142,6 @@ export const businessClearanceSchema = z.object({
     validId: z.string().min(1, "Valid ID information is required"),
     mayorsPermit: z.string().optional(),
     leaseContract: z.string().optional(),
-    fireSafetyCertificate: z.string().optional(),
     sanitaryPermit: z.string().optional(),
 
     // Payment Information
@@ -155,8 +154,7 @@ export const businessClearanceSchema = z.object({
     paymentMethod: z.enum(["Cash", "GCash", "Paymaya"], {
         required_error: "Payment method is required",
     }),
-    referenceNumber: z
-        .string(),
+    referenceNumber: z.string(),
     dateOfPayment: z.string().min(1, "Date of payment is required"),
     receipt: z.object({
         filename: z.string().min(1, "Receipt filename is required"),
