@@ -28,7 +28,7 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
 
         // Base amount for all barangays
         const baseAmount = 100;
-        
+
         // Special case for Mangiliol
         if (barangay === "Mangiliol") {
             return 350;
@@ -46,13 +46,13 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
         // Calculate final amount
         const multiplier = purposeMultipliers[purpose] || 1;
         const calculatedAmount = Math.round(baseAmount * multiplier);
-        
+
         console.log("Amount calculation:", {
             barangay,
             purpose,
             baseAmount,
             multiplier,
-            calculatedAmount
+            calculatedAmount,
         });
 
         return calculatedAmount;
@@ -96,7 +96,6 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
             validId: initialData?.validId || "",
             mayorsPermit: initialData?.mayorsPermit || "",
             leaseContract: initialData?.leaseContract || "",
-            fireSafetyCertificate: initialData?.fireSafetyCertificate || "",
             sanitaryPermit: initialData?.sanitaryPermit || "",
 
             // Payment Information
@@ -182,7 +181,7 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                 barangay: currentUser.barangay,
                 purpose,
                 newAmount,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
         }
     }, [purpose, currentUser?.barangay, setValue]);
@@ -205,12 +204,15 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
     };
 
     return (
-        <form 
+        <form
             onSubmit={handleSubmit((data) => {
                 try {
                     // Calculate final amount
-                    const finalAmount = getAmountByBarangayAndPurpose(currentUser?.barangay, data.purpose);
-                    
+                    const finalAmount = getAmountByBarangayAndPurpose(
+                        currentUser?.barangay,
+                        data.purpose
+                    );
+
                     // Create submission data with the calculated amount
                     const submissionData = {
                         ...data,
@@ -223,7 +225,7 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                 } catch (error) {
                     console.error("Form submission error:", error);
                 }
-            })} 
+            })}
             className="space-y-8"
         >
             {/* Hidden fields */}
@@ -511,15 +513,6 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="fireSafetyCertificate">Fire Safety Certificate</Label>
-                            <Input
-                                id="fireSafetyCertificate"
-                                {...register("fireSafetyCertificate")}
-                                placeholder="Enter certificate number"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
                             <Label htmlFor="sanitaryPermit">Sanitary Permit</Label>
                             <Input
                                 id="sanitaryPermit"
@@ -554,10 +547,16 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                         <Input
                             type="number"
                             id="amount"
-                            defaultValue={getAmountByBarangayAndPurpose(currentUser?.barangay, purpose)}
-                            {...register("amount", { 
-                                setValueAs: v => Number(v),
-                                value: getAmountByBarangayAndPurpose(currentUser?.barangay, purpose)
+                            defaultValue={getAmountByBarangayAndPurpose(
+                                currentUser?.barangay,
+                                purpose
+                            )}
+                            {...register("amount", {
+                                setValueAs: (v) => Number(v),
+                                value: getAmountByBarangayAndPurpose(
+                                    currentUser?.barangay,
+                                    purpose
+                                ),
                             })}
                             className="bg-gray-50"
                             readOnly

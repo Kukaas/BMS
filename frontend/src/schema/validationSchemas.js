@@ -12,7 +12,7 @@ export const barangayClearanceSchema = z.object({
     barangay: z.string().optional(),
     purok: z.string().optional(),
     dateOfBirth: z.string().optional(),
-    amount: z.number().min(50).max(50, "Amount must be exactly PHP 50"),
+    amount: z.number(),
     paymentMethod: z.enum(["Cash", "GCash", "Paymaya"], {
         required_error: "Payment method is required",
     }),
@@ -142,7 +142,6 @@ export const businessClearanceSchema = z.object({
     validId: z.string().min(1, "Valid ID information is required"),
     mayorsPermit: z.string().optional(),
     leaseContract: z.string().optional(),
-    fireSafetyCertificate: z.string().optional(),
     sanitaryPermit: z.string().optional(),
 
     // Payment Information
@@ -155,13 +154,7 @@ export const businessClearanceSchema = z.object({
     paymentMethod: z.enum(["Cash", "GCash", "Paymaya"], {
         required_error: "Payment method is required",
     }),
-    referenceNumber: z
-        .string()
-        .optional()
-        .refine((val) => {
-            if (!val) return true;
-            return val.length > 0;
-        }, "Reference number is required for digital payments"),
+    referenceNumber: z.string(),
     dateOfPayment: z.string().min(1, "Date of payment is required"),
     receipt: z.object({
         filename: z.string().min(1, "Receipt filename is required"),
