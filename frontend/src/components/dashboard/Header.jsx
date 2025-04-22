@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import api from "@/lib/axios";
 import { logout, updateUser } from "@/redux/user/userSlice";
-import { Lock, Menu, Search, User, Edit2 } from "lucide-react";
+import { Lock, Menu, User, Edit2 } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +31,14 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogCancel,
+    AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 const profileSchema = z.object({
     firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -50,6 +58,7 @@ export function Header() {
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
     const form = useForm({
         resolver: zodResolver(profileSchema),
@@ -82,6 +91,11 @@ export function Header() {
             console.error(error);
             toast.error("An error occurred. Please try again later");
         }
+    };
+
+    const confirmLogout = async () => {
+        setIsLogoutDialogOpen(false);
+        await handleLogout();
     };
 
     const handleUpdateProfile = async (data) => {
@@ -157,7 +171,9 @@ export function Header() {
                                 Change Password
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setIsLogoutDialogOpen(true)}>
+                                Log out
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -421,6 +437,27 @@ export function Header() {
                     userId={currentUser?._id}
                 />
             </Dialog>
+
+            {/* Logout Confirmation Dialog */}
+            <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+                <AlertDialogContent className="max-w-[400px]">
+                    <AlertDialogHeader>
+                        <h2 className="text-lg font-semibold">Confirm Logout</h2>
+                        <p className="text-sm text-gray-500">Are you sure you want to log out?</p>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setIsLogoutDialogOpen(false)}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmLogout}
+                            className="bg-green-600 text-white hover:bg-green-700"
+                        >
+                            Log out
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </header>
     );
 }
