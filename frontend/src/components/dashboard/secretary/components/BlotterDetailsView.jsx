@@ -6,6 +6,8 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogDescription,
+    DialogFooter,
 } from "@/components/ui/dialog";
 import {
     Select,
@@ -14,8 +16,22 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useState } from "react";
 
 export function BlotterDetailsView({ blotter, handleDownload, handleStatusChange, updating }) {
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [newStatus, setNewStatus] = useState(blotter.status);
+
+    const handleStatusUpdate = (value) => {
+        setNewStatus(value);
+        setIsConfirmOpen(true);
+    };
+
+    const confirmStatusChange = () => {
+        handleStatusChange(blotter._id, newStatus);
+        setIsConfirmOpen(false);
+    };
+
     const downloadEvidence = (file) => {
         // Create a link element
         const link = document.createElement("a");
@@ -290,9 +306,9 @@ export function BlotterDetailsView({ blotter, handleDownload, handleStatusChange
                         <p className="text-sm text-muted-foreground">
                             Change the current status of this blotter report
                         </p>
-                    </div>
+                    </div>{" "}
                     <Select
-                        onValueChange={(value) => handleStatusChange(blotter._id, value)}
+                        onValueChange={handleStatusUpdate}
                         defaultValue={blotter.status}
                         disabled={updating || blotter.status === "Pending"}
                     >
@@ -300,7 +316,9 @@ export function BlotterDetailsView({ blotter, handleDownload, handleStatusChange
                             <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="Pending">Pending</SelectItem>
+                            {blotter.status === "Pending" && (
+                                <SelectItem value="Pending">Pending</SelectItem>
+                            )}
                             <SelectItem value="Under Investigation">Under Investigation</SelectItem>
                             <SelectItem value="Resolved">Resolved</SelectItem>
                             <SelectItem value="Closed">Closed</SelectItem>
@@ -308,6 +326,27 @@ export function BlotterDetailsView({ blotter, handleDownload, handleStatusChange
                     </Select>
                 </div>
             </div>
+
+            {/* Confirmation Dialog */}
+            <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirm Status Change</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to change the status from "{blotter.status}" to "
+                            {newStatus}"?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={confirmStatusChange} disabled={updating}>
+                            Confirm
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
