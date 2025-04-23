@@ -9,6 +9,16 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
@@ -103,6 +113,8 @@ export function IncidentReportFormContent({ onComplete, onCancel }) {
     const { currentUser } = useSelector((state) => state.user);
     const [selectedCategory, setSelectedCategory] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [formDataToSubmit, setFormDataToSubmit] = useState(null);
 
     const {
         register,
@@ -162,22 +174,16 @@ export function IncidentReportFormContent({ onComplete, onCancel }) {
         }
     };
 
-    const onSubmit = async (data) => {
+    const handleConfirmSubmit = async () => {
+        setShowConfirmDialog(false);
+        if (!formDataToSubmit) return;
+
         try {
             setIsSubmitting(true);
 
-            // Include evidenceFile in the request body
-            const requestBody = {
-                ...data,
-                barangay: currentUser.barangay,
-                evidenceFile: data.evidenceFile, // Make sure to include the evidence file
-            };
-
-            console.log("Submitting data:", requestBody); // Debug log
-
             const response = await axios.post(
                 "http://localhost:5000/api/incident-report",
-                requestBody,
+                formDataToSubmit,
                 {
                     headers: {
                         Authorization: `Bearer ${currentUser.token}`,
@@ -200,7 +206,18 @@ export function IncidentReportFormContent({ onComplete, onCancel }) {
             toast.error(errorMessage);
         } finally {
             setIsSubmitting(false);
+            setFormDataToSubmit(null);
         }
+    };
+
+    const onSubmit = (data) => {
+        const requestBody = {
+            ...data,
+            barangay: currentUser.barangay,
+            evidenceFile: data.evidenceFile,
+        };
+        setFormDataToSubmit(requestBody);
+        setShowConfirmDialog(true);
     };
 
     return (
@@ -330,6 +347,24 @@ export function IncidentReportFormContent({ onComplete, onCancel }) {
                 <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Submitting..." : "Submit Report"}
                 </Button>
+
+                <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+                    <AlertDialogContent className="w-[450px]">
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Confirm Submission</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Are you sure you want to submit this incident report? Please verify
+                                all information is correct before proceeding.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleConfirmSubmit()}>
+                                Submit
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </form>
     );
