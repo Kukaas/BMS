@@ -6,25 +6,25 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     read: {
         type: Boolean,
-        default: false
+        default: false,
     },
     relatedDocId: mongoose.Schema.Types.ObjectId,
     docModel: {
         type: String,
         enum: [
-            'BarangayClearance',
-            'BarangayIndigency',
-            'BusinessClearance',
-            'Cedula',
-            'IncidentReport',
-            'BlotterReport'
+            "BarangayClearance",
+            "BarangayIndigency",
+            "BusinessClearance",
+            "Cedula",
+            "IncidentReport",
+            "BlotterReport",
         ],
-        required: true
+        required: true,
     },
     createdAt: {
         type: Date,
-        default: Date.now
-    }
+        default: Date.now,
+    },
 });
 
 const userSchema = new mongoose.Schema(
@@ -118,6 +118,15 @@ const userSchema = new mongoose.Schema(
         isActive: {
             type: Boolean,
             default: true,
+        },
+        mfaEnabled: {
+            type: Boolean,
+            default: false,
+        },
+        mfaSecret: {
+            type: String,
+            default: null,
+            select: false, // Don't include in regular queries
         },
         notifications: [notificationSchema],
         unreadNotifications: {

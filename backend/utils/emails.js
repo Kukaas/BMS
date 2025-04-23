@@ -306,3 +306,62 @@ export const sendActivationEmail = async (user) => {
         return false;
     }
 };
+
+export const sendMFACode = async (user, code) => {
+    try {
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: process.env.AUTH_EMAIL,
+                pass: process.env.AUTH_PASSWORD,
+            },
+        });
+
+        const mailOptions = {
+            from: {
+                name: "GASAN BMS",
+                address: process.env.AUTH_EMAIL,
+            },
+            to: user.email,
+            subject: "Two-Factor Authentication Code - GASAN BMS",
+            html: `
+                <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
+                    <div style="background-color: #166534; padding: 20px; text-align: center;">
+                        <h1 style="color: white; margin: 0;">GASAN BMS</h1>
+                    </div>
+                    <div style="padding: 20px; border: 1px solid #e5e7eb;">
+                        <h2 style="color: #166534; margin-bottom: 20px;">Your Authentication Code</h2>
+                        <p>Hello ${user.firstName} ${user.lastName},</p>
+                        <p>Here is your two-factor authentication code:</p>
+                        <div style="margin: 30px 0; text-align: center;">
+                            <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 5px; display: inline-block; min-width: 150px;">
+                                ${code}
+                            </div>
+                        </div>
+                        <div style="margin: 30px 0; padding: 20px; background-color: #fee2e2; border-radius: 8px;">
+                            <p style="margin: 0; color: #991b1b; font-size: 14px;">
+                                This code will expire in 5 minutes. Do not share this code with anyone.
+                            </p>
+                        </div>
+                        <div style="margin: 30px 0; padding: 20px; background-color: #f8fafc; border-radius: 8px;">
+                            <p style="margin: 0; color: #475569; font-size: 14px;">
+                                If you did not request this code, please change your password immediately and contact your barangay office.
+                            </p>
+                        </div>
+                        <p style="margin-top: 30px;">Best regards,<br>GASAN BMS Team</p>
+                    </div>
+                    <div style="background-color: #f3f4f6; padding: 20px; text-align: center; font-size: 12px; color: #6b7280;">
+                        <p>This is an automated message, please do not reply.</p>
+                    </div>
+                </div>
+            `,
+        };
+
+        await transporter.verify();
+        await transporter.sendMail(mailOptions);
+        return true;
+    } catch (error) {
+        console.error("Error sending MFA code:", error);
+        return false;
+    }
+};

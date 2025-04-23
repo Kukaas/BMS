@@ -1,15 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { loginFailure, loginStart, loginSuccess } from "@/redux/user/userSlice";
+import { loginFailure, loginStart } from "@/redux/user/userSlice";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
 import { z } from "zod";
 import {
     Form,
@@ -19,18 +17,15 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import api from "@/lib/axios";
 
 const schema = z.object({
-    email: z.string().email(),
-    password: z.string().min(6),
+    email: z.string().email("Please enter a valid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-export function LoginForm({ className }) {
-    const { currentUser } = useSelector((state) => state.user);
+export function LoginForm({ className, onSubmit }) {
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
 
     const form = useForm({
         resolver: zodResolver(schema),
@@ -40,31 +35,21 @@ export function LoginForm({ className }) {
         },
     });
 
-
     const handleLogin = async (values) => {
         try {
             setLoading(true);
             dispatch(loginStart());
 
-            const response = await api.post("/auth/login", values, {
-                headers: {
-                    "Content-Type": "application/json",
-                    withCredentials: true,
-                },
-            });
+            // Store credentials temporarily for MFA
+            localStorage.setItem("loginEmail", values.email);
+            localStorage.setItem("loginPassword", values.password);
 
-            if (response.status === 200) {
-                const { user, token } = response.data;
-                localStorage.setItem("token", token);
-                api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-                dispatch(loginSuccess({ ...user, token }));
-                toast.success("Logged in successfully");
-                navigate("/dashboard?tab=overview", { replace: true });
+            if (onSubmit) {
+                await onSubmit(values);
             }
         } catch (error) {
             console.error(error);
             dispatch(loginFailure(error.response?.data?.message || "Login failed"));
-            toast.error(error.response?.data?.message || "An error occurred during login");
         } finally {
             setLoading(false);
         }
@@ -135,7 +120,8 @@ export function LoginForm({ className }) {
                 >
                     {loading ? (
                         <div className="flex items-center gap-2">
-                            <span className="animate-spin">⏳</span> Signing in...
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            <span>Signing in...</span>
                         </div>
                     ) : (
                         "Sign in"
@@ -155,4 +141,5 @@ export function LoginForm({ className }) {
 
 LoginForm.propTypes = {
     className: PropTypes.string,
+    onSubmit: PropTypes.func,
 };
