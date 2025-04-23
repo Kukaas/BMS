@@ -7,6 +7,8 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogDescription,
+    DialogFooter,
 } from "@/components/ui/dialog";
 import {
     Select,
@@ -15,8 +17,22 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useState } from "react";
 
 export function IncidentDetailsView({ incident, handleDownload, handleStatusChange, updating }) {
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [newStatus, setNewStatus] = useState(incident.status);
+
+    const handleStatusUpdate = (value) => {
+        setNewStatus(value);
+        setIsConfirmOpen(true);
+    };
+
+    const confirmStatusChange = () => {
+        handleStatusChange(incident._id, newStatus);
+        setIsConfirmOpen(false);
+    };
+
     const downloadEvidence = (file) => {
         const link = document.createElement("a");
         link.href = file.data;
@@ -139,7 +155,7 @@ export function IncidentDetailsView({ incident, handleDownload, handleStatusChan
                         </p>
                     </div>
                     <Select
-                        onValueChange={(value) => handleStatusChange(incident._id, value)}
+                        onValueChange={handleStatusUpdate}
                         defaultValue={incident.status}
                         disabled={updating}
                     >
@@ -154,6 +170,27 @@ export function IncidentDetailsView({ incident, handleDownload, handleStatusChan
                     </Select>
                 </div>
             </div>
+
+            {/* Confirmation Dialog */}
+            <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirm Status Change</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to change the status from "{incident.status}" to "
+                            {newStatus}"?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={confirmStatusChange} disabled={updating}>
+                            Confirm
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
