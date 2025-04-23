@@ -90,14 +90,6 @@ export default function BusinessPermit() {
                         province: request.province,
                         // Purpose
                         purpose: request.purpose,
-                        // Documents
-                        dtiSecRegistration: request.dtiSecRegistration,
-                        barangayClearance: request.barangayClearance,
-                        validId: request.validId,
-                        mayorsPermit: request.mayorsPermit,
-                        leaseContract: request.leaseContract,
-                        fireSafetyCertificate: request.fireSafetyCertificate,
-                        sanitaryPermit: request.sanitaryPermit,
                         // Payment information
                         amount: request.amount || 0,
                         paymentMethod: request.paymentMethod || "N/A",

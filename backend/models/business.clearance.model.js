@@ -79,23 +79,6 @@ const businessClearanceSchema = new mongoose.Schema(
             required: true,
         },
 
-        // Required Documents
-        dtiSecRegistration: {
-            type: String,
-            required: true,
-        },
-        barangayClearance: {
-            type: String,
-            required: true,
-        },
-        validId: {
-            type: String,
-            required: true,
-        },
-        mayorsPermit: String,
-        leaseContract: String,
-        sanitaryPermit: String,
-
         // Payment Information
         amount: {
             type: Number,
@@ -109,7 +92,7 @@ const businessClearanceSchema = new mongoose.Schema(
         },
         orNumber: {
             type: String,
-            sparse: true, // Allows null/undefined but ensures uniqueness when present
+            sparse: true,
             unique: true,
         },
         treasurerName: {

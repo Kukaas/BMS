@@ -90,14 +90,6 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
             // Purpose
             purpose: initialData?.purpose || "",
 
-            // Required Documents
-            dtiSecRegistration: initialData?.dtiSecRegistration || "",
-            barangayClearance: initialData?.barangayClearance || "",
-            validId: initialData?.validId || "",
-            mayorsPermit: initialData?.mayorsPermit || "",
-            leaseContract: initialData?.leaseContract || "",
-            sanitaryPermit: initialData?.sanitaryPermit || "",
-
             // Payment Information
             amount: getAmountByBarangayAndPurpose(currentUser?.barangay, initialData?.purpose) || 0,
             paymentMethod: "",
@@ -455,81 +447,6 @@ export default function BusinessClearanceForm({ onSubmit, initialData, onDataCha
                                 <p className="text-red-500 text-sm">
                                     {errors.contactNumber.message}
                                 </p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Documents and Registration */}
-                <div className="space-y-4">
-                    <h4 className="text-md font-medium text-gray-700">
-                        Documents and Registration
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="dtiSecRegistration">DTI/SEC Registration Number</Label>
-                            <Input
-                                id="dtiSecRegistration"
-                                {...register("dtiSecRegistration")}
-                                placeholder="Enter registration number"
-                            />
-                            {errors.dtiSecRegistration && (
-                                <p className="text-red-500 text-sm">
-                                    {errors.dtiSecRegistration.message}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="mayorsPermit">Mayor's Permit (if renewing)</Label>
-                            <Input
-                                id="mayorsPermit"
-                                {...register("mayorsPermit")}
-                                placeholder="Enter permit number"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="leaseContract">Lease Contract/Land Title Number</Label>
-                            <Input
-                                id="leaseContract"
-                                {...register("leaseContract")}
-                                placeholder="Enter contract/title number"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="barangayClearance">Barangay Clearance Number</Label>
-                            <Input
-                                id="barangayClearance"
-                                {...register("barangayClearance")}
-                                placeholder="Enter clearance number"
-                            />
-                            {errors.barangayClearance && (
-                                <p className="text-red-500 text-sm">
-                                    {errors.barangayClearance.message}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="sanitaryPermit">Sanitary Permit</Label>
-                            <Input
-                                id="sanitaryPermit"
-                                {...register("sanitaryPermit")}
-                                placeholder="Enter permit number"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="validId">Valid Government ID Number</Label>
-                            <Input
-                                id="validId"
-                                {...register("validId")}
-                                placeholder="Enter ID number"
-                            />
-                            {errors.validId && (
-                                <p className="text-red-500 text-sm">{errors.validId.message}</p>
                             )}
                         </div>
                     </div>

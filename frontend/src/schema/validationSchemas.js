@@ -136,14 +136,6 @@ export const businessClearanceSchema = z.object({
         }
     ),
 
-    // Required Documents
-    dtiSecRegistration: z.string().min(1, "DTI/SEC registration number is required"),
-    barangayClearance: z.string().min(1, "Barangay clearance is required"),
-    validId: z.string().min(1, "Valid ID information is required"),
-    mayorsPermit: z.string().optional(),
-    leaseContract: z.string().optional(),
-    sanitaryPermit: z.string().optional(),
-
     // Payment Information
     amount: z
         .number({

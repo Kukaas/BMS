@@ -25,9 +25,6 @@ export const createBusinessClearance = async (req, res, next) => {
             "operatorManager",
             "contactNumber",
             "email",
-            "dtiSecRegistration",
-            "barangayClearance",
-            "validId",
             "paymentMethod",
             "dateOfPayment",
             "receipt",
@@ -56,7 +53,7 @@ export const createBusinessClearance = async (req, res, next) => {
                 success: false,
                 message: "Invalid amount value",
             });
-        }   
+        }
 
         // check if reference number is unique
         const existingClearance = await BusinessClearance.findOne({ referenceNumber });
