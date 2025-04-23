@@ -20,11 +20,23 @@ import api from "@/lib/axios";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 import { Phone } from "lucide-react";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function BlotterReportForm({ onSubmit, isSubmitting, onCancel }) {
     const { currentUser } = useSelector((state) => state.user);
     const [receiptPreview, setReceiptPreview] = useState(null);
     const [treasurer, setTreasurer] = useState(null);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [formDataToSubmit, setFormDataToSubmit] = useState(null);
 
     const form = useForm({
         resolver: zodResolver(blotterReportSchema),
@@ -174,7 +186,6 @@ export default function BlotterReportForm({ onSubmit, isSubmitting, onCancel }) 
                 referenceNumber: data.referenceNumber || undefined,
                 name: data.complainantName,
                 actionRequested: data.actionRequested || "Mediation",
-                // Ensure receipt data is properly structured
                 receipt: {
                     filename: data.receipt.filename,
                     contentType: data.receipt.contentType,
@@ -182,16 +193,22 @@ export default function BlotterReportForm({ onSubmit, isSubmitting, onCancel }) 
                 },
             };
 
-            // Log the formatted data for debugging
-            console.log("Submitting data with receipt:", formattedData.receipt);
-
-            onSubmit(formattedData, () => {
-                reset();
-                setReceiptPreview(null);
-            });
+            setFormDataToSubmit(formattedData);
+            setShowConfirmDialog(true);
         } catch (error) {
             console.error("Error formatting form data:", error);
             toast.error("There was an error preparing your form data. Please try again.");
+        }
+    };
+
+    const handleConfirmedSubmit = () => {
+        if (formDataToSubmit) {
+            onSubmit(formDataToSubmit, () => {
+                reset();
+                setReceiptPreview(null);
+                setFormDataToSubmit(null);
+            });
+            setShowConfirmDialog(false);
         }
     };
 
@@ -631,6 +648,24 @@ export default function BlotterReportForm({ onSubmit, isSubmitting, onCancel }) 
                     )}
                 </Button>
             </div>
+
+            <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+                <AlertDialogContent className="w-[450px]">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Submission</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to submit this blotter report? Please verify all
+                            information is correct before proceeding.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleConfirmedSubmit}>
+                            Submit
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </form>
     );
 }

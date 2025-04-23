@@ -9,6 +9,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { getUserFromLocalStorage } from "@/lib/utils";
 import axios from "axios";
 import { toast } from "sonner";
@@ -35,6 +45,7 @@ export default function DocumentRequestForm() {
         return savedState ? JSON.parse(savedState).formData : null;
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [user, setUser] = useState(() => getUserFromLocalStorage());
 
     // Save form state to localStorage whenever it changes
@@ -191,6 +202,14 @@ export default function DocumentRequestForm() {
         }
     };
 
+    const handleConfirmSubmit = () => {
+        const form = document.querySelector("form");
+        if (form) {
+            form.requestSubmit();
+        }
+        setShowConfirmDialog(false);
+    };
+
     return (
         <Card className="w-full max-w-4xl mx-auto">
             <CardHeader></CardHeader>
@@ -228,16 +247,33 @@ export default function DocumentRequestForm() {
                             </Button>
                             <Button
                                 type="button"
-                                onClick={() => {
-                                    const form = document.querySelector("form");
-                                    if (form) {
-                                        form.requestSubmit();
-                                    }
-                                }}
+                                onClick={() => setShowConfirmDialog(true)}
                                 disabled={isSubmitting}
                             >
                                 {isSubmitting ? "Submitting..." : "Submit Request"}
                             </Button>
+
+                            <AlertDialog
+                                open={showConfirmDialog}
+                                onOpenChange={setShowConfirmDialog}
+                            >
+                                <AlertDialogContent className="w-[450px]">
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Confirm Submission</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Are you sure you want to submit this document request?
+                                            Please verify all information is correct before
+                                            proceeding.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleConfirmSubmit}>
+                                            Submit
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         </div>
                     )}
                 </div>
