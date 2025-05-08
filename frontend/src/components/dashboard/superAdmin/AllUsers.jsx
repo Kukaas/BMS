@@ -964,7 +964,7 @@ export function UserManagementDashboard() {
                                                     )}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
-                                            <DialogContent className="max-w-[700px]">
+                                            <DialogContent className="max-w-[700px] max-h-[600px] overflow-auto">
                                                 {selectedUser && (
                                                     <UserDetailsView user={selectedUser} />
                                                 )}

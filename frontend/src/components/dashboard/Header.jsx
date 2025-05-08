@@ -197,7 +197,7 @@ export function Header() {
 
             {/* Profile Dialog */}
             <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
-                <DialogContent className="max-w-[600px] p-0">
+                <DialogContent className="max-w-[600px] max-h-[600px] p-0 overflow-x-auto">
                     {/* Header Section */}
                     <div className="relative h-32 bg-gradient-to-r from-green-600 to-green-700 rounded-t-lg">
                         <div className="absolute -bottom-16 left-6">

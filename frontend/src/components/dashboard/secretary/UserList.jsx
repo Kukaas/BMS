@@ -416,7 +416,7 @@ export function UserList() {
                                                                 View Details
                                                             </DropdownMenuItem>
                                                         </DialogTrigger>
-                                                        <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
+                                                        <DialogContent className="max-w-3xl max-h-[600px] overflow-auto">
                                                             <UserDetailsView user={user} />
                                                         </DialogContent>
                                                     </Dialog>
