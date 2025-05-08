@@ -9,7 +9,7 @@ import { sendOTPVerificationEmail, sendVerificationEmail } from "../utils/emails
 import { setToken } from "../utils/setToken.js";
 import jwt from "jsonwebtoken";
 import { createLog } from "./log.controller.js";
-import { sendNotificationToUser } from "../utils/notifications.js";
+import { createNotification, sendNotificationToUser } from "../utils/notifications.js";
 
 dotenv.config();
 
@@ -96,16 +96,6 @@ export const signUp = async (req, res, next) => {
             barangay,
             purok,
             password: hashedPassword,
-        });
-
-        // Send 2fa notification
-        await sendNotificationToUser(newUser._id, {
-            title: "2FA Notification",
-            message:
-                "You can enable two-factor authentication (2FA) for your account. Click here to set it up.",
-            type: "2fa",
-            relatedDocId: newUser._id,
-            docModel: "User",
         });
         // Save user and send verification
         await newUser.save().then((result) => {
@@ -227,10 +217,10 @@ export const login = async (req, res, next) => {
         if (user.role !== "superAdmin") {
             const logMessage =
                 user.role === "user"
-                    ? `Resident ${user.firstName} ${user.lastName} from ${user.barangay} has logged in`
-                    : `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} ${
-                          user.firstName
-                      } ${user.lastName} from ${user.barangay} has logged in`;
+                    ? `Resident ${userData.firstName} ${userData.lastName} from ${userData.barangay} has logged in`
+                    : `${userData.role.charAt(0).toUpperCase() + userData.role.slice(1)} ${
+                          userData.firstName
+                      } ${userData.lastName} from ${userData.barangay} has logged in`;
 
             await createLog(user._id, "User logged in", "User Activity", logMessage);
         }
@@ -274,11 +264,22 @@ export const verifyEmail = async (req, res, next) => {
             "http://localhost:5173/api/v1/auth/verifiedEmail?error=true&message=Link%20expired.%20Please%20resend%20a%20new%20verification."
         );
     }
-
     const user = await User.findById(userId);
     user.isVerified = true;
     await user.save();
     await userVerification.deleteOne();
+
+    // Create and send 2FA notification to the user
+    // Using IncidentReport as docModel since this is just a notification not tied to any document
+    const notification = createNotification(
+        "Account Verified Successfully",
+        "You can enable 2FA (Two-Factor Authentication) if you want to secure your account.",
+        "2fa",
+        user._id,
+        "2FA"
+    );
+    await sendNotificationToUser(user._id, notification);
+
     res.redirect("http://localhost:5000/api/auth/verifiedEmail");
 };
 

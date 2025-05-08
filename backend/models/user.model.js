@@ -18,6 +18,7 @@ const notificationSchema = new mongoose.Schema({
             "Cedula",
             "IncidentReport",
             "BlotterReport",
+            "2FA",
         ],
         required: true,
     },

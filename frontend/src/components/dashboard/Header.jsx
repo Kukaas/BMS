@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import api from "@/lib/axios";
+import { appEvents, APP_EVENTS } from "@/lib/appEvents"; // Import appEvents
 import { logout, updateUser } from "@/redux/user/userSlice";
 import {
     Lock,
@@ -24,7 +25,7 @@ import {
     ShieldOff,
     Mail,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -90,6 +91,15 @@ export function Header() {
             purok: currentUser?.purok || "",
         },
     });
+
+    // Listen for app events to open profile modal
+    useEffect(() => {
+        const unsubscribe = appEvents.on(APP_EVENTS.OPEN_PROFILE_MODAL, () => {
+            setIsProfileOpen(true);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     const handleLogout = async () => {
         try {

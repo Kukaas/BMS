@@ -1,10 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Bell, Loader2, Trash2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { notificationService } from "@/services/notification.service";
@@ -14,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { Badge } from "@/components/ui/badge";
+import { appEvents, APP_EVENTS } from "@/lib/appEvents"; // Import appEvents
 
 export function NotificationsPopover() {
     const user = useSelector((state) => state.user.currentUser);
@@ -75,7 +72,10 @@ export function NotificationsPopover() {
         }
 
         // Handle navigation based on notification type and user role
-        if (notification.type === "request") {
+        if (notification.type === "2fa") {
+            // For 2FA notifications, open the profile modal
+            appEvents.emit(APP_EVENTS.OPEN_PROFILE_MODAL);
+        } else if (notification.type === "request") {
             // For request notifications, navigate based on user role
             const dashboardPath =
                 user?.role === "secretary" || user?.role === "chairman"
@@ -135,6 +135,8 @@ export function NotificationsPopover() {
     // Get notification icon based on type
     const getNotificationIcon = (type) => {
         switch (type) {
+            case "2fa":
+                return "🔐"; // Add an icon for 2FA notifications
             case "request":
                 return "📝";
             case "status_update":
