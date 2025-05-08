@@ -4,7 +4,7 @@ import {
     sendDeactivationEmail,
     sendActivationEmail,
 } from "../utils/emails.js";
-import bcrypt from 'bcryptjs';
+import bcrypt from "bcryptjs";
 import Officials from "../models/officials.model.js";
 
 export const getUsersByBarangay = async (req, res, next) => {
@@ -523,3 +523,40 @@ export const getBarangayChairman = async (req, res, next) => {
     }
 };
 
+export const deleteUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { role } = req.user;
+
+        // Check if user has permission to delete
+        if (role !== "superAdmin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Not authorized.",
+            });
+        }
+
+        // Find and delete user
+        const deletedUser = await User.findByIdAndDelete(userId);
+
+        if (!deletedUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "User deleted successfully",
+            data: deletedUser,
+        });
+    } catch (error) {
+        console.error("Delete user error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+};

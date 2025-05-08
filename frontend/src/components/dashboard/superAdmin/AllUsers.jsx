@@ -310,7 +310,11 @@ export function UserManagementDashboard() {
             });
 
             if (res.data) {
-                setUsers(res.data);
+                // Filter user from newest to oldest
+                const sortedUsers = res.data.sort((a, b) => {
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                });
+                setUsers(sortedUsers);
                 setLoading(false);
             }
         } catch (error) {
@@ -434,6 +438,38 @@ export function UserManagementDashboard() {
             setActionLoading({
                 ...actionLoading,
                 activating: false,
+            });
+        }
+    };
+
+    const handleDeleteUser = async (userId) => {
+        try {
+            setActionLoading({
+                verifying: false,
+                rejecting: false,
+                deactivating: false,
+                activating: false,
+                userId,
+            });
+            const res = await axios.delete(`http://localhost:5000/api/users/${userId}`, {
+                headers: {
+                    Authorization: `Bearer ${currentUser.token}`,
+                },
+            });
+
+            if (res.data.success) {
+                toast.success("User deleted successfully");
+                fetchUsers();
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to delete user");
+        } finally {
+            setActionLoading({
+                verifying: false,
+                rejecting: false,
+                deactivating: false,
+                activating: false,
+                userId: null,
             });
         }
     };
@@ -962,6 +998,12 @@ export function UserManagementDashboard() {
                                                             )}
                                                         </>
                                                     )}
+
+                                                    {/* <DropdownMenuItem
+                                                        onClick={() => handleDeleteUser(user._id)}
+                                                    >
+                                                        Delete
+                                                    </DropdownMenuItem> */}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                             <DialogContent className="max-w-[700px] max-h-[600px] overflow-auto">

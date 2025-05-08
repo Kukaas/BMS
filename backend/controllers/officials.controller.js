@@ -12,6 +12,14 @@ export const createOfficial = async (req, res, next) => {
             });
         }
 
+        const userExist = await Officials.findOne({ name, barangay });
+        if (userExist) {
+            return res.status(400).json({
+                success: false,
+                message: "Official already exists in this barangay",
+            });
+        }
+
         // Validate purok field for Kagawad position
         if (position === "Kagawad" && !purok) {
             return res.status(400).json({

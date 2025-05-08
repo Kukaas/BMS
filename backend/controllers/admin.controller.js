@@ -43,8 +43,8 @@ export const createSecretaryAccount = async (req, res, next) => {
         }
 
         // Check if user email already exists
-        const emailExist = await User.findOne({ email });
-        if (emailExist) {
+        const userExist = await User.findOne({ firstName, lastName, middleName, email });
+        if (userExist) {
             return res.status(400).json({
                 success: false,
                 message: "Email already exists!",
@@ -114,8 +114,8 @@ export const createCaptainAccount = async (req, res, next) => {
         }
 
         // Check if user email already exists
-        const emailExist = await User.findOne({ email });
-        if (emailExist) {
+        const userExist = await User.findOne({ firstName, lastName, middleName, email });
+        if (userExist) {
             return res.status(400).json({
                 success: false,
                 message: "Email already exists!",
@@ -184,9 +184,9 @@ export const createSuperAdminAccount = async (req, res, next) => {
             });
         }
 
-        // Check if user email already exists
-        const emailExist = await User.findOne({ email });
-        if (emailExist) {
+        // Check if user already exist
+        const userExist = await User.findOne({ firstName, lastName, middleName, email });
+        if (userExist) {
             return res.status(400).json({
                 success: false,
                 message: "Email already exists!",
@@ -257,8 +257,8 @@ export const createTreasurerAccount = async (req, res, next) => {
         }
 
         // Check if user email already exists
-        const emailExist = await User.findOne({ email });
-        if (emailExist) {
+        const userExist = await User.findOne({ firstName, lastName, middleName, email });
+        if (userExist) {
             return res.status(400).json({
                 success: false,
                 message: "Email already exists!",

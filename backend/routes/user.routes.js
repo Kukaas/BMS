@@ -11,6 +11,7 @@ import {
     changePassword,
     updateProfile,
     getBarangayChairman,
+    deleteUser,
 } from "../controllers/user.controller.js";
 import verifyToken from "../utils/verifyToken.js";
 
@@ -50,12 +51,16 @@ router.patch("/:userId/change-password", verifyToken, changePassword);
 // Add this new route
 router.patch("/:userId/update-profile", verifyToken, updateProfile);
 
+// Add this new route for deleting a user
+router.delete("/:userId", verifyToken, (req, res, next) => {
+    console.log("Delete route hit:", req.params);
+    deleteUser(req, res, next);
+});
+
 // Add this new route before the parameterized routes
 router.get("/chairman/current", verifyToken, getBarangayChairman);
 
 // Generic parameterized route should be last
 router.get("/:userId", verifyToken, getUserById);
 
-
 export default router;
-

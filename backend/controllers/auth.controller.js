@@ -9,6 +9,7 @@ import { sendOTPVerificationEmail, sendVerificationEmail } from "../utils/emails
 import { setToken } from "../utils/setToken.js";
 import jwt from "jsonwebtoken";
 import { createLog } from "./log.controller.js";
+import { sendNotificationToUser } from "../utils/notifications.js";
 
 dotenv.config();
 
@@ -97,6 +98,15 @@ export const signUp = async (req, res, next) => {
             password: hashedPassword,
         });
 
+        // Send 2fa notification
+        await sendNotificationToUser(newUser._id, {
+            title: "2FA Notification",
+            message:
+                "You can enable two-factor authentication (2FA) for your account. Click here to set it up.",
+            type: "2fa",
+            relatedDocId: newUser._id,
+            docModel: "User",
+        });
         // Save user and send verification
         await newUser.save().then((result) => {
             sendVerificationEmail(result, res);
