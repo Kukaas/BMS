@@ -102,18 +102,13 @@ function Dashboard({ tab }) {
         },
         {
             icon: Users,
-            label: "All Users",
+            label: "Manage Users",
             href: "/dashboard?tab=allusers",
         },
         {
             icon: FileText,
-            label: "Logs",
+            label: "View Logs",
             href: "/dashboard?tab=logs",
-        },
-        {
-            icon: Users,
-            label: "Transactions",
-            href: "/dashboard?tab=transactions",
         },
     ];
 
@@ -160,11 +155,6 @@ function Dashboard({ tab }) {
             icon: FileText,
             label: "Blotter Report",
             href: "/dashboard?tab=blotterreports",
-        },
-        {
-            icon: Users,
-            label: "Residents",
-            href: "/dashboard?tab=residents",
         },
         {
             icon: Users,

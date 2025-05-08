@@ -49,8 +49,8 @@ export function Sidebar() {
                 href: "/dashboard?tab=overview",
             },
             { icon: User2Icon, label: "Register", href: "/dashboard?tab=register" },
-            { icon: Users, label: "All Users", href: "/dashboard?tab=allusers" },
-            { icon: FileText, label: "Logs", href: "/dashboard?tab=logs" },
+            { icon: Users, label: "Manage Users", href: "/dashboard?tab=allusers" },
+            { icon: FileText, label: " Logs", href: "/dashboard?tab=logs" },
         ];
     } else if (currentUser?.role === "user") {
         sidebarItems = [
@@ -98,11 +98,15 @@ export function Sidebar() {
                 label: "Residents",
                 href: "/dashboard?tab=residents",
             },
-            {
-                icon: User2Icon,
-                label: "Users List",
-                href: "/dashboard?tab=userlist",
-            },
+            ...(currentUser?.role !== "chairman"
+                ? [
+                      {
+                          icon: User2Icon,
+                          label: "Users List",
+                          href: "/dashboard?tab=userlist",
+                      },
+                  ]
+                : []),
         ];
     }
 
