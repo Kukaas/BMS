@@ -77,25 +77,25 @@ export function SuperAdminLogViewer() {
 
     const formatDate = (dateString, formatStr = "yyyy-MM-dd HH:mm:ss") => {
         try {
-            if (!dateString) return 'No date available';
+            if (!dateString) return "No date available";
             const date = new Date(dateString);
             // Check if date is valid
             if (isNaN(date.getTime())) {
-                return 'Invalid date';
+                return "Invalid date";
             }
             return format(date, formatStr);
         } catch (error) {
             console.error("Error formatting date:", error);
-            return 'Invalid date';
+            return "Invalid date";
         }
     };
 
     const getUserName = (log) => {
         try {
-            return log.userId?.name || 'Unknown User';
+            return log.userId?.email || "Unknown User";
         } catch (error) {
             console.error("Error getting user name:", error);
-            return 'Unknown User';
+            return "Unknown User";
         }
     };
 
@@ -313,9 +313,7 @@ export function SuperAdminLogViewer() {
                         <TableBody>
                             {currentLogs.map((log) => (
                                 <TableRow key={log._id}>
-                                    <TableCell>
-                                        {formatDate(getLogDate(log))}
-                                    </TableCell>
+                                    <TableCell>{formatDate(getLogDate(log))}</TableCell>
                                     <TableCell>
                                         <Badge className={getTypeColor(log.type)}>{log.type}</Badge>
                                     </TableCell>
@@ -346,13 +344,19 @@ export function SuperAdminLogViewer() {
                                                                     <div className="flex items-center gap-2">
                                                                         <CalendarIcon className="h-4 w-4 text-primary" />
                                                                         <p className="font-medium">
-                                                                            {formatDate(getLogDate(log), "MMM dd, yyyy")}
+                                                                            {formatDate(
+                                                                                getLogDate(log),
+                                                                                "MMM dd, yyyy"
+                                                                            )}
                                                                         </p>
                                                                     </div>
                                                                     <div className="flex items-center gap-2">
                                                                         <Clock className="h-4 w-4 text-primary" />
                                                                         <p className="font-medium">
-                                                                            {formatDate(getLogDate(log), "HH:mm:ss")}
+                                                                            {formatDate(
+                                                                                getLogDate(log),
+                                                                                "HH:mm:ss"
+                                                                            )}
                                                                         </p>
                                                                     </div>
                                                                 </div>
