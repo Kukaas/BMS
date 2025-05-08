@@ -29,6 +29,20 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
         return higherFeeBarangays.includes(barangay) ? 100 : 50;
     };
 
+    const computeAge = (birthdate) => {
+        const today = new Date();
+        const birthDate = new Date(birthdate);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDifference = today.getMonth() - birthDate.getMonth();
+        if (
+            monthDifference < 0 ||
+            (monthDifference === 0 && today.getDate() < birthDate.getDate())
+        ) {
+            age--;
+        }
+        return age;
+    };
+
     const {
         register,
         handleSubmit,
@@ -47,7 +61,7 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
             barangay: currentUser?.barangay || "",
             dateOfBirth: currentUser?.dateOfBirth || "",
             sex: currentUser?.sex || "",
-            age: currentUser?.age || "",
+            age: computeAge(currentUser?.dateOfBirth),
             purpose: initialData?.purpose || "",
             purok: currentUser?.purok || "",
             placeOfBirth: "",
@@ -84,20 +98,6 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
         onDataChange?.(formValues);
     }, [formValues, onDataChange]);
 
-    // Calculate age from date of birth
-    useEffect(() => {
-        if (currentUser?.dateOfBirth) {
-            const dob = new Date(currentUser.dateOfBirth);
-            const today = new Date();
-            let age = today.getFullYear() - dob.getFullYear();
-            const m = today.getMonth() - dob.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-                age--;
-            }
-            setValue("age", age);
-        }
-    }, [currentUser?.dateOfBirth, setValue]);
-
     // Update form when user changes
     useEffect(() => {
         if (currentUser) {
@@ -109,6 +109,7 @@ export default function BarangayClearanceForm({ onSubmit, initialData, onDataCha
             setValue("contactNumber", currentUser.contactNumber || "");
             setValue("barangay", currentUser.barangay || "");
             setValue("dateOfBirth", currentUser.dateOfBirth || "");
+            setValue("age", computeAge(currentUser.dateOfBirth) || "");
             setValue("sex", currentUser.sex || "");
             setValue("purok", currentUser.purok || "");
             setValue(
